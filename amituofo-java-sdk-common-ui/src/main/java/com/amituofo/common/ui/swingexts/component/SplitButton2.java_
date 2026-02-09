@@ -1,0 +1,258 @@
+package com.amituofo.common.ui.swingexts.component;
+
+import javax.swing.*;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.awt.geom.*;
+
+/**
+ * Split Button - A button with dropdown menu
+ */
+public class SplitButton2 extends JButton {
+    private JPopupMenu popupMenu;
+    private int arrowWidth = 12;
+    private boolean arrowPressed = false;
+    private List<BeforePopupMenuListener> beforePopupMenuListeners = new ArrayList<>();
+
+    public interface BeforePopupMenuListener {
+        void beforePopupMenuShown(JPopupMenu popupMenu);
+    }
+
+    public SplitButton2(String text) {
+        this(text, null);
+    }
+
+    public SplitButton2(Icon icon) {
+        this(null, icon);
+    }
+
+    public SplitButton2(String text, Icon icon) {
+        super(text, icon);
+        popupMenu = new JPopupMenu();
+        setMargin(new Insets(2, 2, 2, arrowWidth + 4));
+
+        // Add PopupMenuListener to reset arrowPressed when menu is closed
+        popupMenu.addPopupMenuListener(new PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                // No action needed
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+                arrowPressed = false;
+            }
+
+            @Override
+            public void popupMenuCanceled(PopupMenuEvent e) {
+                arrowPressed = false;
+            }
+        });
+
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (isArrowArea(e.getPoint())) {
+                    arrowPressed = true;
+                    fireBeforePopupMenuShown();
+                    popupMenu.show(SplitButton2.this, 0, getHeight());
+                    arrowPressed = false; // Reset after showing menu
+                    e.consume();
+                } else {
+                    arrowPressed = false;
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (isArrowArea(e.getPoint())) {
+                    arrowPressed = true;
+                    e.consume();
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (arrowPressed) {
+                    arrowPressed = false;
+                    e.consume();
+                }
+            }
+        });
+    }
+
+    public void addBeforePopupMenuListener(BeforePopupMenuListener listener) {
+        beforePopupMenuListeners.add(listener);
+    }
+
+    public void removeBeforePopupMenuListener(BeforePopupMenuListener listener) {
+        beforePopupMenuListeners.remove(listener);
+    }
+
+    private void fireBeforePopupMenuShown() {
+        for (BeforePopupMenuListener listener : beforePopupMenuListeners) {
+            listener.beforePopupMenuShown(popupMenu);
+        }
+    }
+
+    private boolean isArrowArea(Point p) {
+        return p.x >= getWidth() - arrowWidth - 4;
+    }
+
+    public JMenuItem addMenuItem(String text) {
+        JMenuItem item = new JMenuItem(text);
+        popupMenu.add(item);
+        return item;
+    }
+
+    public void addMenuItem(String text, ActionListener listener) {
+        JMenuItem item = new JMenuItem(text);
+        item.addActionListener(listener);
+        popupMenu.add(item);
+    }
+
+    public void addMenuItem(String text, Icon icon, ActionListener listener) {
+        JMenuItem item = new JMenuItem(text, icon);
+        item.addActionListener(listener);
+        popupMenu.add(item);
+    }
+
+    public void addMenuItem(JMenuItem item) {
+        popupMenu.add(item);
+    }
+
+    public void addSeparator() {
+        popupMenu.addSeparator();
+    }
+
+    public JPopupMenu getPopupMenu() {
+        return popupMenu;
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        Insets insets = getInsets();
+        int w = getWidth();
+        int h = getHeight();
+
+        int separatorX = w - arrowWidth - 3;
+        g2.setColor(new Color(180, 180, 180));
+        g2.drawLine(separatorX, insets.top + 2, separatorX, h - insets.bottom - 2);
+
+        int arrowX = w - arrowWidth / 2 - 2;
+        int arrowY = h / 2 - 1;
+        int arrowSize = 3;
+
+        int[] xPoints = { arrowX - arrowSize, arrowX + arrowSize, arrowX };
+        int[] yPoints = { arrowY, arrowY, arrowY + arrowSize + 1 };
+
+        g2.setColor(isEnabled() ? Color.BLACK : Color.GRAY);
+        g2.fillPolygon(xPoints, yPoints, 3);
+
+        g2.dispose();
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        Dimension size = super.getPreferredSize();
+        return size;
+    }
+
+    @Override
+    protected void fireActionPerformed(ActionEvent event) {
+        if (!arrowPressed) {
+            super.fireActionPerformed(event);
+        }
+        arrowPressed = false;
+    }
+
+    private static Icon createColorIcon(Color color, int size) {
+        return new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(color);
+                g2.fillRoundRect(x, y, size, size, 4, 4);
+                g2.setColor(color.darker());
+                g2.drawRoundRect(x, y, size, size, 4, 4);
+                g2.dispose();
+            }
+
+            @Override
+            public int getIconWidth() {
+                return size;
+            }
+
+            @Override
+            public int getIconHeight() {
+                return size;
+            }
+        };
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Split Button Demo");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setLayout(new BorderLayout());
+
+            JToolBar toolbar = new JToolBar("Tools");
+            toolbar.setFloatable(false);
+
+            Icon normalIcon = createColorIcon(new Color(158, 158, 158), 20);
+            JButton normalButton = new JButton(normalIcon);
+            normalButton.setToolTipText("Normal Button");
+            toolbar.add(normalButton);
+
+            toolbar.addSeparator();
+
+            Icon saveIcon = createColorIcon(new Color(76, 175, 80), 20);
+            SplitButton2 saveButton = new SplitButton2(saveIcon);
+            saveButton.setToolTipText("Save");
+            saveButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Save"));
+            saveButton.addMenuItem("Save As...", e -> JOptionPane.showMessageDialog(frame, "Save As..."));
+            saveButton.addMenuItem("Save Copy", e -> JOptionPane.showMessageDialog(frame, "Save Copy..."));
+            saveButton.addSeparator();
+            saveButton.addMenuItem("Save Template", e -> JOptionPane.showMessageDialog(frame, "Save Template..."));
+            saveButton.addBeforePopupMenuListener(popup -> JOptionPane.showMessageDialog(frame, "Save menu will be shown"));
+            toolbar.add(saveButton);
+
+            Icon sendIcon = createColorIcon(new Color(33, 150, 243), 20);
+            SplitButton2 sendButton = new SplitButton2(sendIcon);
+            sendButton.setToolTipText("Send");
+            sendButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Send Email"));
+            sendButton.addMenuItem("Send with CC", e -> JOptionPane.showMessageDialog(frame, "Send with CC"));
+            sendButton.addMenuItem("Schedule Send", e -> JOptionPane.showMessageDialog(frame, "Schedule Send"));
+            sendButton.addMenuItem("Send Draft", e -> JOptionPane.showMessageDialog(frame, "Send Draft"));
+            sendButton.addBeforePopupMenuListener(popup -> JOptionPane.showMessageDialog(frame, "Send menu will be shown"));
+            toolbar.add(sendButton);
+
+            Icon runIcon = createColorIcon(new Color(244, 67, 54), 20);
+            SplitButton2 runButton = new SplitButton2(runIcon);
+            runButton.setToolTipText("Run");
+            runButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Run Default"));
+            runButton.addMenuItem("Run Config 1", e -> JOptionPane.showMessageDialog(frame, "Run Config 1"));
+            runButton.addMenuItem("Run Config 2", e -> JOptionPane.showMessageDialog(frame, "Run Config 2"));
+            runButton.addMenuItem("Debug Mode", e -> JOptionPane.showMessageDialog(frame, "Debug Mode"));
+            runButton.addBeforePopupMenuListener(popup -> JOptionPane.showMessageDialog(frame, "Run menu will be shown"));
+            toolbar.add(runButton);
+
+            frame.add(toolbar, BorderLayout.NORTH);
+            frame.add(new JLabel("Split buttons in toolbar match regular button style", SwingConstants.CENTER), BorderLayout.CENTER);
+
+            frame.setSize(500, 200);
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+        });
+    }
+}

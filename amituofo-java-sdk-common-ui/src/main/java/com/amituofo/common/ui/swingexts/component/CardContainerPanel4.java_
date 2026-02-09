@@ -1,0 +1,183 @@
+package com.amituofo.common.ui.swingexts.component;
+
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.LayoutManager;
+import java.awt.image.BufferedImage;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import javax.swing.Timer;
+
+import com.amituofo.common.api.Callback;
+import com.amituofo.common.api.Destroyable;
+import com.amituofo.common.ui.action.CardAction;
+import com.amituofo.common.ui.action.DestroyAction;
+import com.amituofo.common.ui.lang.DataComponent;
+import com.amituofo.common.ui.util.UIUtils;
+
+public class CardContainerPanel4<C extends JComponent, D> extends DefaultPanel {
+	private DataComponent<C, D> topDataComponent = null;
+	private Map<String, DataComponent<C, D>> components = new HashMap<String, DataComponent<C, D>>();
+
+	private final JLayeredPane layeredPane;
+
+	public CardContainerPanel4() {
+		layeredPane = new JLayeredPane();
+		add(layeredPane, BorderLayout.CENTER);
+	}
+
+	public void setLayout(LayoutManager mgr) {
+	}
+
+	public void addComponent(String name, C comp, D data) {
+		DataComponent<C, D> cd = new DataComponent<C, D>(name, comp, data);
+		synchronized (components) {
+			components.put(name, cd);
+		}
+	}
+
+	@Override
+	public void destroy() {
+		synchronized (components) {
+			topDataComponent = null;
+			if (!components.isEmpty()) {
+				for (DataComponent<C, D> dc : components.values()) {
+					if (dc.getComponent() instanceof Destroyable) {
+						((Destroyable) dc.getComponent()).destroy();
+					}
+				}
+
+				super.removeAll();
+				components.clear();
+			}
+		}
+		super.destroy();
+	}
+
+	public void setSwitchAnimation(CardSlideDirection direction) {
+	}
+
+	@Override
+	public void refresh() {
+		if (topDataComponent != null) {
+			Component c = topDataComponent.getComponent();
+			if (c instanceof CardAction) {
+				((CardAction) c).refresh();
+			}
+		}
+	}
+
+	public void switchTo(String name) {
+		switchTo(name, null);
+	}
+
+	public void switchTo(String name, Callback<DataComponent<C, D>> callback) {
+		synchronized (components) {
+			if (!components.containsKey(name)) {
+				return;
+			}
+
+			final DataComponent<C, D> nextComponent = components.get(name);
+
+			if (nextComponent == topDataComponent || nextComponent == null) {
+				if (callback != null) {
+					callback.callback(nextComponent);
+				}
+				return;
+			}
+
+			if (topDataComponent != null) {
+				JComponent c = topDataComponent.getComponent();
+				if (c instanceof CardAction) {
+					((CardAction) c).deactiving();
+				}
+			}
+
+			JComponent nextPanel = nextComponent.getComponent();
+			replaceContentPanel(nextPanel);
+
+			topDataComponent = nextComponent;
+
+			if (nextPanel instanceof CardAction) {
+				((CardAction) nextPanel).activing();
+			} else {
+				nextPanel.revalidate();
+				nextPanel.repaint();
+			}
+
+			if (callback != null) {
+				callback.callback(nextComponent);
+			}
+		}
+	}
+
+	public Collection<DataComponent<C, D>> getDataComponents() {
+		return components.values();
+	}
+
+	public boolean hasComponent(String name) {
+		return components.containsKey(name);
+	}
+
+	public DataComponent<C, D> getComponent(String name) {
+		return components.get(name);
+	}
+
+	public DataComponent<C, D> getTopComponent() {
+		return topDataComponent;
+	}
+
+	public DataComponent<C, D> removeAndDestroy(String name) {
+		synchronized (components) {
+			DataComponent<C, D> cd = components.remove(name);
+			if (cd != null) {
+				if (topDataComponent == cd) {
+					topDataComponent = null;
+				}
+
+				remove(cd.getComponent());
+
+				if (cd.getComponent() instanceof DestroyAction) {
+					((DestroyAction) cd.getComponent()).destroy();
+				}
+			}
+
+			return cd;
+		}
+	}
+
+	@Override
+	public void doLayout() {
+		super.doLayout();
+
+		// 1. 确保 layeredPane 充满整个容器
+		// 这行代码是关键！它使 layeredPane 的大小与 SnapshotSlidingContainer 保持一致。
+		layeredPane.setBounds(0, 0, getWidth(), getHeight());
+
+		// 2. 确保内容面板也充满 layeredPane
+		if (topDataComponent != null) {
+			// currentPanel 放在 DEFAULT_LAYER，它的尺寸必须与 layeredPane 一致
+			topDataComponent.getComponent().setBounds(0, 0, layeredPane.getWidth(), layeredPane.getHeight());
+		}
+	}
+
+	/**
+	 * 将目标面板设置到 JLayeredPane 的内容层 (Default Layer)
+	 */
+	private void replaceContentPanel(JComponent nextPanel) {
+		if (topDataComponent != null) {
+			layeredPane.removeAll();
+		}
+
+		// 确保目标面板的大小正确
+		// 将真正的面板放到最底层 (Default Layer)，动画完成后它就露出来了
+		layeredPane.add(nextPanel, JLayeredPane.DEFAULT_LAYER);
+		super.revalidate();
+		super.repaint();
+	}
+}

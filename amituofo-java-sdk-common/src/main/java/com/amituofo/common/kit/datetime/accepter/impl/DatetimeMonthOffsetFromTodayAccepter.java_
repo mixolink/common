@@ -1,0 +1,50 @@
+package com.amituofo.xfs.core.property;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+
+import com.amituofo.common.ex.InvalidParameterException;
+import com.amituofo.xfs.core.DatetimeAccepterBase;
+import com.amituofo.xfs.core.DatetimeAccepters;
+
+public class DatetimeMonthOffsetFromTodayAccepter extends DatetimeAccepterBase {
+	private int monthOffset;
+
+	public DatetimeMonthOffsetFromTodayAccepter(int monthOffset) throws InvalidParameterException {
+		super(DatetimeAccepters.IS_MONTH_OFFSET_FROM_TODAY);
+
+		if (monthOffset > 1200 || monthOffset < -1200) {
+			throw new InvalidParameterException("Month of year must between -1200~1200");
+		}
+		this.monthOffset = monthOffset;
+	}
+
+	@Override
+	public boolean accept(long millisecond) {
+		if (monthOffset == 0) {
+			return true;
+		}
+
+		return isMonthOffsetFromToday(millisecond, monthOffset);
+	}
+
+	/**
+	 * 检查时间戳是否是相对于今天的偏移N个月
+	 * 
+	 * @param  timestamp    要检查的时间戳(毫秒)
+	 * @param  monthsOffset 月数偏移量(正数表示未来，负数表示过去)
+	 * @return              如果时间戳对应的日期等于今天±N个月，则返回true
+	 */
+	public static boolean isMonthOffsetFromToday(long timestamp, int monthsOffset) {
+		// 获取当前日期(不含时间)
+		LocalDate today = LocalDate.now();
+
+		// 将时间戳转换为LocalDate
+		LocalDate thedate = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDate();
+
+		// 比较日期
+		return thedate.getYear() == today.getYear() && thedate.getMonthValue() == (today.getMonthValue() + monthsOffset);
+	}
+
+}

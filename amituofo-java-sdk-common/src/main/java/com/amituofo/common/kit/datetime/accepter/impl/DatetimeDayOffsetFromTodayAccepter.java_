@@ -1,0 +1,96 @@
+package com.amituofo.xfs.core.property;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+
+import com.amituofo.common.ex.InvalidParameterException;
+import com.amituofo.xfs.core.DatetimeAccepter;
+import com.amituofo.xfs.core.DatetimeAccepterBase;
+import com.amituofo.xfs.core.DatetimeAccepters;
+
+public class DatetimeDayOffsetFromTodayAccepter extends DatetimeAccepterBase {
+	private int daysOffset;
+
+//	public DatetimeDayOffsetOfTodayAccepter(ItemDatetimeAccepterOption option) throws InvalidParameterException {
+//		this(option)
+//	}
+	
+	public DatetimeDayOffsetFromTodayAccepter(int daysOffset) throws InvalidParameterException {
+		super(DatetimeAccepters.IS_DAY_OFFSET_FROM_TODAY);
+
+		if (daysOffset > 365 || daysOffset < -365) {
+			throw new InvalidParameterException("Month of year must between -365~365");
+		}
+		this.daysOffset = daysOffset;
+	}
+
+	@Override
+	public boolean accept(long millisecond) {
+		if (daysOffset == 0) {
+			return true;
+		}
+
+		return isDayOffsetFromToday(millisecond, daysOffset);
+	}
+
+	/**
+	 * 检查时间戳是否是相对于今天的偏移N天
+	 * 
+	 * @param  timestamp  要检查的时间戳
+	 * @param  daysOffset 天数偏移量（正数表示未来，负数表示过去）
+	 * @return            如果时间戳对应的日期等于今天+daysOffset天，则返回true
+	 */
+	public static boolean isDayOffsetFromToday(long timestamp, int daysOffset) {
+		// 获取当前日期（不含时间）
+		LocalDate today = LocalDate.now();
+		// 计算目标日期
+		LocalDate targetDate = today.plusDays(daysOffset);
+
+		// 将时间戳转换为LocalDate
+		LocalDate thedate = Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDate();
+
+		// 比较日期
+		return thedate.isEqual(targetDate);
+	}
+
+//	public static void main(String[] args) {
+//		long currentTime = System.currentTimeMillis();
+//		{
+//			// 测试明天的同一时间
+//			long tomorrowTime = currentTime + 24 * 60 * 60 * 1000L;
+//			System.out.println("是否是明天的日期: " + isDayOffsetFromToday(tomorrowTime, 1)); // 应返回true
+//
+//			// 测试昨天的同一时间
+//			long yesterdayTime = currentTime - 24 * 60 * 60 * 1000L;
+//			System.out.println("是否是昨天的日期: " + isDayOffsetFromToday(yesterdayTime, -1)); // 应返回true
+//
+//			// 测试三天前的日期
+//			long threeDaysAgoTime = currentTime - 3 * 24 * 60 * 60 * 1000L;
+//			System.out.println("是否是三天前的日期: " + isDayOffsetFromToday(threeDaysAgoTime, -3)); // 应返回true
+//
+//			// 测试五天后的日期
+//			long fiveDaysLaterTime = currentTime + 5 * 24 * 60 * 60 * 1000L;
+//			System.out.println("是否是五天后的日期: " + isDayOffsetFromToday(fiveDaysLaterTime, 5)); // 应返回true
+//		}
+//		{
+//
+//			// 测试明天的同一时间
+//			long tomorrowTime = currentTime + 24 * 60 * 60 * 1000L;
+//			System.out.println("是否是明天的日期: " + isDayOffsetFromToday(tomorrowTime, 2)); // 应返回true
+//
+//			// 测试昨天的同一时间
+//			long yesterdayTime = currentTime - 24 * 60 * 60 * 1000L;
+//			System.out.println("是否是昨天的日期: " + isDayOffsetFromToday(yesterdayTime, -2)); // 应返回true
+//
+//			// 测试三天前的日期
+//			long threeDaysAgoTime = currentTime - 3 * 24 * 60 * 60 * 1000L;
+//			System.out.println("是否是三天前的日期: " + isDayOffsetFromToday(threeDaysAgoTime, -4)); // 应返回true
+//
+//			// 测试五天后的日期
+//			long fiveDaysLaterTime = currentTime + 5 * 24 * 60 * 60 * 1000L;
+//			System.out.println("是否是五天后的日期: " + isDayOffsetFromToday(fiveDaysLaterTime, 6)); // 应返回true
+//		}
+//	}
+
+}

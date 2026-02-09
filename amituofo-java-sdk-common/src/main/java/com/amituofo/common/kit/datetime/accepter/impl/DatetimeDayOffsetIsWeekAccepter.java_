@@ -1,0 +1,45 @@
+package com.amituofo.xfs.core.property;
+
+import java.time.DayOfWeek;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+
+import com.amituofo.common.ex.InvalidParameterException;
+import com.amituofo.xfs.core.DatetimeAccepter;
+import com.amituofo.xfs.core.DatetimeAccepterBase;
+import com.amituofo.xfs.core.DatetimeAccepters;
+
+public class DatetimeDayOffsetIsWeekAccepter extends DatetimeAccepterBase {
+	private int daysOffset;
+	private DayOfWeek dayOfWeek;
+
+//	public DatetimeDayOffsetOfTodayAccepter(ItemDatetimeAccepterOption option) throws InvalidParameterException {
+//		this(option)
+//	}
+
+	public DatetimeDayOffsetIsWeekAccepter(int daysOffset, DayOfWeek dayOfWeek) throws InvalidParameterException {
+		super(DatetimeAccepters.IS_WEEK_OF_DAY_OFFSET);
+
+		if (daysOffset > 365 || daysOffset < -365) {
+			throw new InvalidParameterException("Month of year must between -365~365");
+		}
+
+		if (dayOfWeek == null) {
+			throw new InvalidParameterException("Week value [MONDAY;TUESDAY;WEDNESDAY;THURSDAY;FRIDAY;SATURDAY;SUNDAY;] required!");
+		}
+
+		this.daysOffset = daysOffset;
+		this.dayOfWeek = dayOfWeek;
+	}
+
+	@Override
+	public boolean accept(long millisecond) {
+		// 将时间戳转换为LocalDate
+		LocalDate thedate = Instant.ofEpochMilli(millisecond).atZone(ZoneId.systemDefault()).toLocalDate();
+		LocalDate targetDate = thedate.plusDays(daysOffset);
+
+		return targetDate.getDayOfWeek() == dayOfWeek;
+	}
+
+}
