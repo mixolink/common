@@ -2,6 +2,8 @@ package com.amituofo.common.ui.lang;
 
 import java.awt.event.KeyEvent;
 
+import com.amituofo.common.util.SystemUtils;
+
 public class ShortcutKeyBuilder {
 	private int keyCode = 0;
 	private int modifiers = 0;
@@ -19,6 +21,28 @@ public class ShortcutKeyBuilder {
 //
 //		return builder;
 //	}
+
+	public static ShortcutKeyBuilder Default(String id) {
+		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
+
+		return builder;
+	}
+
+	public static ShortcutKeyBuilder Cmd(String id) {
+		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
+
+		builder.withModifier(KeyEvent.META_DOWN_MASK);
+
+		return builder;
+	}
+
+	public static ShortcutKeyBuilder CmdOrCtrl(String id) {
+		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
+
+		builder.withModifier(SystemUtils.isWindows() ? KeyEvent.CTRL_DOWN_MASK : KeyEvent.META_DOWN_MASK);
+
+		return builder;
+	}
 
 	public static ShortcutKeyBuilder Ctrl(String id) {
 		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);

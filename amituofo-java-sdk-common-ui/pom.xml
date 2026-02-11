@@ -6,8 +6,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.amituofo</groupId>
-		<artifactId>amituofo-java-sdk-common</artifactId>
-		<version>2.0.0</version>
+		<artifactId>sdk-common</artifactId>
+		<version>1.0.0</version>
 	</parent>
 
 	<groupId>com.amituofo</groupId>
@@ -49,14 +49,9 @@
 			<version>1.9.0</version>
 		</dependency>
 		<dependency>
-			<groupId>batik</groupId>
-			<artifactId>batik-util</artifactId>
-			<version>1.11</version>
-		</dependency>
-		<dependency>
-			<groupId>batik</groupId>
-			<artifactId>batik-xml</artifactId>
-			<version>1.11</version>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-gui-util</artifactId>
+			<version>1.13</version>
 		</dependency>
 	</dependencies>
 	<build>

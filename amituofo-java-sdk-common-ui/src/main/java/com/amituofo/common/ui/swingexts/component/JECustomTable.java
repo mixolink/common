@@ -16,6 +16,7 @@ import javax.swing.table.TableModel;
 
 import com.amituofo.common.ui.listener.RightClickListener;
 import com.amituofo.common.ui.swingexts.TableStyle;
+import com.amituofo.common.ui.swingexts.model.ModelIndexData;
 import com.amituofo.common.ui.swingexts.model.Record;
 import com.amituofo.common.ui.swingexts.model.component.CustomTableModel;
 import com.amituofo.common.ui.swingexts.model.component.CustomTableRowSorter;
@@ -484,21 +485,15 @@ public class JECustomTable<T extends CustomTableModel<ITEM>, ITEM> extends JTabl
 	}
 
 //	public List<ModelIndexData<ITEM>> getSelectedItemListWithModelIndex() {
-//		if (lastSelectedRowsWithModelIndex != null) {
-//			return lastSelectedRowsWithModelIndex;
-//		}
-//
-//		List<ModelIndexData<ITEM>>  selrows;
+//		List<ModelIndexData<ITEM>>  selmdrows;
+//		
+//		List<ITEM> selrows;
 //		T model = (T) getModel();
 //		if (isAllSelected()) {
 //			selrows = model.getAllItemList();
 //		} else {
 //			int[] rows = getConvertedSelectedRows();
 //			selrows = model.getItemList(rows);
-//		}
-//
-//		if (selrows != null && selrows.size() > 0) {
-//			lastSelectedRowsWithModelIndex = selrows;
 //		}
 //
 //		return selrows;
