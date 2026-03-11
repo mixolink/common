@@ -1389,7 +1389,7 @@ public class StringUtils {
 	}
 
 	public static String[] removeDuplicated(String[] ary) {
-		if (ary == null || ary.length == 0) {
+		if (ary == null || ary.length <= 1) {
 			return ary;
 		}
 

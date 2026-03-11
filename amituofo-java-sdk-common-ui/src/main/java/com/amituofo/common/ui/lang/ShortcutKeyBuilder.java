@@ -44,6 +44,14 @@ public class ShortcutKeyBuilder {
 		return builder;
 	}
 
+	public static ShortcutKeyBuilder CmdShift(String id) {
+		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
+
+		builder.withModifier(KeyEvent.META_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK);
+
+		return builder;
+	}
+	
 	public static ShortcutKeyBuilder Ctrl(String id) {
 		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
 

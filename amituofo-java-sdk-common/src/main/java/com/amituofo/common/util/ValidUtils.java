@@ -18,11 +18,9 @@ package com.amituofo.common.util;
 import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
+import java.net.Proxy;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
@@ -63,13 +61,42 @@ public class ValidUtils {
 		}
 	}
 
+	public static void testConnection(String host, int port, int timeout, String proxyHost, int proxyPort)
+			throws ConnectException, UnknownHostException {
+
+		Socket socket;
+
+		if (proxyHost != null && !proxyHost.isEmpty()) {
+			// 通过 HTTP CONNECT 隧道代理
+			Proxy proxy = new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(proxyHost, proxyPort));
+			socket = new Socket(proxy);
+		} else {
+			socket = new Socket();
+		}
+
+		try {
+			socket.connect(new InetSocketAddress(host, port), timeout);
+		} catch (UnknownHostException | ConnectException e) {
+			throw e;
+		} catch (Exception e) {
+			ConnectException ce = new ConnectException(e.getMessage());
+			ce.initCause(e);
+			throw ce;
+		} finally {
+			try {
+				socket.close();
+			} catch (IOException ignored) {
+			}
+		}
+	}
+
 	public static void invalidHostConnection(String host, int port, int timeout) throws ConnectException, UnknownHostException {
 		Socket connect = new Socket();
 		try {
 			connect.connect(new InetSocketAddress(host, port), timeout);// 建立连接
-			if (!connect.isConnected()) {
-				throw new InvalidParameterException("Failed to connect to " + host + ":" + port);
-			}
+//			if (!connect.isConnected()) {
+//				throw new InvalidParameterException("Failed to connect to " + host + ":" + port);
+//			}
 		} catch (UnknownHostException e) {
 			throw e;
 		} catch (ConnectException e) {
@@ -210,7 +237,8 @@ public class ValidUtils {
 		}
 	}
 
-	// public static void invalidIfContains(String o, String[] contains, String msg) throws InvalidParameterException {
+	// public static void invalidIfContains(String o, String[] contains, String msg)
+	// throws InvalidParameterException {
 	// if (o != null && o.length() >= 0 && contains != null) {
 	// for (String string : contains) {
 	// if (o.contains(string)) {
@@ -281,37 +309,43 @@ public class ValidUtils {
 		}
 	}
 
-	// public static void invalidWhenNull(Object o, String msg) throws InvalidParameterException {
+	// public static void invalidWhenNull(Object o, String msg) throws
+	// InvalidParameterException {
 	// if (o == null) {
 	// throw new InvalidParameterException(msg);
 	// }
 	// }
 
-	// public static void invalidWhenNotNull(Object o, String msg) throws InvalidParameterException {
+	// public static void invalidWhenNotNull(Object o, String msg) throws
+	// InvalidParameterException {
 	// if (o != null) {
 	// throw new InvalidParameterException(msg);
 	// }
 	// }
 
-	// public static void invalidWhenTrue(boolean v, String msg) throws InvalidParameterException {
+	// public static void invalidWhenTrue(boolean v, String msg) throws
+	// InvalidParameterException {
 	// if (v) {
 	// throw new InvalidParameterException(msg);
 	// }
 	// }
 
-	// public static void invalidWhenFalse(boolean v, String msg) throws InvalidParameterException {
+	// public static void invalidWhenFalse(boolean v, String msg) throws
+	// InvalidParameterException {
 	// if (!v) {
 	// throw new InvalidParameterException(msg);
 	// }
 	// }
 
-	// public static void invalidWhenEmpty(String o, String msg) throws InvalidParameterException {
+	// public static void invalidWhenEmpty(String o, String msg) throws
+	// InvalidParameterException {
 	// if (o == null || o.length() == 0) {
 	// throw new InvalidParameterException(msg);
 	// }
 	// }
 	//
-	// public static void invalidWhenEmpty(List os, String msg) throws InvalidParameterException {
+	// public static void invalidWhenEmpty(List os, String msg) throws
+	// InvalidParameterException {
 	// if (os == null || os.size() == 0) {
 	// throw new InvalidParameterException(msg);
 	// }
@@ -328,13 +362,15 @@ public class ValidUtils {
 		}
 	}
 
-	// public static void exceptionWhenEmpty(Map<?, ?> map, String msg) throws InvalidParameterException {
+	// public static void exceptionWhenEmpty(Map<?, ?> map, String msg) throws
+	// InvalidParameterException {
 	// if (map == null || map.size() == 0) {
 	// throw new InvalidParameterException(msg);
 	// }
 	// }
 
-	// public static void exceptionWhenNotEmpty(String o, String msg) throws InvalidParameterException {
+	// public static void exceptionWhenNotEmpty(String o, String msg) throws
+	// InvalidParameterException {
 	// if (o != null || o.length() != 0) {
 	// throw new InvalidParameterException(msg);
 	// }
@@ -382,7 +418,7 @@ public class ValidUtils {
 			}
 		}
 	}
-	
+
 //	public static void invalidFileName(String o, String msg) throws InvalidParameterException {
 //		if (o != null && o.length() >= 0) {
 //			char[] cs = o.toCharArray();
@@ -395,7 +431,8 @@ public class ValidUtils {
 //		}
 //	}
 
-	// public static void exceptionWhenContainsChar(String o, String chars, String msg) throws InvalidParameterException {
+	// public static void exceptionWhenContainsChar(String o, String chars, String
+	// msg) throws InvalidParameterException {
 	// if (o != null && o.length() >= 0 && chars != null) {
 	// char[] charArrays = chars.toCharArray();
 	// for (char c : charArrays) {
@@ -406,31 +443,36 @@ public class ValidUtils {
 	// }
 	// }
 
-	// public static void exceptionWhenZero(int d, String msg) throws InvalidParameterException {
+	// public static void exceptionWhenZero(int d, String msg) throws
+	// InvalidParameterException {
 	// if (d == 0) {
 	// throw new InvalidParameterException(msg);
 	// }
 	// }
 
-	// public static void exceptionWhenZero(long d, String msg) throws InvalidParameterException {
+	// public static void exceptionWhenZero(long d, String msg) throws
+	// InvalidParameterException {
 	// if (d == 0) {
 	// throw new InvalidParameterException(msg);
 	// }
 	// }
 
-	// public static void exceptionWhenLassThanZero(int d, String msg) throws InvalidParameterException {
+	// public static void exceptionWhenLassThanZero(int d, String msg) throws
+	// InvalidParameterException {
 	// if (d < 0) {
 	// throw new InvalidParameterException(msg);
 	// }
 	// }
 	//
-	// public static void exceptionWhenLassThan(long d, final long threshold, String msg) throws InvalidParameterException {
+	// public static void exceptionWhenLassThan(long d, final long threshold, String
+	// msg) throws InvalidParameterException {
 	// if (d < threshold) {
 	// throw new InvalidParameterException(msg);
 	// }
 	// }
 	//
-	// public static void exceptionWhenGreaterThan(long d, final long threshold, String msg) throws InvalidParameterException {
+	// public static void exceptionWhenGreaterThan(long d, final long threshold,
+	// String msg) throws InvalidParameterException {
 	// if (d > threshold) {
 	// throw new InvalidParameterException(msg);
 	// }
@@ -567,7 +609,7 @@ public class ValidUtils {
 			throw new InvalidParameterException(msg);
 		}
 	}
-	
+
 //	public static void main(String[] a) {
 //		String[] ips = new String[] { "1.1.1./1", "1.1.1.1", "192.168.1.1", "0.0.0.0", "255.255.255.255", "256.1.1.1", "1.256.1.1", "1.1.256.1", "1.1.1.256", "-1.1.1.1", "1.-1.1.1", "1.1.-1.1",
 //				"1.1.1.-1", "1.1.1.1/1", "1.1.1.251/32", "1.1.1.251/33", "1.1.1.251/-1", "", "q.1.1.1", "1.1.1", "1.2.3.q", "1.", "1.2.", "1.2.3.4.5", "1.2.3.4\\21", "1.2.3.4/q", "1.2.3./q", };

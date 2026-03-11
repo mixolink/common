@@ -22,6 +22,7 @@ import com.amituofo.common.kit.counter.Counter;
 import com.amituofo.common.kit.kv.KeyValue;
 import com.amituofo.common.type.HandleFeedback;
 import com.amituofo.common.type.Switch;
+import com.amituofo.common.util.AESUtils;
 import com.amituofo.common.util.DesUtils;
 import com.amituofo.common.util.RandomUtils;
 import com.amituofo.common.util.StringUtils;
@@ -29,7 +30,8 @@ import com.amituofo.common.util.StringUtils;
 public class Configuration implements Config, Serializable {
 	private static final long serialVersionUID = 4727700807177134139L;
 
-	protected final static byte[] desKey = new byte[] { 112, 111, 119, 101, 114, 101, 100, 45, 98, 121, 45, 114, 105, 115, 111, 110, 45, 104, 97, 110, 45, 97, 109, 116, 102, 57, 57 };// "powered-by-rison-han-amtf99";
+	private final static byte[] DEFAULT_DESKEY = new byte[] { 112, 111, 119, 101, 114, 101, 100, 45, 98, 121, 45, 114, 105, 115, 111, 110, 45, 104,
+			97, 110, 45, 97, 109, 116, 102, 57, 57 };// "powered-by-rison-han-amtf99";
 
 	public static final String _CONFIG_CATALOG_ID_ = "_<_CONFIG_CATALOG_ID_>_";
 	public static final String _CONFIG_ID_ = "_<_CONFIG_ID_>_";
@@ -427,11 +429,20 @@ public class Configuration implements Config, Serializable {
 		return val;
 	}
 
-	public String getSensitiveString(String key) throws EncryptorException {
+//	public String getSensitiveString(String key) throws EncryptorException {
+//
+//	}
+
+	public String getSensitiveString(String key, char[] pepper) throws EncryptorException {
 		String value = getString(key);
 		if (StringUtils.isNotEmpty(value)) {
 			try {
-				return new String(DesUtils.decrypt(DesUtils.parseHexStr2Byte(value), desKey));
+				if (pepper != null && pepper.length > 0) {
+					return AESUtils.decrypt(value, pepper);
+				} else {
+					byte[] desKey = DEFAULT_DESKEY;
+					return new String(DesUtils.decrypt(DesUtils.parseHexStr2Byte(value), desKey));
+				}
 			} catch (Exception e) {
 				throw new EncryptorException(e);
 			}
@@ -617,6 +628,17 @@ public class Configuration implements Config, Serializable {
 		return list;
 	}
 
+	public boolean hasKeysContains(String name) {
+		Set<String> keys = kv.keySet();
+		for (String key : keys) {
+			int i = key.indexOf(name);
+			if (i != -1) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public void remove(String key) {
 		kv.remove(key);
 	}
@@ -732,17 +754,20 @@ public class Configuration implements Config, Serializable {
 		set0(_CONFIG_NAME_, name);
 	}
 
-	public void setSensitive(String key, String value) throws EncryptorException {
+	public void setSensitiveString(String key, String value, char[] pepper) throws EncryptorException {
 		if (StringUtils.isNotEmpty(value)) {
-			// byte[] x = desKey.getBytes();
 			try {
-				set0(key, DesUtils.parseByte2HexStr(DesUtils.encrypt(value.getBytes(), desKey)));
+				if (pepper != null && pepper.length > 0) {
+					value = AESUtils.encrypt(value, pepper);
+				} else {
+					byte[] desKey = DEFAULT_DESKEY;
+					value = DesUtils.parseByte2HexStr(DesUtils.encrypt(value.getBytes(), desKey));
+				}
 			} catch (Exception e) {
 				throw new EncryptorException(e);
 			}
-		} else {
-			set0(key, value);
 		}
+		set0(key, value);
 	}
 
 	public void setVersion(String name) {

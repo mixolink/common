@@ -28,8 +28,9 @@ public class Constants {
 			"0000000000000", "00000000000000", "000000000000000" };
 	public final static String FS = String.valueOf((char) 28);
 
-	public final static String INVALID_PATH_CHARS_STR = "\\/:*?\"<>|";
-	public final static String[] INVALID_PATH_CHARS = new String[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
+	public final static String INVALID_NAME_CHARS_STR = "\\/:*?\"<>|";
+	public final static String[] INVALID_NAME_CHARS = new String[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
+	public final static String[] INVALID_PATH_CHARS = new String[] { ":", "*", "?", "\"", "<", ">", "|" };
 
 	public final static String SYSTEM_SHORT_NAME = "OCTSYS";
 	public final static String SYSTEM_AUTH_NAME = SYSTEM_SHORT_NAME + "JA";

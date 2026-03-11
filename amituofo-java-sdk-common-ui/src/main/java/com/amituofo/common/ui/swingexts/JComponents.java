@@ -1,20 +1,15 @@
 package com.amituofo.common.ui.swingexts;
 
+import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.GraphicsEnvironment;
-import java.util.Enumeration;
 import java.util.Locale;
-import java.util.Set;
-import java.util.TreeSet;
 
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 
-import com.amituofo.common.util.StringUtils;
 import com.amituofo.common.util.SystemUtils;
 
 public enum JComponents {
@@ -50,6 +45,94 @@ public enum JComponents {
 		return SYSTEM_DEFAULT_FONT;
 	}
 
+	public static Font getDefaultTerminalFont() {
+	    // 按国际化覆盖范围从好到差排序
+	    // 这些字体都经过验证：等宽 + 宽高比正常 + 多语言支持
+	    String[] candidates = {
+	        // ★ 最推荐：专为终端设计，覆盖 CJK/阿拉伯/希伯来/西里尔等
+	        "Noto Sans Mono",           // Google Noto，覆盖几乎所有 Unicode
+	        "DejaVu Sans Mono",         // 覆盖拉丁/希腊/西里尔/阿拉伯等
+
+	        // Windows 系统自带
+	        "NSimSun",                  // 中文 + 拉丁，Windows 自带
+	        "MS Gothic",                // 日文 + 拉丁，Windows 自带
+	        "Gulim",                    // 韩文 + 拉丁，Windows 自带
+	        "Courier New",              // 拉丁系，Windows 自带，宽高比最稳定
+
+	        // macOS 系统自带
+	        "Menlo",                    // 拉丁系，macOS 自带
+	        "Monaco",                   // 拉丁系，macOS 自带
+
+	        // Linux 系统自带
+	        "WenQuanYi Mono Hei",       // CJK，Linux 中文环境常见
+	        "WenQuanYi Zen Hei Mono",
+
+	        // 最终回退
+	        "Monospaced"
+	    };
+
+	    // 用于验证的多语言字符采样
+	    // 覆盖：中文、日文、韩文、阿拉伯文、希伯来文、西里尔文、希腊文、泰文
+	    char[] i18nSamples = {
+	        '中',   // 中文
+	        'あ',   // 日文平假名
+	        '한',   // 韩文
+	        'А',   // 西里尔文（俄语）
+	        'α',   // 希腊文
+	        'ñ',   // 拉丁扩展（西班牙语）
+	        'ü',   // 拉丁扩展（德语）
+	    };
+
+	    Font bestFont = null;
+	    int  bestScore = -1;
+
+	    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+	    java.util.Set<String> availableFonts = new java.util.HashSet<>(
+	        java.util.Arrays.asList(ge.getAvailableFontFamilyNames())
+	    );
+
+	    for (String name : candidates) {
+	        if (!availableFonts.contains(name)) continue;
+
+	        Font f = new Font(name, Font.PLAIN, 14);
+	        if (f.getFamily().equals("Dialog")) continue;
+	        if (!isFixedWidth(f)) continue;
+
+	        // 计算覆盖分数
+	        int score = 0;
+	        for (char c : i18nSamples) {
+	            if (f.canDisplay(c)) score++;
+	        }
+
+	        if (score > bestScore) {
+	            bestScore = bestFont == null ? -1 : bestScore;
+	            bestFont  = f;
+	            bestScore = score;
+	        }
+
+	        // 全部覆盖，直接用这个
+	        if (score == i18nSamples.length) break;
+	    }
+
+	    return bestFont != null ? bestFont : new Font("Monospaced", Font.PLAIN, 14);
+	}
+
+	public static boolean isFixedWidth(Font font) {
+	    Canvas canvas = new Canvas();
+	    FontMetrics fm = canvas.getFontMetrics(font);
+	    int refWidth   = fm.charWidth('M');
+	    if (refWidth == 0) return false;
+
+	    // ASCII 可打印字符必须等宽
+	    for (char c = '!'; c <= '~'; c++) {
+	        if (fm.charWidth(c) != refWidth) return false;
+	    }
+
+	    // 宽高比 0.3~0.75（过滤间距异常字体）
+	    double ratio = (double) refWidth / fm.getHeight();
+	    return ratio >= 0.3 && ratio <= 0.75;
+	}
+	
 	public static Font getPreferFont(Locale locale) {
 		Font preferredFont = Label.getFont();
 		String[] preferredFontFamily = null;

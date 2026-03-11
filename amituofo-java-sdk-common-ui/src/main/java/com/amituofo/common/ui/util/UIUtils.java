@@ -20,6 +20,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
@@ -69,6 +70,8 @@ import javax.swing.table.TableModel;
 import com.amituofo.common.api.Callback;
 import com.amituofo.common.api.Destroyable;
 import com.amituofo.common.ex.InvalidParameterException;
+import com.amituofo.common.global.DialogManager;
+import com.amituofo.common.global.DialogManager.Interactive;
 import com.amituofo.common.kit.counter.Counter;
 import com.amituofo.common.kit.kv.KeyValue;
 import com.amituofo.common.kit.value.Value;
@@ -93,7 +96,6 @@ public class UIUtils {
 
 	public static void setDefaultTopFrame(Component c) {
 		DEFAULT_MAIN_FRAME = c;
-//		System.out.println("Active " + c.toString());
 	}
 
 	public static void invokeLater(final Runnable runnable) {
@@ -195,13 +197,20 @@ public class UIUtils {
 
 		Runnable runnable = () -> {
 			if (e == null) {
+				DialogManager.increaseDialog();
 				JOptionPane.showMessageDialog(parentComponent, message, DEFAULT_TITLE_OF_ERROR + " (￣▽￣;)", JOptionPane.ERROR_MESSAGE);
+				DialogManager.decreaseDialog();
 			} else {
+				DialogManager.increaseDialog();
 				Object[] options = { DEFAULT_TITLE_OF_ERROR_MORE, "OK" };
-				int result = JOptionPane.showOptionDialog(parentComponent, message, DEFAULT_TITLE_OF_ERROR + " (￣▽￣;)", JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[1]);
-
+				int result = JOptionPane.showOptionDialog(parentComponent, message, DEFAULT_TITLE_OF_ERROR + " (￣▽￣;)", JOptionPane.DEFAULT_OPTION,
+						JOptionPane.ERROR_MESSAGE, null, options, options[1]);
+				DialogManager.decreaseDialog();
 				if (result == 0) {
-					JOptionPane.showMessageDialog(parentComponent, StringUtils.printStackTrace(e), DEFAULT_TITLE_OF_ERROR_STACK_TRACE, JOptionPane.ERROR_MESSAGE);
+					DialogManager.increaseDialog();
+					JOptionPane.showMessageDialog(parentComponent, StringUtils.printStackTrace(e), DEFAULT_TITLE_OF_ERROR_STACK_TRACE,
+							JOptionPane.ERROR_MESSAGE);
+					DialogManager.decreaseDialog();
 				}
 			}
 		};
@@ -217,10 +226,14 @@ public class UIUtils {
 		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
 
 		if (SwingUtilities.isEventDispatchThread()) {
+			DialogManager.increaseDialog();
 			JOptionPane.showMessageDialog(parentComponent, message, DEFAULT_TITLE_OF_INFO, JOptionPane.INFORMATION_MESSAGE);
+			DialogManager.decreaseDialog();
 		} else {
 			SwingUtilities.invokeLater(() -> {
+				DialogManager.increaseDialog();
 				JOptionPane.showMessageDialog(parentComponent, message, DEFAULT_TITLE_OF_INFO, JOptionPane.INFORMATION_MESSAGE);
+				DialogManager.decreaseDialog();
 			});
 		}
 	}
@@ -247,11 +260,15 @@ public class UIUtils {
 
 		// 3. 显示对话框
 		if (SwingUtilities.isEventDispatchThread()) {
+			DialogManager.increaseDialog();
 			JOptionPane.showMessageDialog(parentComponent, panel, DEFAULT_TITLE_OF_INFO, JOptionPane.INFORMATION_MESSAGE);
+			DialogManager.decreaseDialog();
 		} else {
 			try {
 				SwingUtilities.invokeAndWait(() -> {
+					DialogManager.increaseDialog();
 					JOptionPane.showMessageDialog(parentComponent, panel, DEFAULT_TITLE_OF_INFO, JOptionPane.INFORMATION_MESSAGE);
+					DialogManager.decreaseDialog();
 				});
 			} catch (InvocationTargetException | InterruptedException e) {
 				e.printStackTrace();
@@ -262,7 +279,7 @@ public class UIUtils {
 		// 4. 返回用户是否勾选了“不再显示”
 		return dontShowAgain.isSelected();
 	}
-	
+
 	public static InputConfirm openInfoConfirmWithDontShowAgain(Component parent, String message, String dontShowText) {
 		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
 
@@ -286,11 +303,17 @@ public class UIUtils {
 		// 3. 显示对话框
 		Counter yes = Counter.newCounter();
 		if (SwingUtilities.isEventDispatchThread()) {
-			yes.n = JOptionPane.showConfirmDialog(parentComponent, panel, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+			DialogManager.increaseDialog();
+			yes.n = JOptionPane.showConfirmDialog(parentComponent, panel, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION,
+					JOptionPane.QUESTION_MESSAGE);
+			DialogManager.decreaseDialog();
 		} else {
 			try {
 				SwingUtilities.invokeAndWait(() -> {
-					yes.n = JOptionPane.showConfirmDialog(parentComponent, panel, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					DialogManager.increaseDialog();
+					yes.n = JOptionPane.showConfirmDialog(parentComponent, panel, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION,
+							JOptionPane.QUESTION_MESSAGE);
+					DialogManager.decreaseDialog();
 				});
 			} catch (Exception e) {
 				return new InputConfirm(yes.n, false);
@@ -305,11 +328,17 @@ public class UIUtils {
 
 		Counter yes = Counter.newCounter();
 		if (SwingUtilities.isEventDispatchThread()) {
-			yes.n = JOptionPane.showConfirmDialog(parentComponent, message, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+			DialogManager.increaseDialog();
+			yes.n = JOptionPane.showConfirmDialog(parentComponent, message, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION,
+					JOptionPane.QUESTION_MESSAGE);
+			DialogManager.decreaseDialog();
 		} else {
 			try {
 				SwingUtilities.invokeAndWait(() -> {
-					yes.n = JOptionPane.showConfirmDialog(parentComponent, message, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					DialogManager.increaseDialog();
+					yes.n = JOptionPane.showConfirmDialog(parentComponent, message, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION,
+							JOptionPane.QUESTION_MESSAGE);
+					DialogManager.decreaseDialog();
 				});
 			} catch (Exception e) {
 				return false;
@@ -323,10 +352,14 @@ public class UIUtils {
 		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
 
 		if (SwingUtilities.isEventDispatchThread()) {
+			DialogManager.increaseDialog();
 			JOptionPane.showMessageDialog(parentComponent, message, DEFAULT_TITLE_OF_WARNING, JOptionPane.WARNING_MESSAGE);
+			DialogManager.decreaseDialog();
 		} else {
 			SwingUtilities.invokeLater(() -> {
+				DialogManager.increaseDialog();
 				JOptionPane.showMessageDialog(parentComponent, message, DEFAULT_TITLE_OF_WARNING, JOptionPane.WARNING_MESSAGE);
+				DialogManager.decreaseDialog();
 			});
 		}
 	}
@@ -337,11 +370,15 @@ public class UIUtils {
 		Value<String> value = new Value<>();
 
 		if (SwingUtilities.isEventDispatchThread()) {
+			DialogManager.increaseDialog();
 			value.setValue(JOptionPane.showInputDialog(parentComponent, message, initValue));
+			DialogManager.decreaseDialog();
 		} else {
 			try {
 				SwingUtilities.invokeAndWait(() -> {
+					DialogManager.increaseDialog();
 					value.setValue(JOptionPane.showInputDialog(parentComponent, message, initValue));
+					DialogManager.decreaseDialog();
 				});
 			} catch (InvocationTargetException | InterruptedException e) {
 				e.printStackTrace();
@@ -361,7 +398,8 @@ public class UIUtils {
 		return value.getValue();
 	}
 
-	public static InputUserPassword openInputUserPassword(Component parent, String title, String usermessage, String pwdmessage, String defaultUsername, boolean allowEmpty) {
+	public static InputUserPassword openInputUserPassword(Component parent, String title, String usermessage, String pwdmessage,
+			String defaultUsername, boolean allowEmpty) {
 		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
 
 		do {
@@ -375,11 +413,15 @@ public class UIUtils {
 			Counter result = Counter.newCounter();
 
 			if (SwingUtilities.isEventDispatchThread()) {
+				DialogManager.increaseDialog();
 				result.n = JOptionPane.showConfirmDialog(parentComponent, ob, title, JOptionPane.OK_OPTION);
+				DialogManager.decreaseDialog();
 			} else {
 				try {
 					SwingUtilities.invokeAndWait(() -> {
+						DialogManager.increaseDialog();
 						result.n = JOptionPane.showConfirmDialog(parentComponent, ob, title, JOptionPane.OK_OPTION);
+						DialogManager.decreaseDialog();
 					});
 				} catch (InvocationTargetException | InterruptedException e) {
 					e.printStackTrace();
@@ -412,11 +454,15 @@ public class UIUtils {
 			Counter result = Counter.newCounter();
 
 			if (SwingUtilities.isEventDispatchThread()) {
+				DialogManager.increaseDialog();
 				result.n = JOptionPane.showConfirmDialog(parentComponent, ob, title, JOptionPane.OK_OPTION);
+				DialogManager.decreaseDialog();
 			} else {
 				try {
 					SwingUtilities.invokeAndWait(() -> {
+						DialogManager.increaseDialog();
 						result.n = JOptionPane.showConfirmDialog(parentComponent, ob, title, JOptionPane.OK_OPTION);
+						DialogManager.decreaseDialog();
 					});
 				} catch (InvocationTargetException | InterruptedException e) {
 					e.printStackTrace();
@@ -450,11 +496,15 @@ public class UIUtils {
 		Counter result = Counter.newCounter();
 
 		if (SwingUtilities.isEventDispatchThread()) {
+			DialogManager.increaseDialog();
 			result.n = JOptionPane.showConfirmDialog(parentComponent, ob, title, JOptionPane.OK_OPTION);
+			DialogManager.decreaseDialog();
 		} else {
 			try {
 				SwingUtilities.invokeAndWait(() -> {
+					DialogManager.increaseDialog();
 					result.n = JOptionPane.showConfirmDialog(parentComponent, ob, title, JOptionPane.OK_OPTION);
+					DialogManager.decreaseDialog();
 				});
 			} catch (InvocationTargetException | InterruptedException e) {
 				e.printStackTrace();
@@ -493,7 +543,8 @@ public class UIUtils {
 		return openInput(DEFAULT_MAIN_FRAME, message, initValue, inputValidator);
 	}
 
-	public static InputUserPassword openInputUserPassword(String title, String usermessage, String pwdmessage, String defaultUsername, boolean allowEmpty) {
+	public static InputUserPassword openInputUserPassword(String title, String usermessage, String pwdmessage, String defaultUsername,
+			boolean allowEmpty) {
 		return openInputUserPassword(DEFAULT_MAIN_FRAME, title, usermessage, pwdmessage, defaultUsername, allowEmpty);
 	}
 
@@ -1137,80 +1188,101 @@ public class UIUtils {
 	// }
 
 	/**
-     * 计算 JLabel 中图标和文本的绘制区域
-     * @return 包含 iconBounds 和 textBounds 的对象
-     */
-    public static LabelLayoutInfo calculateLabelLayout(JLabel label, int cellWidth, int cellHeight) {
-        Icon icon = label.getIcon();
-        String text = label.getText();
-        FontMetrics fm = label.getFontMetrics(label.getFont());
+	 * 计算 JLabel 中图标和文本的绘制区域
+	 * 
+	 * @return 包含 iconBounds 和 textBounds 的对象
+	 */
+	public static LabelLayoutInfo calculateLabelLayout(JLabel label, int cellWidth, int cellHeight) {
+		Icon icon = label.getIcon();
+		String text = label.getText();
+		FontMetrics fm = label.getFontMetrics(label.getFont());
 
-        int iconWidth = (icon != null) ? icon.getIconWidth() : 0;
-        int iconHeight = (icon != null) ? icon.getIconHeight() : 0;
-        int textWidth = (text != null && !text.isEmpty()) ? fm.stringWidth(text) : 0;
-        int textHeight = fm.getHeight();
+		int iconWidth = (icon != null) ? icon.getIconWidth() : 0;
+		int iconHeight = (icon != null) ? icon.getIconHeight() : 0;
+		int textWidth = (text != null && !text.isEmpty()) ? fm.stringWidth(text) : 0;
+		int textHeight = fm.getHeight();
 
-        // 总内容宽高（用于居中等对齐）
-        int totalContentWidth = iconWidth + (icon != null && textWidth > 0 ? label.getIconTextGap() : 0) + textWidth;
-        int totalContentHeight = Math.max(iconHeight, textHeight);
+		// 总内容宽高（用于居中等对齐）
+		int totalContentWidth = iconWidth + (icon != null && textWidth > 0 ? label.getIconTextGap() : 0) + textWidth;
+		int totalContentHeight = Math.max(iconHeight, textHeight);
 
-        // === 水平对齐（相对于单元格）===
-        int contentX;
-        switch (label.getHorizontalAlignment()) {
-            case SwingConstants.LEFT:
-            case SwingConstants.LEADING:
-                contentX = 0;
-                break;
-            case SwingConstants.RIGHT:
-            case SwingConstants.TRAILING:
-                contentX = cellWidth - totalContentWidth;
-                break;
-            case SwingConstants.CENTER:
-            default:
-                contentX = (cellWidth - totalContentWidth) / 2;
-                break;
-        }
+		// === 水平对齐（相对于单元格）===
+		int contentX;
+		switch (label.getHorizontalAlignment()) {
+		case SwingConstants.LEFT:
+		case SwingConstants.LEADING:
+			contentX = 0;
+			break;
+		case SwingConstants.RIGHT:
+		case SwingConstants.TRAILING:
+			contentX = cellWidth - totalContentWidth;
+			break;
+		case SwingConstants.CENTER:
+		default:
+			contentX = (cellWidth - totalContentWidth) / 2;
+			break;
+		}
 
-        // === 垂直对齐 ===
-        int contentY;
-        switch (label.getVerticalAlignment()) {
-            case SwingConstants.TOP:
-                contentY = 0;
-                break;
-            case SwingConstants.BOTTOM:
-                contentY = cellHeight - totalContentHeight;
-                break;
-            case SwingConstants.CENTER:
-            default:
-                contentY = (cellHeight - totalContentHeight) / 2;
-                break;
-        }
+		// === 垂直对齐 ===
+		int contentY;
+		switch (label.getVerticalAlignment()) {
+		case SwingConstants.TOP:
+			contentY = 0;
+			break;
+		case SwingConstants.BOTTOM:
+			contentY = cellHeight - totalContentHeight;
+			break;
+		case SwingConstants.CENTER:
+		default:
+			contentY = (cellHeight - totalContentHeight) / 2;
+			break;
+		}
 
-        // === 图标和文本的相对位置（默认：图标在左，文本在右）===
-        int iconX = contentX;
-        int iconY = contentY + (totalContentHeight - iconHeight) / 2; // 垂直居中图标
+		// === 图标和文本的相对位置（默认：图标在左，文本在右）===
+		int iconX = contentX;
+		int iconY = contentY + (totalContentHeight - iconHeight) / 2; // 垂直居中图标
 
-        int textX = contentX + iconWidth + (icon != null && textWidth > 0 ? label.getIconTextGap() : 0);
-        int textY = contentY + (totalContentHeight - textHeight) / 2 + fm.getAscent(); // 文本基线对齐
+		int textX = contentX + iconWidth + (icon != null && textWidth > 0 ? label.getIconTextGap() : 0);
+		int textY = contentY + (totalContentHeight - textHeight) / 2 + fm.getAscent(); // 文本基线对齐
 
-        Rectangle iconBounds = (icon != null) 
-            ? new Rectangle(iconX, iconY, iconWidth, iconHeight) 
-            : null;
+		Rectangle iconBounds = (icon != null) ? new Rectangle(iconX, iconY, iconWidth, iconHeight) : null;
 
-        Rectangle textBounds = (text != null && !text.isEmpty())
-            ? new Rectangle(textX, textY - fm.getAscent(), textWidth, textHeight)
-            : null;
+		Rectangle textBounds = (text != null && !text.isEmpty()) ? new Rectangle(textX, textY - fm.getAscent(), textWidth, textHeight) : null;
 
-        return new LabelLayoutInfo(iconBounds, textBounds);
-    }
+		return new LabelLayoutInfo(iconBounds, textBounds);
+	}
 
-    public static class LabelLayoutInfo {
-        public final Rectangle iconBounds;
-        public final Rectangle textBounds;
+	public static class LabelLayoutInfo {
+		public final Rectangle iconBounds;
+		public final Rectangle textBounds;
 
-        public LabelLayoutInfo(Rectangle iconBounds, Rectangle textBounds) {
-            this.iconBounds = iconBounds;
-            this.textBounds = textBounds;
-        }
-    }
+		public LabelLayoutInfo(Rectangle iconBounds, Rectangle textBounds) {
+			this.iconBounds = iconBounds;
+			this.textBounds = textBounds;
+		}
+	}
+
+	public static boolean detectModifierKeys(KeyEvent e) {
+		return e.isShiftDown() || e.isAltDown() || e.isControlDown() || e.isMetaDown();
+	}
+
+	public static boolean detectNumberAlphabet(KeyEvent e) {
+		// 1. 只关心按键按下事件 (KEY_PRESSED)，忽略释放 (KEY_RELEASED) 和 输入字符 (KEY_TYPED)
+		if (e.getID() != KeyEvent.KEY_PRESSED) {
+			return false;
+		}
+
+		int keyCode = e.getKeyCode();
+		// 2. 检测数字 (0-9)
+		// VK_0 到 VK_9 是连续的，或者直接用范围判断
+		if (keyCode >= KeyEvent.VK_0 && keyCode <= KeyEvent.VK_9) {
+			return true;
+		}
+		// 3. 检测字母 (A-Z)
+		// VK_A 到 VK_Z 也是连续的
+		else if (keyCode >= KeyEvent.VK_A && keyCode <= KeyEvent.VK_Z) {
+			return true;
+		}
+		return false;
+	}
 }

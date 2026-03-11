@@ -31,43 +31,22 @@ public class BandwidthInputStream extends FilterInputStream {
 
 	@Override
 	public int read() throws IOException {
-		if (bandwidthLimiter != null) {
-			try {
-				bandwidthLimiter.limitNextBytes(1);
-			} catch (Exception e) {
-			}
-		}
+		bandwidthLimiter.limitNextBytes(1);
 		return in.read();
 	}
 
 	@Override
 	public int read(byte b[]) throws IOException {
-		if (bandwidthLimiter != null) {
-			try {
-				bandwidthLimiter.limitNextBytes(b.length);
-			} catch (Exception e) {
-			}
-		}
-		return in.read(b);
+		int readlen = in.read(b);
+		bandwidthLimiter.limitNextBytes(readlen);
+		return readlen;
 	}
 
 	@Override
 	public int read(byte b[], int off, int len) throws IOException {
-		if (bandwidthLimiter != null) {
-//			long t1 = System.currentTimeMillis();
-			try {
-				bandwidthLimiter.limitNextBytes(len);
-			} catch (Exception e) {
-			}
-//			long t2 = System.currentTimeMillis();
-
-//			System.out.println((t2 - t1) + "-" + this);
-		}
-		return in.read(b, off, len);
+		int readlen = in.read(b, off, len);
+		bandwidthLimiter.limitNextBytes(readlen);
+		return readlen;
 	}
-
-//	public InputStream getInputStream() {
-//		return in;
-//	}
 
 }
