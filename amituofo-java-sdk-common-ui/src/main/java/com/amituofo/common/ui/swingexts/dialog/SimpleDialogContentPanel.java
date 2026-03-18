@@ -16,7 +16,10 @@ public abstract class SimpleDialogContentPanel extends JEPanel implements OKCanc
 	}
 
 	public void dispose() {
-		simpleDialog.dispose();
+//		if (simpleDialog != null) {
+//			simpleDialog.dispose();
+//			simpleDialog = null;
+//		}
 		simpleDialog = null;
 	}
 
@@ -32,5 +35,9 @@ public abstract class SimpleDialogContentPanel extends JEPanel implements OKCanc
 
 	public JComponent[] getAdditionComponents() {
 		return null;
+	}
+
+	public void showing() {
+
 	}
 }

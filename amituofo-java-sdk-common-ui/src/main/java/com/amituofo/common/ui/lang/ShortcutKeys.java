@@ -79,8 +79,8 @@ public class ShortcutKeys {
 		return StringUtils.encodeBase64String(buf.toString());
 	}
 
-	public ShortcutKey getShortcutKey(String id) {
-		return keyMap.get(id);
+	public ShortcutKey getShortcutKey(String actionID) {
+		return keyMap.get(actionID);
 	}
 
 //	public void setShortcutKey(String id, String keyStroke) {
@@ -88,7 +88,7 @@ public class ShortcutKeys {
 //	}
 
 	public void setShortcutKey(ShortcutKey sk) {
-		keyMap.put(sk.getId(), sk);
+		keyMap.put(sk.getActionId(), sk);
 	}
 
 	public KeyStroke getShortcutKeyStroke(String id) {

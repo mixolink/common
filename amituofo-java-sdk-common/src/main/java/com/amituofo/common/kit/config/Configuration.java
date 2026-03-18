@@ -487,6 +487,9 @@ public class Configuration implements Config, Serializable {
 						intarray[i] = Integer.parseInt(arrays[i]);
 					}
 					return intarray;
+				} else {
+					if (str.length() > 0)
+						return new int[] { Integer.parseInt(str) };
 				}
 			}
 		}
@@ -512,6 +515,9 @@ public class Configuration implements Config, Serializable {
 						arrays[i] = StringUtils.decodeBase64ToString(arrays[i]);
 					}
 					return arrays;
+				} else {
+					if (str.length() > 0)
+						return new String[] { StringUtils.decodeBase64ToString(str) };
 				}
 			}
 		}
@@ -548,7 +554,8 @@ public class Configuration implements Config, Serializable {
 					}
 					return StringUtils.toStringList(arrays);
 				} else {
-					return StringUtils.toStringList(StringUtils.decodeBase64ToString(str));
+					if (str.length() > 0)
+						return StringUtils.toStringList(StringUtils.decodeBase64ToString(str));
 				}
 			}
 		}

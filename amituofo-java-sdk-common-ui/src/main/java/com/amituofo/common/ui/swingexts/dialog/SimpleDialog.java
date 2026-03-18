@@ -41,8 +41,8 @@ public class SimpleDialog {
 	 * 
 	 * @param titleIcon
 	 */
-	private SimpleDialog(Frame owner, final SimpleDialogContentPanel dialogContentPanel, Image titleIcon, int xoffset, int yoffset, int width, int height, boolean withContentBorder,
-			boolean withOKButton, boolean withCancelButton, boolean closeClickOutsite) {
+	private SimpleDialog(Frame owner, final SimpleDialogContentPanel dialogContentPanel, Image titleIcon, int xoffset, int yoffset, int width,
+			int height, boolean withContentBorder, boolean withOKButton, boolean withCancelButton, boolean closeClickOutsite) {
 		dialog = new JDialog(owner);
 
 		if (dialogContentPanel.getIcon() != null) {
@@ -64,25 +64,13 @@ public class SimpleDialog {
 			dialog.addWindowFocusListener(new WindowFocusListener() {
 
 				public void windowLostFocus(WindowEvent e) {
-					destroy();
+					dispose();
 				}
 
 				public void windowGainedFocus(WindowEvent e) {
 				}
 			});
 		}
-
-		dialog.addWindowListener(new WindowAdapter() {
-
-			@Override
-			public void windowClosing(WindowEvent e) {
-			}
-
-			@Override
-			public void windowActivated(WindowEvent e) {
-				UIUtils.setDefaultTopFrame(dialog);
-			}
-		});
 
 		Container mainPanel = dialog.getContentPane();
 //		((JComponent)mainPanel).setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
@@ -127,7 +115,7 @@ public class SimpleDialog {
 
 				public void actionPerformed(ActionEvent e) {
 					if (dialogContentPanel.okPressed()) {
-						destroy();
+						dispose();
 					}
 				}
 			});
@@ -144,7 +132,7 @@ public class SimpleDialog {
 
 				public void actionPerformed(ActionEvent e) {
 					if (dialogContentPanel.cancelPressed()) {
-						destroy();
+						dispose();
 					}
 				}
 			});
@@ -182,12 +170,17 @@ public class SimpleDialog {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				if (autoDispose) {
-					destroy();
+					dispose();
 				} else {
 					if (dialogContentPanel.cancelPressed()) {
-						destroy();
+						dispose();
 					}
 				}
+			}
+
+			@Override
+			public void windowActivated(WindowEvent e) {
+				UIUtils.setDefaultTopFrame(dialog);
 			}
 		});
 
@@ -205,22 +198,18 @@ public class SimpleDialog {
 		dialog.setLocation(p.x + xoffset, p.y + yoffset);
 	}
 
-	public void destroy() {
-//		UIUtils.DEFAULT_MAIN_FRAME = originalDefaultUIParent;
-
-		if (panel != null) {
-			panel.destroy();
-			panel = null;
-		}
-		dispose();
-	}
-
 	private void show() {
+		panel.showing();
 		dialog.toFront();
 		dialog.setVisible(true);
 	}
 
 	public synchronized void dispose() {
+		if (panel != null) {
+			panel.dispose();
+			panel.destroy();
+			panel = null;
+		}
 		if (dialog != null) {
 			dialog.dispose();
 			dialog = null;
@@ -261,9 +250,10 @@ public class SimpleDialog {
 		return open((Frame) UIUtils.getDefaultTopFrame(), panel, null, 0, 0, width, height, true, true, withContentBorder, false);
 	}
 
-	public static SimpleDialog open(final SimpleDialogContentPanel dialogContentPanel, int width, int height, boolean withContentBorder, boolean withOKButton, boolean withCancelButton,
-			boolean closeClickOutsite) {
-		return open((Frame) UIUtils.getDefaultTopFrame(), dialogContentPanel, null, 0, 0, width, height, withContentBorder, withOKButton, withCancelButton, closeClickOutsite);
+	public static SimpleDialog open(final SimpleDialogContentPanel dialogContentPanel, int width, int height, boolean withContentBorder,
+			boolean withOKButton, boolean withCancelButton, boolean closeClickOutsite) {
+		return open((Frame) UIUtils.getDefaultTopFrame(), dialogContentPanel, null, 0, 0, width, height, withContentBorder, withOKButton,
+				withCancelButton, closeClickOutsite);
 	}
 
 	public static SimpleDialog open(Frame owner, SimpleDialogContentPanel panel) {
@@ -274,7 +264,8 @@ public class SimpleDialog {
 		return open(owner, panel, null, 0, 0, width, height, true, true, true, false);
 	}
 
-	public static SimpleDialog open(Frame owner, SimpleDialogContentPanel panel, int xoffset, int yoffset, int width, int height, boolean withContentBorder) {
+	public static SimpleDialog open(Frame owner, SimpleDialogContentPanel panel, int xoffset, int yoffset, int width, int height,
+			boolean withContentBorder) {
 		return open(owner, panel, null, xoffset, yoffset, width, height, withContentBorder, true, true, false);
 	}
 
@@ -282,8 +273,8 @@ public class SimpleDialog {
 		return open(owner, panel, null, 0, 0, width, height, withContentBorder, true, true, false);
 	}
 
-	public static SimpleDialog open(Frame owner, final SimpleDialogContentPanel dialogContentPanel, int width, int height, boolean withContentBorder, boolean withOKButton, boolean withCancelButton,
-			boolean closeClickOutsite) {
+	public static SimpleDialog open(Frame owner, final SimpleDialogContentPanel dialogContentPanel, int width, int height, boolean withContentBorder,
+			boolean withOKButton, boolean withCancelButton, boolean closeClickOutsite) {
 		return open(owner, dialogContentPanel, null, 0, 0, width, height, withContentBorder, withOKButton, withCancelButton, closeClickOutsite);
 	}
 
@@ -299,9 +290,10 @@ public class SimpleDialog {
 		return open((Frame) UIUtils.getDefaultTopFrame(), panel, titleIcon, 0, 0, width, height, true, true, withContentBorder, false);
 	}
 
-	public static SimpleDialog open(final SimpleDialogContentPanel dialogContentPanel, Image titleIcon, int width, int height, boolean withContentBorder, boolean withOKButton,
-			boolean withCancelButton, boolean closeClickOutsite) {
-		return open((Frame) UIUtils.getDefaultTopFrame(), dialogContentPanel, titleIcon, 0, 0, width, height, withContentBorder, withOKButton, withCancelButton, closeClickOutsite);
+	public static SimpleDialog open(final SimpleDialogContentPanel dialogContentPanel, Image titleIcon, int width, int height,
+			boolean withContentBorder, boolean withOKButton, boolean withCancelButton, boolean closeClickOutsite) {
+		return open((Frame) UIUtils.getDefaultTopFrame(), dialogContentPanel, titleIcon, 0, 0, width, height, withContentBorder, withOKButton,
+				withCancelButton, closeClickOutsite);
 	}
 
 	public static SimpleDialog open(Frame owner, SimpleDialogContentPanel panel, Image titleIcon) {
@@ -316,9 +308,10 @@ public class SimpleDialog {
 		return open(owner, panel, titleIcon, 0, 0, width, height, true, true, withContentBorder, false);
 	}
 
-	public static SimpleDialog open(Frame owner, final SimpleDialogContentPanel dialogContentPanel, Image titleIcon, int xoffset, int yoffset, int width, int height, boolean withContentBorder,
-			boolean withOKButton, boolean withCancelButton, boolean closeClickOutsite) {
-		SimpleDialog dlg = new SimpleDialog(owner, dialogContentPanel, titleIcon, xoffset, yoffset, width, height, withContentBorder, withOKButton, withCancelButton, closeClickOutsite);
+	public static SimpleDialog open(Frame owner, final SimpleDialogContentPanel dialogContentPanel, Image titleIcon, int xoffset, int yoffset,
+			int width, int height, boolean withContentBorder, boolean withOKButton, boolean withCancelButton, boolean closeClickOutsite) {
+		SimpleDialog dlg = new SimpleDialog(owner, dialogContentPanel, titleIcon, xoffset, yoffset, width, height, withContentBorder, withOKButton,
+				withCancelButton, closeClickOutsite);
 		UIUtils.invokeLater(() -> {
 			dlg.show();
 		});

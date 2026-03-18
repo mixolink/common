@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -952,5 +953,32 @@ public class URLUtils {
 		}
 
 		return "";
+	}
+	
+
+	public static String encodePath4URL(final String path) {
+		if (path.indexOf('/') == -1) {
+			try {
+				return URLEncoder.encode(path, StandardCharsets.UTF_8.name());
+			} catch (UnsupportedEncodingException e) {
+			}
+		}
+
+		String[] segments = StringUtils.split(path, '/');
+		StringBuilder encodedPathBuilder = new StringBuilder();
+
+		try {
+			int max = segments.length - 1;
+			for (int i = 0; i < max; i++) {
+				String encodedSegment = URLEncoder.encode(segments[i], StandardCharsets.UTF_8.name());
+				encodedPathBuilder.append(encodedSegment).append("/");
+			}
+
+			String encodedSegment = URLEncoder.encode(segments[max], StandardCharsets.UTF_8.name());
+			encodedPathBuilder.append(encodedSegment);
+		} catch (UnsupportedEncodingException e) {
+		}
+
+		return encodedPathBuilder.toString();
 	}
 }

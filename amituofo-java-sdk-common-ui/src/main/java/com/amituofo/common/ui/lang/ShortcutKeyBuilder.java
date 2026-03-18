@@ -7,11 +7,11 @@ import com.amituofo.common.util.SystemUtils;
 public class ShortcutKeyBuilder {
 	private int keyCode = 0;
 	private int modifiers = 0;
-	private String id;
+	private String actionID;
 
-	public ShortcutKeyBuilder(String id) {
+	public ShortcutKeyBuilder(String actionID) {
 		super();
-		this.id = id;
+		this.actionID = actionID;
 	}
 
 //	public static ShortcutKeyBuilder CommandKey(String id) {
@@ -22,82 +22,55 @@ public class ShortcutKeyBuilder {
 //		return builder;
 //	}
 
-	public static ShortcutKeyBuilder Default(String id) {
-		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
+	public static ShortcutKeyBuilder Action(String actionID) {
+		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(actionID);
 
 		return builder;
 	}
 
-	public static ShortcutKeyBuilder Cmd(String id) {
-		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
-
-		builder.withModifier(KeyEvent.META_DOWN_MASK);
-
-		return builder;
+	public ShortcutKeyBuilder withCmd() {
+		this.withModifier(KeyEvent.META_DOWN_MASK);
+		return this;
 	}
 
-	public static ShortcutKeyBuilder CmdOrCtrl(String id) {
-		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
-
-		builder.withModifier(SystemUtils.isWindows() ? KeyEvent.CTRL_DOWN_MASK : KeyEvent.META_DOWN_MASK);
-
-		return builder;
+	public ShortcutKeyBuilder withCmdOrCtrl() {
+		this.withModifier(SystemUtils.isWindows() ? KeyEvent.CTRL_DOWN_MASK : KeyEvent.META_DOWN_MASK);
+		return this;
 	}
 
-	public static ShortcutKeyBuilder CmdShift(String id) {
-		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
-
-		builder.withModifier(KeyEvent.META_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK);
-
-		return builder;
-	}
-	
-	public static ShortcutKeyBuilder Ctrl(String id) {
-		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
-
-		builder.withModifier(KeyEvent.CTRL_DOWN_MASK);
-
-		return builder;
+	public ShortcutKeyBuilder withCmdShift() {
+		this.withModifier(KeyEvent.META_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK);
+		return this;
 	}
 
-	public static ShortcutKeyBuilder Alt(String id) {
-		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
-
-		builder.withModifier(KeyEvent.ALT_DOWN_MASK);
-
-		return builder;
+	public ShortcutKeyBuilder withCtrl() {
+		this.withModifier(KeyEvent.CTRL_DOWN_MASK);
+		return this;
 	}
 
-	public static ShortcutKeyBuilder Shift(String id) {
-		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
-
-		builder.withModifier(KeyEvent.SHIFT_DOWN_MASK);
-
-		return builder;
+	public ShortcutKeyBuilder withAlt() {
+		this.withModifier(KeyEvent.ALT_DOWN_MASK);
+		return this;
 	}
 
-	public static ShortcutKeyBuilder CtrlShift(String id) {
-		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
-
-		builder.withModifier(KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK);
-
-		return builder;
+	public ShortcutKeyBuilder withShift() {
+		this.withModifier(KeyEvent.SHIFT_DOWN_MASK);
+		return this;
 	}
 
-	public static ShortcutKeyBuilder CtrlAlt(String id) {
-		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
-
-		builder.withModifier(KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK);
-
-		return builder;
+	public ShortcutKeyBuilder withCtrlShift() {
+		this.withModifier(KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK);
+		return this;
 	}
 
-	public static ShortcutKeyBuilder AltShift(String id) {
-		ShortcutKeyBuilder builder = new ShortcutKeyBuilder(id);
+	public ShortcutKeyBuilder withCtrlAlt() {
+		this.withModifier(KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK);
+		return this;
+	}
 
-		builder.withModifier(KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK);
-
-		return builder;
+	public ShortcutKeyBuilder withAltShift() {
+		this.withModifier(KeyEvent.ALT_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK);
+		return this;
 	}
 
 	public ShortcutKeyBuilder withKey(int keyCode) {
@@ -111,6 +84,6 @@ public class ShortcutKeyBuilder {
 	}
 
 	public ShortcutKey build() {
-		return new ShortcutKey(id, keyCode, modifiers);
+		return new ShortcutKey(actionID, keyCode, modifiers);
 	}
 }

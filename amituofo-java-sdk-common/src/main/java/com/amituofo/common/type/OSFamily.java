@@ -4,7 +4,7 @@ import com.amituofo.common.util.StringUtils;
 import com.amituofo.common.util.SystemUtils;
 
 public enum OSFamily {
-	LINUX, WINDOWS, MACOS, UNKNOWN;
+	WINDOWS, LINUX, MACOS, UNIX_OTHER, UNKNOWN;
 
 	public String warpPath(String path) {
 		if (StringUtils.isEmpty(path)) {
@@ -27,8 +27,8 @@ public enum OSFamily {
 		return this == WINDOWS;
 	}
 
-	public boolean isLinuxCore() {
-		return this == LINUX || this == MACOS;
+	public boolean isPOSIX() {
+		return this == LINUX || this == MACOS || this == UNIX_OTHER;
 	}
 
 	public static OSFamily getCurrentOSFamily() {
@@ -44,7 +44,7 @@ public enum OSFamily {
 			return MACOS;
 		}
 
-		return UNKNOWN;
+		return UNIX_OTHER;
 	}
 
 }

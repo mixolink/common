@@ -8,14 +8,14 @@ import com.amituofo.common.util.SystemUtils;
 public class ShortcutKey {
 	private final static char SP = (char) 31;
 
-	private String id;
+	private String actionID;
 	private int keyCode = -1;
 	private int modifiers = -1;
 	private String comment = "";
 
-	public ShortcutKey(String id, int keyCode, int modifiers) {
+	public ShortcutKey(String actionID, int keyCode, int modifiers) {
 		super();
-		this.id = id;
+		this.actionID = actionID;
 		this.keyCode = keyCode;
 		this.modifiers = modifiers;
 	}
@@ -33,8 +33,8 @@ public class ShortcutKey {
 		return new ShortcutKey(vs[0], Integer.parseInt(vs[1]), Integer.parseInt(vs[2]));
 	}
 
-	public String getId() {
-		return id;
+	public String getActionId() {
+		return actionID;
 	}
 
 	public boolean isEnabled() {
@@ -42,7 +42,7 @@ public class ShortcutKey {
 	}
 
 	public String encodeString() {
-		return id + SP + keyCode + SP + modifiers;
+		return actionID + SP + keyCode + SP + modifiers;
 	}
 
 	public String getComment() {

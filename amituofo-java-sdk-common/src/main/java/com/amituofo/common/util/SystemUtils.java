@@ -51,7 +51,6 @@ public class SystemUtils {
 	private static String OS = System.getProperty("os.name").toLowerCase();
 	private static boolean isLinux = (OS.indexOf("linux") >= 0 || OS.contains("nix") || OS.contains("nux") || OS.contains("aix"));
 	private static boolean isMacOS = (OS.indexOf("mac") >= 0);
-//	private static boolean isMacOSX = (OS.indexOf("mac") >= 0 && OS.indexOf("os") > 0 && OS.indexOf("x") > 0);
 	private static boolean isWindows = (OS.indexOf("windows") >= 0);
 
 	public static boolean isLinux() {
@@ -62,81 +61,27 @@ public class SystemUtils {
 		return isMacOS;
 	}
 
-//	public static boolean isMacOSX() {
-//		return isMacOSX;
-//	}
-
 	public static boolean isWindows() {
 		return isWindows;
 	}
 
-	// public static boolean isOS2() {
-	// return OS.indexOf("os/2") >= 0;
-	// }
-	//
-	// public static boolean isSolaris() {
-	// return OS.indexOf("solaris") >= 0;
-	// }
-	//
-	// public static boolean isSunOS() {
-	// return OS.indexOf("sunos") >= 0;
-	// }
-	//
-	// public static boolean isMPEiX() {
-	// return OS.indexOf("mpe/ix") >= 0;
-	// }
-	//
-	// public static boolean isHPUX() {
-	// return OS.indexOf("hp-ux") >= 0;
-	// }
-	//
-	// public static boolean isAix() {
-	// return OS.indexOf("aix") >= 0;
-	// }
-	//
-	// public static boolean isOS390() {
-	// return OS.indexOf("os/390") >= 0;
-	// }
-	//
-	// public static boolean isFreeBSD() {
-	// return OS.indexOf("freebsd") >= 0;
-	// }
-	//
-	// public static boolean isIrix() {
-	// return OS.indexOf("irix") >= 0;
-	// }
-	//
-	// public static boolean isDigitalUnix() {
-	// return OS.indexOf("digital") >= 0 && OS.indexOf("unix") > 0;
-	// }
-	//
-	// public static boolean isNetWare() {
-	// return OS.indexOf("netware") >= 0;
-	// }
-	//
-	// public static boolean isOSF1() {
-	// return OS.indexOf("osf1") >= 0;
-	// }
-	//
-	// public static boolean isOpenVMS() {
-	// return OS.indexOf("openvms") >= 0;
-	// }
-	
+	public static boolean isUnix() {
+		return !isWindows;
+	}
+
 	public static boolean isMacInDarkMode() {
-	    if (!isMacOS) {
-	        return false;
-	    }
+		if (!isMacOS) {
+			return false;
+		}
 
-	    try {
-	        Process process = new ProcessBuilder(
-	            "defaults", "read", "-g", "AppleInterfaceStyle"
-	        ).start();
+		try {
+			Process process = new ProcessBuilder("defaults", "read", "-g", "AppleInterfaceStyle").start();
 
-	        process.waitFor();
-	        return process.exitValue() == 0;
-	    } catch (Exception e) {
-	        return false;
-	    }
+			process.waitFor();
+			return process.exitValue() == 0;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	public static boolean containsFileNameUnsupportChar(String filename) {
@@ -785,7 +730,8 @@ public class SystemUtils {
 			Files.move(file.toPath(), targetFile, StandardCopyOption.REPLACE_EXISTING);
 
 			Path infoFile = trashInfo.resolve(fileName + "_" + timestamp + ".trashinfo");
-			String content = "[Trash Info]\n" + "Path=" + file.getAbsolutePath() + "\n" + "DeletionDate=" + new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(new Date()) + "\n";
+			String content = "[Trash Info]\n" + "Path=" + file.getAbsolutePath() + "\n" + "DeletionDate="
+					+ new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(new Date()) + "\n";
 			Files.write(infoFile, content.getBytes());
 			return true;
 		} catch (IOException e) {
@@ -834,73 +780,69 @@ public class SystemUtils {
 		}
 		return false; // 相等时返回 false（version1 不大于 version2）
 	}
-	
+
 	public static void openSystemFileBrowser(String path) throws Exception {
-	    // 如果 path 为 null、空，或者无效，则使用用户主目录或根目录
-	    if (path == null || path.trim().isEmpty()) {
-	        if (isWindows) {
-	            path = System.getProperty("user.home");
-	        } else if (isMacOS) {
-	            path = System.getProperty("user.home");
-	        } else {
-	            path = System.getProperty("user.home"); // Linux fallback
-	        }
-	    }
+		// 如果 path 为 null、空，或者无效，则使用用户主目录或根目录
+		if (path == null || path.trim().isEmpty()) {
+			if (isWindows) {
+				path = System.getProperty("user.home");
+			} else if (isMacOS) {
+				path = System.getProperty("user.home");
+			} else {
+				path = System.getProperty("user.home"); // Linux fallback
+			}
+		}
 
-	    // 规范化路径（处理跨平台分隔符问题）
-	    File file = new File(path);
-	    if (!file.exists()) {
-	        throw new IllegalArgumentException("Path does not exist: " + path);
-	    }
-	    path = file.getAbsolutePath();
+		// 规范化路径（处理跨平台分隔符问题）
+		File file = new File(path);
+		if (!file.exists()) {
+			throw new IllegalArgumentException("Path does not exist: " + path);
+		}
+		path = file.getAbsolutePath();
 
-	    if (isWindows) {
-	        openWindowsFileBrowser(path);
-	    } else if (isMacOS) {
-	        openMacFileBrowser(path);
-	    } else {
-	        openLinuxFileBrowser(path);
-	    }
+		if (isWindows) {
+			openWindowsFileBrowser(path);
+		} else if (isMacOS) {
+			openMacFileBrowser(path);
+		} else {
+			openLinuxFileBrowser(path);
+		}
 	}
 
 	private static void openWindowsFileBrowser(String path) throws Exception {
-	    // Windows Explorer 接受原生路径（如 C:\Users\...）
-	    new ProcessBuilder("explorer", path).start();
+		// Windows Explorer 接受原生路径（如 C:\Users\...）
+		new ProcessBuilder("explorer", path).start();
 	}
 
 	private static void openMacFileBrowser(String path) throws Exception {
-	    // macOS: 使用 "open -R" 可以 reveal 文件/文件夹（聚焦到该位置）
-	    // 但更常见的是直接 open 文件夹（会用 Finder 打开）
-	    // 注意：open 命令要求路径是 POSIX 格式（/Users/...），Java 的 getAbsolutePath() 已满足
-	    new ProcessBuilder("open", path).start();
+		// macOS: 使用 "open -R" 可以 reveal 文件/文件夹（聚焦到该位置）
+		// 但更常见的是直接 open 文件夹（会用 Finder 打开）
+		// 注意：open 命令要求路径是 POSIX 格式（/Users/...），Java 的 getAbsolutePath() 已满足
+		new ProcessBuilder("open", path).start();
 	}
 
 	private static void openLinuxFileBrowser(String path) throws Exception {
-	    // 尝试使用 xdg-open（标准桌面环境通用方式）
-	    try {
-	        new ProcessBuilder("xdg-open", path).start();
-	        return;
-	    } catch (Exception ignored) {}
+		// 尝试使用 xdg-open（标准桌面环境通用方式）
+		try {
+			new ProcessBuilder("xdg-open", path).start();
+			return;
+		} catch (Exception ignored) {
+		}
 
-	    // 备用方案：尝试常见文件管理器
-	    String[] fileManagers = {
-	        "nautilus",
-	        "dolphin",
-	        "thunar",
-	        "pcmanfm",
-	        "nemo"
-	    };
+		// 备用方案：尝试常见文件管理器
+		String[] fileManagers = { "nautilus", "dolphin", "thunar", "pcmanfm", "nemo" };
 
-	    for (String fm : fileManagers) {
-	        try {
-	            new ProcessBuilder(fm, path).start();
-	            return;
-	        } catch (Exception ignored) {}
-	    }
+		for (String fm : fileManagers) {
+			try {
+				new ProcessBuilder(fm, path).start();
+				return;
+			} catch (Exception ignored) {
+			}
+		}
 
-	    throw new RuntimeException("No available file manager found!");
+		throw new RuntimeException("No available file manager found!");
 	}
-	
+
 //	public static void openSystemTerminal(String path) throws Exception {
 //	    // 如果 path 为 null、空，或者无效，则忽略
 //	    if (path == null || path.trim().isEmpty()) {
@@ -971,7 +913,7 @@ public class SystemUtils {
 //	        new ProcessBuilder("cmd", "/c", "start", "cmd", "/k", "cd /d \"" + path + "\"").start();
 //	    }
 //	}
-	
+
 	/**
 	 * 打开系统原生终端，支持指定初始目录和预填命令（显示但不执行）。
 	 *
@@ -979,370 +921,344 @@ public class SystemUtils {
 	 * @param cmd  预填命令，显示在提示符后但不执行，null 或空则不预填
 	 */
 	public static void openSystemTerminal(String path, String cmd) throws Exception {
-	    if (path != null && path.trim().isEmpty()) path = null;
-	    if (cmd  != null && cmd.trim().isEmpty())  cmd  = null;
+		if (path != null && path.trim().isEmpty())
+			path = null;
+		if (cmd != null && cmd.trim().isEmpty())
+			cmd = null;
 
-	    if (isWindows) { openWindowsTerminal(path, cmd); return; }
-	    if (isMacOS)   { openMacTerminal(path, cmd);     return; }
-	    openLinuxTerminal(path, cmd);
+		if (isWindows) {
+			openWindowsTerminal(path, cmd);
+			return;
+		}
+		if (isMacOS) {
+			openMacTerminal(path, cmd);
+			return;
+		}
+		openLinuxTerminal(path, cmd);
 	}
 
 	// 兼容旧调用，不传 cmd
 	public static void openSystemTerminal(String path) throws Exception {
-	    openSystemTerminal(path, null);
+		openSystemTerminal(path, null);
 	}
 
 	// ─────────────────────────────────────────────────────────────────
-	//  macOS
+	// macOS
 	// ─────────────────────────────────────────────────────────────────
 
 	private static void openMacTerminal(String path, String cmd) throws Exception {
-	    // 构造在终端里执行的 shell 命令串
-	    // 最终效果：cd "/path" && clear && print -z "待填命令"
-	    // print -z（zsh）/ readline插入（bash）把命令写入行缓冲区但不执行
-	    String shellCmd = buildMacShellCmd(path, cmd);
+		// 构造在终端里执行的 shell 命令串
+		// 最终效果：cd "/path" && clear && print -z "待填命令"
+		// print -z（zsh）/ readline插入（bash）把命令写入行缓冲区但不执行
+		String shellCmd = buildMacShellCmd(path, cmd);
 
-	    if (shellCmd == null) {
-	        // 啥都不做，直接开终端
-	        new ProcessBuilder("open", "-a", "Terminal").start();
-	        return;
-	    }
+		if (shellCmd == null) {
+			// 啥都不做，直接开终端
+			new ProcessBuilder("open", "-a", "Terminal").start();
+			return;
+		}
 
-	    // 转义 AppleScript 字符串里的双引号和反斜杠
-	    String escaped = shellCmd.replace("\\", "\\\\").replace("\"", "\\\"");
-	    String script =
-	        "tell application \"Terminal\"\n" +
-	        "    activate\n" +
-	        "    do script \"" + escaped + "\"\n" +
-	        "end tell";
-	    new ProcessBuilder("osascript", "-e", script).start();
+		// 转义 AppleScript 字符串里的双引号和反斜杠
+		String escaped = shellCmd.replace("\\", "\\\\").replace("\"", "\\\"");
+		String script = "tell application \"Terminal\"\n" + "    activate\n" + "    do script \"" + escaped + "\"\n" + "end tell";
+		new ProcessBuilder("osascript", "-e", script).start();
 	}
 
 	private static String buildMacShellCmd(String path, String cmd) {
-	    StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder();
 
-	    if (path != null) {
-	        // 路径转义：单引号最安全
-	        sb.append("cd '").append(escapeSingleQuote(path)).append("' && clear");
-	    }
+		if (path != null) {
+			// 路径转义：单引号最安全
+			sb.append("cd '").append(escapeSingleQuote(path)).append("' && clear");
+		}
 
-	    if (cmd != null) {
-	        if (sb.length() > 0) sb.append(" && ");
-	        // print -z 是 zsh 内置：把字符串写入 readline 行缓冲区，不执行
-	        // bash 下用 bind 没法可靠跨版本，所以先检测 shell 再选方案：
-	        // $(basename $SHELL) 运行时判断
-	        sb.append("__cmd='").append(escapeSingleQuote(cmd)).append("'; ")
-	          .append("__sh=$(basename \"$SHELL\"); ")
-	          .append("if [ \"$__sh\" = \"zsh\" ]; then ")
-	          .append(  "print -z \"$__cmd\"; ")
-	          .append("elif [ \"$__sh\" = \"bash\" ]; then ")
-	          // bash：把命令写入历史并用 readline 的 fetch-history 拉出来
-	          .append(  "history -s \"$__cmd\" && bind '\"\\e[0n\": fetch-history' 2>/dev/null; ")
-	          .append(  "printf '\\e[0n'; ")   // 触发刚才绑定的序列
-	          .append("fi");
-	    }
+		if (cmd != null) {
+			if (sb.length() > 0)
+				sb.append(" && ");
+			// print -z 是 zsh 内置：把字符串写入 readline 行缓冲区，不执行
+			// bash 下用 bind 没法可靠跨版本，所以先检测 shell 再选方案：
+			// $(basename $SHELL) 运行时判断
+			sb.append("__cmd='").append(escapeSingleQuote(cmd)).append("'; ").append("__sh=$(basename \"$SHELL\"); ")
+					.append("if [ \"$__sh\" = \"zsh\" ]; then ").append("print -z \"$__cmd\"; ").append("elif [ \"$__sh\" = \"bash\" ]; then ")
+					// bash：把命令写入历史并用 readline 的 fetch-history 拉出来
+					.append("history -s \"$__cmd\" && bind '\"\\e[0n\": fetch-history' 2>/dev/null; ").append("printf '\\e[0n'; ") // 触发刚才绑定的序列
+					.append("fi");
+		}
 
-	    return sb.length() > 0 ? sb.toString() : null;
+		return sb.length() > 0 ? sb.toString() : null;
 	}
 
 	// ─────────────────────────────────────────────────────────────────
-	//  Windows
+	// Windows
 	// ─────────────────────────────────────────────────────────────────
 
 	private static void openWindowsTerminal(String path, String cmd) throws Exception {
-	    // 优先用 Windows Terminal（wt.exe），次选 PowerShell，最后 cmd
-	    if (isCommandAvailable("wt.exe")) {
-	        openWindowsTerminalWt(path, cmd);
-	    } else if (isCommandAvailable("pwsh.exe")) {
-	        openWindowsPowerShell("pwsh.exe", path, cmd);
-	    } else if (isCommandAvailable("powershell.exe")) {
-	        openWindowsPowerShell("powershell.exe", path, cmd);
-	    } else {
-	        openWindowsCmd(path, cmd);
-	    }
+		// 优先用 Windows Terminal（wt.exe），次选 PowerShell，最后 cmd
+		if (isCommandAvailable("wt.exe")) {
+			openWindowsTerminalWt(path, cmd);
+		} else if (isCommandAvailable("pwsh.exe")) {
+			openWindowsPowerShell("pwsh.exe", path, cmd);
+		} else if (isCommandAvailable("powershell.exe")) {
+			openWindowsPowerShell("powershell.exe", path, cmd);
+		} else {
+			openWindowsCmd(path, cmd);
+		}
 	}
 
 	/** Windows Terminal (wt.exe) */
 	private static void openWindowsTerminalWt(String path, String cmd) throws Exception {
-	    java.util.List<String> args = new java.util.ArrayList<>();
-	    args.add("wt.exe");
-	    if (path != null) {
-	        args.add("--startingDirectory");
-	        args.add(path);
-	    }
-	    if (cmd != null) {
-	        // wt 启动 PowerShell，用 ReadLine 预填命令（显示不执行）
-	        args.add("powershell.exe");
-	        args.add("-NoExit");
-	        args.add("-Command");
-	        // PSReadLine 的 InvokePrompt + InsertText 可以把文字写入输入缓冲
-	        args.add(
-	            "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" +
-	            "[Console]::InputEncoding=[System.Text.Encoding]::UTF8;" +
-	            "Set-PSReadLineOption -HistorySaveStyle SaveNothing 2>$null;" +
-	            "Set-PSReadLineOption -AddToHistoryHandler { $false } 2>$null;" +
-	            // 把命令插入 ReadLine 缓冲区（不执行）
-	            "[Microsoft.PowerShell.PSConsoleReadLine]::Insert('" +
-	            escapeSingleQuotePs(cmd) + "')"
-	        );
-	    }
-	    new ProcessBuilder(args).start();
+		java.util.List<String> args = new java.util.ArrayList<>();
+		args.add("wt.exe");
+		if (path != null) {
+			args.add("--startingDirectory");
+			args.add(path);
+		}
+		if (cmd != null) {
+			// wt 启动 PowerShell，用 ReadLine 预填命令（显示不执行）
+			args.add("powershell.exe");
+			args.add("-NoExit");
+			args.add("-Command");
+			// PSReadLine 的 InvokePrompt + InsertText 可以把文字写入输入缓冲
+			args.add("[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" + "[Console]::InputEncoding=[System.Text.Encoding]::UTF8;"
+					+ "Set-PSReadLineOption -HistorySaveStyle SaveNothing 2>$null;" + "Set-PSReadLineOption -AddToHistoryHandler { $false } 2>$null;"
+					+
+					// 把命令插入 ReadLine 缓冲区（不执行）
+					"[Microsoft.PowerShell.PSConsoleReadLine]::Insert('" + escapeSingleQuotePs(cmd) + "')");
+		}
+		new ProcessBuilder(args).start();
 	}
 
-	/** PowerShell（直接，非 wt）*/
+	/** PowerShell（直接，非 wt） */
 	private static void openWindowsPowerShell(String exe, String path, String cmd) throws Exception {
-	    java.util.List<String> args = new java.util.ArrayList<>();
-	    args.add(exe);
-	    args.add("-NoLogo");
-	    args.add("-NoExit");
-	    args.add("-Command");
+		java.util.List<String> args = new java.util.ArrayList<>();
+		args.add(exe);
+		args.add("-NoLogo");
+		args.add("-NoExit");
+		args.add("-Command");
 
-	    StringBuilder sb = new StringBuilder();
-	    sb.append("[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;");
-	    sb.append("[Console]::InputEncoding=[System.Text.Encoding]::UTF8;");
+		StringBuilder sb = new StringBuilder();
+		sb.append("[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;");
+		sb.append("[Console]::InputEncoding=[System.Text.Encoding]::UTF8;");
 
-	    if (path != null) {
-	        sb.append("Set-Location '").append(escapeSingleQuotePs(path)).append("'; ");
-	        sb.append("Clear-Host; ");
-	    }
-	    if (cmd != null) {
-	        // PSReadLine：把命令写入缓冲区，光标在末尾，用户可编辑后回车执行
-	        sb.append("[Microsoft.PowerShell.PSConsoleReadLine]::Insert('")
-	          .append(escapeSingleQuotePs(cmd))
-	          .append("')");
-	    }
-	    args.add(sb.toString());
-	    new ProcessBuilder(args).start();
+		if (path != null) {
+			sb.append("Set-Location '").append(escapeSingleQuotePs(path)).append("'; ");
+			sb.append("Clear-Host; ");
+		}
+		if (cmd != null) {
+			// PSReadLine：把命令写入缓冲区，光标在末尾，用户可编辑后回车执行
+			sb.append("[Microsoft.PowerShell.PSConsoleReadLine]::Insert('").append(escapeSingleQuotePs(cmd)).append("')");
+		}
+		args.add(sb.toString());
+		new ProcessBuilder(args).start();
 	}
 
 	/** cmd.exe 兜底 */
 	private static void openWindowsCmd(String path, String cmd) throws Exception {
-	    // cmd 没有"预填命令不执行"的机制，只能用 /K 执行 cd 后让用户手动输
-	    java.util.List<String> args = new java.util.ArrayList<>();
-	    args.add("cmd.exe");
-	    args.add("/K");
+		// cmd 没有"预填命令不执行"的机制，只能用 /K 执行 cd 后让用户手动输
+		java.util.List<String> args = new java.util.ArrayList<>();
+		args.add("cmd.exe");
+		args.add("/K");
 
-	    StringBuilder sb = new StringBuilder("chcp 65001 >nul");
-	    if (path != null) {
-	        sb.append(" & cd /d \"").append(path).append("\"");
-	    }
-	    if (cmd != null) {
-	        // cmd 无法预填不执行，退而求其次：把命令作为标题提示用户
-	        sb.append(" & title ").append(cmd.replace("&", "^&"));
-	        // 也可以用 echo 打印出来提示用户复制
-	        sb.append(" & echo [Pending] ").append(cmd);
-	    }
-	    args.add(sb.toString());
-	    new ProcessBuilder(args).start();
+		StringBuilder sb = new StringBuilder("chcp 65001 >nul");
+		if (path != null) {
+			sb.append(" & cd /d \"").append(path).append("\"");
+		}
+		if (cmd != null) {
+			// cmd 无法预填不执行，退而求其次：把命令作为标题提示用户
+			sb.append(" & title ").append(cmd.replace("&", "^&"));
+			// 也可以用 echo 打印出来提示用户复制
+			sb.append(" & echo [Pending] ").append(cmd);
+		}
+		args.add(sb.toString());
+		new ProcessBuilder(args).start();
 	}
 
 	// ─────────────────────────────────────────────────────────────────
-	//  Linux
+	// Linux
 	// ─────────────────────────────────────────────────────────────────
 
 	private static void openLinuxTerminal(String path, String cmd) throws Exception {
-	    // 构造在终端里先执行的初始化脚本
-	    // 用 bash -c "cd ... ; 预填到readline" 实现
-	    String initScript = buildLinuxInitScript(path, cmd);
+		// 构造在终端里先执行的初始化脚本
+		// 用 bash -c "cd ... ; 预填到readline" 实现
+		String initScript = buildLinuxInitScript(path, cmd);
 
-	    String[] terms = {
-	        "x-terminal-emulator",
-	        "gnome-terminal",
-	        "konsole",
-	        "xfce4-terminal",
-	        "xterm",
-	        "lxterminal"
-	    };
+		String[] terms = { "x-terminal-emulator", "gnome-terminal", "konsole", "xfce4-terminal", "xterm", "lxterminal" };
 
-	    for (String t : terms) {
-	        try {
-	            java.util.List<String> args = buildLinuxTerminalArgs(t, initScript);
-	            new ProcessBuilder(args).start();
-	            return;
-	        } catch (Exception ignored) {}
-	    }
-	    throw new RuntimeException("No available terminal found!");
+		for (String t : terms) {
+			try {
+				java.util.List<String> args = buildLinuxTerminalArgs(t, initScript);
+				new ProcessBuilder(args).start();
+				return;
+			} catch (Exception ignored) {
+			}
+		}
+		throw new RuntimeException("No available terminal found!");
 	}
 
 	private static String buildLinuxInitScript(String path, String cmd) {
-	    if (path == null && cmd == null) return null;
+		if (path == null && cmd == null)
+			return null;
 
-	    StringBuilder sb = new StringBuilder();
-	    if (path != null) {
-	        sb.append("cd '").append(escapeSingleQuote(path)).append("'; clear; ");
-	    }
-	    if (cmd != null) {
-	        // 和 macOS bash/zsh 一样的方式预填命令
-	        sb.append("__cmd='").append(escapeSingleQuote(cmd)).append("'; ")
-	          .append("__sh=$(basename \"$SHELL\"); ")
-	          .append("if [ \"$__sh\" = \"zsh\" ]; then ")
-	          .append(  "print -z \"$__cmd\"; ")
-	          .append("else ")
-	          // bash：写入历史然后用 Readline Up-arrow 拉出来
-	          .append(  "history -s \"$__cmd\"; ")
-	          .append("fi; ")
-	          .append("exec \"$SHELL\"");  // 替换当前 shell，保持交互
-	    } else {
-	        sb.append("exec \"$SHELL\"");
-	    }
-	    return sb.toString();
+		StringBuilder sb = new StringBuilder();
+		if (path != null) {
+			sb.append("cd '").append(escapeSingleQuote(path)).append("'; clear; ");
+		}
+		if (cmd != null) {
+			// 和 macOS bash/zsh 一样的方式预填命令
+			sb.append("__cmd='").append(escapeSingleQuote(cmd)).append("'; ").append("__sh=$(basename \"$SHELL\"); ")
+					.append("if [ \"$__sh\" = \"zsh\" ]; then ").append("print -z \"$__cmd\"; ").append("else ")
+					// bash：写入历史然后用 Readline Up-arrow 拉出来
+					.append("history -s \"$__cmd\"; ").append("fi; ").append("exec \"$SHELL\""); // 替换当前 shell，保持交互
+		} else {
+			sb.append("exec \"$SHELL\"");
+		}
+		return sb.toString();
 	}
 
 	private static java.util.List<String> buildLinuxTerminalArgs(String terminal, String initScript) {
-	    java.util.List<String> args = new java.util.ArrayList<>();
-	    args.add(terminal);
-	    if (initScript != null) {
-	        switch (terminal) {
-	            case "gnome-terminal":
-	                args.add("--");
-	                args.add("bash");
-	                args.add("-c");
-	                args.add(initScript);
-	                break;
-	            case "konsole":
-	                args.add("-e");
-	                args.add("bash");
-	                args.add("-c");
-	                args.add(initScript);
-	                break;
-	            default:
-	                args.add("-e");
-	                args.add("bash");
-	                args.add("-c");
-	                args.add(initScript);
-	        }
-	    }
-	    return args;
+		java.util.List<String> args = new java.util.ArrayList<>();
+		args.add(terminal);
+		if (initScript != null) {
+			switch (terminal) {
+			case "gnome-terminal":
+				args.add("--");
+				args.add("bash");
+				args.add("-c");
+				args.add(initScript);
+				break;
+			case "konsole":
+				args.add("-e");
+				args.add("bash");
+				args.add("-c");
+				args.add(initScript);
+				break;
+			default:
+				args.add("-e");
+				args.add("bash");
+				args.add("-c");
+				args.add(initScript);
+			}
+		}
+		return args;
 	}
 
 	// ─────────────────────────────────────────────────────────────────
-	//  工具方法
+	// 工具方法
 	// ─────────────────────────────────────────────────────────────────
 
 	/** 转义 shell 单引号：' → '\'' */
 	private static String escapeSingleQuote(String s) {
-	    return s.replace("'", "'\\''");
+		return s.replace("'", "'\\''");
 	}
 
 	/** 转义 PowerShell 单引号：' → '' */
 	private static String escapeSingleQuotePs(String s) {
-	    return s.replace("'", "''");
+		return s.replace("'", "''");
 	}
 
 	private static boolean isCommandAvailable(String command) {
-	    try {
-	        Process p = new ProcessBuilder("where", command)
-	            .redirectErrorStream(true).start();
-	        p.waitFor();
-	        return p.exitValue() == 0;
-	    } catch (Exception e) {
-	        return false;
-	    }
+		try {
+			Process p = new ProcessBuilder("where", command).redirectErrorStream(true).start();
+			p.waitFor();
+			return p.exitValue() == 0;
+		} catch (Exception e) {
+			return false;
+		}
 	}
-	
+
 	public static void openSshTerminal(String user, String host, int port, String remotePath) throws IOException {
-        if (user == null || host == null) {
-            throw new IllegalArgumentException("User and host must not be null");
-        }
-        if (remotePath == null) remotePath = "～";
+		if (user == null || host == null) {
+			throw new IllegalArgumentException("User and host must not be null");
+		}
+		if (remotePath == null)
+			remotePath = "～";
 
-        // 构造远程 cd 命令（安全转义路径）
-        String escapedPath = remotePath.replace("'", "'\"'\"'"); // 转义单引号
-        String sshCommand = String.format(
-            "ssh -t -p %d %s@%s \"cd '%s' && exec \\$SHELL\"",
-            port, user, host, escapedPath
-        );
+		// 构造远程 cd 命令（安全转义路径）
+		String escapedPath = remotePath.replace("'", "'\"'\"'"); // 转义单引号
+		String sshCommand = String.format("ssh -t -p %d %s@%s \"cd '%s' && exec \\$SHELL\"", port, user, host, escapedPath);
 
-        ProcessBuilder pb;
+		ProcessBuilder pb;
 
-        if (isWindows) {
-            // Windows: 使用 Windows Terminal (推荐) 或 cmd
-            try {
-                // 尝试 Windows Terminal (现代默认)
-                pb = new ProcessBuilder("wt", "new-tab", "--title", "SSH to " + host, "powershell", "-Command", sshCommand);
-            } catch (Exception e) {
-                // 回退到 cmd
-                pb = new ProcessBuilder("cmd", "/c", "start", "cmd", "/k", sshCommand);
-            }
-        } else if (isMacOS) {
-            // macOS: 用 Terminal.app 执行 ssh 命令
-            String script = String.format(
-                "tell application \"Terminal\"\n" +
-                "    activate\n" +
-                "    do script \"%s\"\n" +
-                "end tell",
-                sshCommand.replace("\"", "\\\"")
-            );
-            pb = new ProcessBuilder("osascript", "-e", script);
-        } else {
-            // Linux: 尝试 GNOME Terminal, Konsole, xterm...
-            String[] terminals = {
-                "gnome-terminal", "--", "bash", "-c", sshCommand,
-                "konsole", "-e", "bash", "-c", sshCommand,
-                "xfce4-terminal", "-e", "bash -c '" + sshCommand + "'",
-                "xterm", "-e", "bash", "-c", sshCommand
-            };
+		if (isWindows) {
+			// Windows: 使用 Windows Terminal (推荐) 或 cmd
+			try {
+				// 尝试 Windows Terminal (现代默认)
+				pb = new ProcessBuilder("wt", "new-tab", "--title", "SSH to " + host, "powershell", "-Command", sshCommand);
+			} catch (Exception e) {
+				// 回退到 cmd
+				pb = new ProcessBuilder("cmd", "/c", "start", "cmd", "/k", sshCommand);
+			}
+		} else if (isMacOS) {
+			// macOS: 用 Terminal.app 执行 ssh 命令
+			String script = String.format("tell application \"Terminal\"\n" + "    activate\n" + "    do script \"%s\"\n" + "end tell",
+					sshCommand.replace("\"", "\\\""));
+			pb = new ProcessBuilder("osascript", "-e", script);
+		} else {
+			// Linux: 尝试 GNOME Terminal, Konsole, xterm...
+			String[] terminals = { "gnome-terminal", "--", "bash", "-c", sshCommand, "konsole", "-e", "bash", "-c", sshCommand, "xfce4-terminal",
+					"-e", "bash -c '" + sshCommand + "'", "xterm", "-e", "bash", "-c", sshCommand };
 
-            IOException lastEx = null;
-            for (int i = 0; i < terminals.length; i += 2) {
-                try {
-                    String[] cmd;
-                    if ("xfce4-terminal".equals(terminals[i])) {
-                        cmd = new String[]{terminals[i], terminals[i+1]};
-                    } else {
-                        cmd = new String[]{terminals[i], terminals[i+1], terminals[i+2]};
-                    }
-                    new ProcessBuilder(cmd).start();
-                    return;
-                } catch (IOException e) {
-                    lastEx = e;
-                }
-            }
-            throw new IOException("No supported terminal found on Linux", lastEx);
-        }
+			IOException lastEx = null;
+			for (int i = 0; i < terminals.length; i += 2) {
+				try {
+					String[] cmd;
+					if ("xfce4-terminal".equals(terminals[i])) {
+						cmd = new String[] { terminals[i], terminals[i + 1] };
+					} else {
+						cmd = new String[] { terminals[i], terminals[i + 1], terminals[i + 2] };
+					}
+					new ProcessBuilder(cmd).start();
+					return;
+				} catch (IOException e) {
+					lastEx = e;
+				}
+			}
+			throw new IOException("No supported terminal found on Linux", lastEx);
+		}
 
-        pb.start();
-    }
-	
-	 /**
-     * 获取当前操作系统的默认应用程序安装目录（用于 JFileChooser 初始目录）
-     *
-     * @return 推荐的初始目录 File 对象；如果无法确定，则返回用户主目录
-     */
-    public static File getDefaultApplicationDirectory() {
+		pb.start();
+	}
 
-        if (isWindows()) {
-            // Windows: 优先 64位 Program Files
-            String programFiles = System.getenv("ProgramFiles");
-            if (programFiles != null) {
-                File pf = new File(programFiles);
-                if (pf.exists() && pf.isDirectory()) {
-                    return pf;
-                }
-            }
-            // 回退到 C:\Program Files
-            File fallback = new File("C:\\Program Files");
-            return fallback.exists() ? fallback : getUserHome();
+	/**
+	 * 获取当前操作系统的默认应用程序安装目录（用于 JFileChooser 初始目录）
+	 *
+	 * @return 推荐的初始目录 File 对象；如果无法确定，则返回用户主目录
+	 */
+	public static File getDefaultApplicationDirectory() {
 
-        } else if (isMacOS()) {
-            // macOS: /Applications
-            File apps = new File("/Applications");
-            return apps.exists() ? apps : getUserHome();
+		if (isWindows()) {
+			// Windows: 优先 64位 Program Files
+			String programFiles = System.getenv("ProgramFiles");
+			if (programFiles != null) {
+				File pf = new File(programFiles);
+				if (pf.exists() && pf.isDirectory()) {
+					return pf;
+				}
+			}
+			// 回退到 C:\Program Files
+			File fallback = new File("C:\\Program Files");
+			return fallback.exists() ? fallback : getUserHome();
 
-        } else {
-            // Linux / Unix-like
-            // 由于 Linux 没有统一程序目录，且用户常将 AppImage 放在 ~/Applications 或 ~/bin，
-            // 最安全的做法是默认打开用户主目录（比 /usr/bin 更友好）
-            return getUserHome();
-        }
-    }
+		} else if (isMacOS()) {
+			// macOS: /Applications
+			File apps = new File("/Applications");
+			return apps.exists() ? apps : getUserHome();
 
-    public static File getUserHome() {
-        return new File(System.getProperty("user.home"));
-    }
+		} else {
+			// Linux / Unix-like
+			// 由于 Linux 没有统一程序目录，且用户常将 AppImage 放在 ~/Applications 或 ~/bin，
+			// 最安全的做法是默认打开用户主目录（比 /usr/bin 更友好）
+			return getUserHome();
+		}
+	}
+
+	public static File getUserHome() {
+		return new File(System.getProperty("user.home"));
+	}
 
 	public static void main(String[] arg) throws IOException, InterruptedException { // 测试用例，基于你提供的版本号顺序
-		String[][] testCases = { { "2.3", "2.0.1" }, { "2.0.1", "1.9" }, { "1.9", "1.1.2" }, { "1.1.2", "1.1.0" }, { "1.1.0", "1.0" }, { "1.0", "1.0" } // 测试相等情况
+		String[][] testCases = { { "2.3", "2.0.1" }, { "2.0.1", "1.9" }, { "1.9", "1.1.2" }, { "1.1.2", "1.1.0" }, { "1.1.0", "1.0" },
+				{ "1.0", "1.0" } // 测试相等情况
 		};
 
 		System.out.println("Version comparison results:");

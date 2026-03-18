@@ -500,6 +500,26 @@ public class StringUtils {
 
 		return buf.toString();
 	}
+	
+
+	public static String toString(List<String> params, String separator) {
+		if (params == null || params.size() == 0) {
+			return "";
+		}
+
+		if (separator == null) {
+			separator = "";
+		}
+
+		StringBuffer buf = new StringBuffer();
+		for (int i = 0; i < params.size() - 1; i++) {
+			String string = params.get(i);
+			buf.append(string).append(separator);
+		}
+		buf.append(params.get(params.size() - 1)).append(separator);
+
+		return buf.toString();
+	}
 
 	public static <T> String toString(Collection<T> params, char separator) {
 		if (params == null || params.size() == 0) {
