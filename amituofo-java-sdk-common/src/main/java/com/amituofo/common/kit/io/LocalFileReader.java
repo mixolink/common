@@ -23,7 +23,7 @@ public class LocalFileReader implements DataReader {
 		int readlen = r.read(b);
 
 		if (readlen != length) {
-			throw new IOException("Read length different! read=" + readlen + " expect=" + length);
+			throw new IOException("Read length different. read=" + readlen + " expect=" + length);
 		}
 
 		return b;

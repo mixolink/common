@@ -162,7 +162,7 @@ public class RecordModel<ITEM> {
 		} catch (Exception e) {
 			// Table 视图模型和Model模型数据不统一导致 repain 数组越界问题！！
 //			e.printStackTrace();
-			System.err.println("Ignore this! " + e.getMessage());
+			System.err.println("Ignore this. " + e.getMessage());
 		}
 
 		return null;

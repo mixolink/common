@@ -7,7 +7,7 @@ import com.amituofo.common.api.Interruptable;
 
 public class Interrupter implements Interruptable {
 	protected boolean interrupted = false;
-	
+
 	private List<InterrupterListener> listeners = null;
 	private long createTime = System.currentTimeMillis();
 
@@ -38,17 +38,25 @@ public class Interrupter implements Interruptable {
 	@Override
 	public boolean interrupt() throws InterruptedException {
 		markInterrupted(true);
-		
+
 		if (listeners != null) {
 			for (InterrupterListener interrupterListener : listeners) {
 				interrupterListener.interrupted();
 			}
 		}
-		
+
 		return true;
 	}
 
 	public static Interrupter newInterrupter() {
 		return new Interrupter();
+	}
+
+	public static Interrupter newInterrupter(InterrupterListener listener) {
+		Interrupter interrupter = new Interrupter();
+		if (listener != null) {
+			interrupter.addListener(listener);
+		}
+		return interrupter;
 	}
 }

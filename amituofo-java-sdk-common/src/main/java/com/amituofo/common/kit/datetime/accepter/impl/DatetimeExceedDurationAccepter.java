@@ -16,7 +16,7 @@ public class DatetimeExceedDurationAccepter extends DatetimeAccepterBase {
 		super(DatetimeAccepters.IS_EXCEEDS_DURATION);
 
 		if (timeOffset == null || timeOffsetUnit == null) {
-			throw new InvalidParameterException("Offset datetime or Unit required!");
+			throw new InvalidParameterException("Offset datetime or Unit required.");
 		}
 
 //		if (method != CompareMethod.TIME_OFFSET_FROM_NOW && method != CompareMethod.BEFORE_TIME) {

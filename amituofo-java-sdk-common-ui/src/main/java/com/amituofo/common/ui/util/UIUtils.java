@@ -28,7 +28,10 @@ import java.awt.event.WindowFocusListener;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TimerTask;
 
 import javax.swing.AbstractButton;
 import javax.swing.Box;
@@ -90,6 +93,8 @@ public class UIUtils {
 
 	protected static Component DEFAULT_MAIN_FRAME = null;
 
+	private final static Map<String, Timer> timerMap = new HashMap<String, Timer>();
+
 	public static Component getDefaultTopFrame() {
 		return DEFAULT_MAIN_FRAME;
 	}
@@ -102,7 +107,7 @@ public class UIUtils {
 		SwingUtilities.invokeLater(runnable);
 	}
 
-	public static void invokeLater(final Runnable runnable, long delay) {
+	public static void invokeLater(final Runnable runnable, int delay) {
 		if (delay <= 0) {
 			SwingUtilities.invokeLater(runnable);
 		} else {
@@ -115,30 +120,53 @@ public class UIUtils {
 		worker.execute();
 	}
 
-//	public static void invokeInThread(final Runnable runnable) {
-//		new Thread(runnable).start();
-//		// SwingUtilities.invokeLater(runnable);
-//	}
+	public static void mergeDelayInvoke(final String runid, final Runnable runnable, int delay) {
+		synchronized (timerMap) {
+			Timer timer = timerMap.get(runid);
+			if (timer != null) {
+				timer.stop();
+				timerMap.remove(runid);
+			}
 
-//	public static Timer invokeDelay(final Runnable runnable, long delay) {
-//		Timer timer = new Timer("Later-Exec");
-//		timer.schedule(new TimerTask() {
-//
-//			@Override
-//			public void run() {
-//				try {
-//					runnable.run();
-//				} finally {
-//					timer.cancel();
-//				}
-//			}
-//		}, delay);
-//		return timer;
-//	}
+			Timer swingTimer = new Timer((int) delay, new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					boolean continueRun = false;
+					synchronized (timerMap) {
+						// Timer may canceled by another thread
+						continueRun = timerMap.containsKey(runid);
+						if (continueRun) {
+							timerMap.remove(runid);
+						}
+					}
 
-	public static Timer invokeDelay(final Runnable runnable, long delay) {
+					if (continueRun) {
+						runnable.run(); // 自动在 EDT 中执行，安全！
+					}
+				}
+			});
+			timerMap.put(runid, swingTimer);
+
+			swingTimer.setRepeats(false);
+			swingTimer.start();
+		}
+	}
+
+	public static boolean cancelMergeDelayInvoke(String runid) {
+		synchronized (timerMap) {
+			Timer timer = timerMap.get(runid);
+			if (timer != null) {
+				timerMap.remove(runid);
+				timer.stop();
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static Timer invokeDelay(final Runnable runnable, int delay) {
 		// 创建 Swing Timer（注意：delay 单位是毫秒）
-		Timer swingTimer = new Timer((int) delay, new ActionListener() {
+		Timer swingTimer = new Timer(delay, new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				runnable.run(); // 自动在 EDT 中执行，安全！
@@ -203,13 +231,12 @@ public class UIUtils {
 			} else {
 				DialogManager.increaseDialog();
 				Object[] options = { DEFAULT_TITLE_OF_ERROR_MORE, "OK" };
-				int result = JOptionPane.showOptionDialog(parentComponent, message, DEFAULT_TITLE_OF_ERROR + " (￣▽￣;)", JOptionPane.DEFAULT_OPTION,
-						JOptionPane.ERROR_MESSAGE, null, options, options[1]);
+				int result = JOptionPane.showOptionDialog(parentComponent, message, DEFAULT_TITLE_OF_ERROR + " (￣▽￣;)", JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null,
+						options, options[1]);
 				DialogManager.decreaseDialog();
 				if (result == 0) {
 					DialogManager.increaseDialog();
-					JOptionPane.showMessageDialog(parentComponent, StringUtils.printStackTrace(e), DEFAULT_TITLE_OF_ERROR_STACK_TRACE,
-							JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(parentComponent, StringUtils.printStackTrace(e), DEFAULT_TITLE_OF_ERROR_STACK_TRACE, JOptionPane.ERROR_MESSAGE);
 					DialogManager.decreaseDialog();
 				}
 			}
@@ -304,15 +331,13 @@ public class UIUtils {
 		Counter yes = Counter.newCounter();
 		if (SwingUtilities.isEventDispatchThread()) {
 			DialogManager.increaseDialog();
-			yes.n = JOptionPane.showConfirmDialog(parentComponent, panel, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION,
-					JOptionPane.QUESTION_MESSAGE);
+			yes.n = JOptionPane.showConfirmDialog(parentComponent, panel, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 			DialogManager.decreaseDialog();
 		} else {
 			try {
 				SwingUtilities.invokeAndWait(() -> {
 					DialogManager.increaseDialog();
-					yes.n = JOptionPane.showConfirmDialog(parentComponent, panel, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION,
-							JOptionPane.QUESTION_MESSAGE);
+					yes.n = JOptionPane.showConfirmDialog(parentComponent, panel, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 					DialogManager.decreaseDialog();
 				});
 			} catch (Exception e) {
@@ -329,15 +354,36 @@ public class UIUtils {
 		Counter yes = Counter.newCounter();
 		if (SwingUtilities.isEventDispatchThread()) {
 			DialogManager.increaseDialog();
-			yes.n = JOptionPane.showConfirmDialog(parentComponent, message, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION,
-					JOptionPane.QUESTION_MESSAGE);
+			yes.n = JOptionPane.showConfirmDialog(parentComponent, message, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 			DialogManager.decreaseDialog();
 		} else {
 			try {
 				SwingUtilities.invokeAndWait(() -> {
 					DialogManager.increaseDialog();
-					yes.n = JOptionPane.showConfirmDialog(parentComponent, message, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION,
-							JOptionPane.QUESTION_MESSAGE);
+					yes.n = JOptionPane.showConfirmDialog(parentComponent, message, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					DialogManager.decreaseDialog();
+				});
+			} catch (Exception e) {
+				return false;
+			}
+		}
+
+		return yes.n == 0;
+	}
+
+	public static boolean openWarnConfirm(Component parent, String message) {
+		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
+
+		Counter yes = Counter.newCounter();
+		if (SwingUtilities.isEventDispatchThread()) {
+			DialogManager.increaseDialog();
+			yes.n = JOptionPane.showConfirmDialog(parentComponent, message, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			DialogManager.decreaseDialog();
+		} else {
+			try {
+				SwingUtilities.invokeAndWait(() -> {
+					DialogManager.increaseDialog();
+					yes.n = JOptionPane.showConfirmDialog(parentComponent, message, DEFAULT_TITLE_OF_CONFIRM, JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 					DialogManager.decreaseDialog();
 				});
 			} catch (Exception e) {
@@ -398,8 +444,7 @@ public class UIUtils {
 		return value.getValue();
 	}
 
-	public static InputUserPassword openInputUserPassword(Component parent, String title, String usermessage, String pwdmessage,
-			String defaultUsername, boolean allowEmpty) {
+	public static InputUserPassword openInputUserPassword(Component parent, String title, String usermessage, String pwdmessage, String defaultUsername, boolean allowEmpty) {
 		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
 
 		do {
@@ -535,6 +580,10 @@ public class UIUtils {
 		return openInfoConfirm(DEFAULT_MAIN_FRAME, message);
 	}
 
+	public static boolean openWarnConfirm(String message) {
+		return openWarnConfirm(DEFAULT_MAIN_FRAME, message);
+	}
+
 	public static void openWarning(String message) {
 		openWarning(DEFAULT_MAIN_FRAME, message);
 	}
@@ -543,8 +592,7 @@ public class UIUtils {
 		return openInput(DEFAULT_MAIN_FRAME, message, initValue, inputValidator);
 	}
 
-	public static InputUserPassword openInputUserPassword(String title, String usermessage, String pwdmessage, String defaultUsername,
-			boolean allowEmpty) {
+	public static InputUserPassword openInputUserPassword(String title, String usermessage, String pwdmessage, String defaultUsername, boolean allowEmpty) {
 		return openInputUserPassword(DEFAULT_MAIN_FRAME, title, usermessage, pwdmessage, defaultUsername, allowEmpty);
 	}
 
@@ -1284,5 +1332,23 @@ public class UIUtils {
 			return true;
 		}
 		return false;
+	}
+
+	public static Rectangle getScreenBoundsContaining(int[] bounds) {
+		Rectangle screenBounds = null;// getScreenBoundsContaining(savedBounds);
+		if (bounds == null || bounds.length != 4 || bounds[2] < 500 || bounds[3] < 500) {
+			return screenBounds;
+		}
+
+		Rectangle rect = new Rectangle(bounds[0], bounds[1], bounds[2], bounds[3]);
+
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		for (GraphicsDevice gd : ge.getScreenDevices()) {
+			screenBounds = gd.getDefaultConfiguration().getBounds();
+			if (screenBounds.intersects(rect)) {
+				return screenBounds;
+			}
+		}
+		return null;
 	}
 }

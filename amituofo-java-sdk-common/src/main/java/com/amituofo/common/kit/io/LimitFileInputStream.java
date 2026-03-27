@@ -21,7 +21,7 @@ public class LimitFileInputStream extends InputStream {
 
 		long len = file.length();
 		if ((len - offset) < maxLength) {
-			throw new IOException("Max length exceed!");
+			throw new IOException("Max length exceed.");
 		}
 
 		this.reset();

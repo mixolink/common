@@ -23,7 +23,7 @@ public class DatetimeNumberOfWeekAccepter extends DatetimeAccepterBase {
 		}
 
 		if (dayOfWeek == null) {
-			throw new InvalidParameterException("Week value [MONDAY;TUESDAY;WEDNESDAY;THURSDAY;FRIDAY;SATURDAY;SUNDAY;] required!");
+			throw new InvalidParameterException("Week value [MONDAY;TUESDAY;WEDNESDAY;THURSDAY;FRIDAY;SATURDAY;SUNDAY;] required.");
 		}
 
 		this.numberOfWeek = numberOfWeek;

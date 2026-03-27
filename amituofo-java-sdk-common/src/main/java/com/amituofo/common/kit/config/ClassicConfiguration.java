@@ -96,7 +96,7 @@ public class ClassicConfiguration extends Configuration {
 //			return new ClassicConfiguration(configMap);
 		}
 
-		throw new ParseException("Default config class not found!");
+		throw new ParseException("Default config class not found.");
 	}
 
 	public Class<?> getClass(String key, ClassLoader defaultClassLoader) {
@@ -133,7 +133,7 @@ public class ClassicConfiguration extends Configuration {
 
 	public void validateConfig() throws InvalidConfigException {
 		super.validateConfig();
-		ValidUtils.invalidIfEmpty(getString(_CONFIG_CLASS_NAME_), "Configuration class name cound not be empty!");
+		ValidUtils.invalidIfEmpty(getString(_CONFIG_CLASS_NAME_), "Configuration class name cound not be empty.");
 	}
 
 	public static ClassicConfiguration parseJsonString(String config) throws ParseException {
@@ -227,7 +227,7 @@ public class ClassicConfiguration extends Configuration {
 //			throw new ParseException(e);
 //		}
 //
-//		throw new ParseException("Configuration class not found!");
+//		throw new ParseException("Configuration class not found.");
 //	}
 //
 //	public static SimpleConfiguration toCustomSimpleConfiguration(Map<String, Object> configMap, ClassLoader defaultClassLoader) throws ParseException {
@@ -254,7 +254,7 @@ public class ClassicConfiguration extends Configuration {
 //			throw new ParseException(e);
 //		}
 //
-//		throw new ParseException("Configuration class not found!");
+//		throw new ParseException("Configuration class not found.");
 //	}
 
 }

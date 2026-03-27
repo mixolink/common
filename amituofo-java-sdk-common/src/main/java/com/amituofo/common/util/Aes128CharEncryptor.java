@@ -111,7 +111,7 @@ public class Aes128CharEncryptor {
     // ✅ 测试 main 方法
     // ========================
     public static void main(String[] args) throws Exception {
-        char[] original = "Hello, 世界! 🌍 123".toCharArray();
+        char[] original = "Hello, 世界. 🌍 123".toCharArray();
         char[] password = "MySecurePassword!2026".toCharArray();
 
         System.out.println("Original: " + new String(original));
@@ -134,7 +134,7 @@ public class Aes128CharEncryptor {
         System.out.println("Decryption time: " + decryptTime + " ms");
 
         // 验证相等（使用恒定时间比较）
-        boolean isEqual = isEquals("Hello, 世界! 🌍 123".toCharArray(), decrypted);
+        boolean isEqual = isEquals("Hello, 世界. 🌍 123".toCharArray(), decrypted);
         System.out.println("Content matches: " + isEqual);
 
         // 清理
@@ -144,7 +144,7 @@ public class Aes128CharEncryptor {
         // 测试错误密码
         try {
             decrypt(encrypted, "WrongPass".toCharArray());
-            System.out.println("ERROR: Should not decrypt with wrong password!");
+            System.out.println("ERROR: Should not decrypt with wrong password.");
         } catch (GeneralSecurityException e) {
             System.out.println("Correctly rejected wrong password: " + e.getClass().getSimpleName());
         }

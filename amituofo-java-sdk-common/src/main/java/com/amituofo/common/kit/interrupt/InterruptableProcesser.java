@@ -20,7 +20,7 @@ public abstract class InterruptableProcesser implements Interruptable {
 	}
 
 	public boolean isInterrupted() {
-		return interrupter.isInterrupted() || status == ProcesserStatus.Stoped;
+		return interrupter.isInterrupted();//|| status == ProcesserStatus.Stoped;
 	}
 
 	public ProcesserStatus getProcesserStatus() {
@@ -50,9 +50,9 @@ public abstract class InterruptableProcesser implements Interruptable {
 
 		if (log != null) {
 			if (stoped) {
-				log.info("Processer [" + name + "] stopped!");
+				log.info("Processer [" + name + "] stopped.");
 			} else {
-				log.warn("Processer [" + name + "] stop NG!");
+				log.warn("Processer [" + name + "] stop NG.");
 			}
 		}
 

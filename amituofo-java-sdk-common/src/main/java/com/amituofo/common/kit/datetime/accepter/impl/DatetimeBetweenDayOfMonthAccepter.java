@@ -37,7 +37,7 @@ public class DatetimeBetweenDayOfMonthAccepter extends DatetimeAccepterBase {
 		} else {
 			operator = null;
 
-			throw new InvalidParameterException("From [DAY] and To [DAY] required!");
+			throw new InvalidParameterException("From [DAY] and To [DAY] required.");
 		}
 
 		this.isThisMonth = isThisMonth;

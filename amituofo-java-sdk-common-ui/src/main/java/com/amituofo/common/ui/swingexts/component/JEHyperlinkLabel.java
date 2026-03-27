@@ -70,11 +70,11 @@ public class JEHyperlinkLabel extends JLabel {
 							setForeground(clickedColor);
 						} catch (Exception ex) {
 							SystemUtils.setClipboardString(url);
-							UIUtils.openMessageTip(url + " copied to clipboard!");
+							UIUtils.openMessageTip(url + " copied to clipboard.");
 						}
 					} else {
 						SystemUtils.setClipboardString(url);
-						UIUtils.openMessageTip(url + " copied to clipboard!");
+						UIUtils.openMessageTip(url + " copied to clipboard.");
 					}
 				}
 			}

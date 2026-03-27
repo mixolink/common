@@ -139,7 +139,7 @@ public class JESplitButton extends JToolBar {
 //			tb.setFloatable(false);
 //
 //			SplitButton sb = new SplitButton("Save", null);
-//			sb.addActionListener(e -> JOptionPane.showMessageDialog(f, "Save!"));
+//			sb.addActionListener(e -> JOptionPane.showMessageDialog(f, "Save."));
 //			sb.addMenuItem("Save As...", e -> JOptionPane.showMessageDialog(f, "Save As..."));
 //			sb.addMenuItem("Save Copy", e -> JOptionPane.showMessageDialog(f, "Save Copy"));
 //			sb.addSeparator();

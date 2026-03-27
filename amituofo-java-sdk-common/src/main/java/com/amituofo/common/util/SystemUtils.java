@@ -840,7 +840,7 @@ public class SystemUtils {
 			}
 		}
 
-		throw new RuntimeException("No available file manager found!");
+		throw new RuntimeException("No available file manager found.");
 	}
 
 //	public static void openSystemTerminal(String path) throws Exception {
@@ -903,7 +903,7 @@ public class SystemUtils {
 //	        } catch (Exception ignored) {}
 //	    }
 //
-//	    throw new RuntimeException("No available terminal found!");
+//	    throw new RuntimeException("No available terminal found.");
 //	}
 //	
 //	private static void openWindowsTerminal(String path) throws Exception {
@@ -1092,7 +1092,7 @@ public class SystemUtils {
 			} catch (Exception ignored) {
 			}
 		}
-		throw new RuntimeException("No available terminal found!");
+		throw new RuntimeException("No available terminal found.");
 	}
 
 	private static String buildLinuxInitScript(String path, String cmd) {

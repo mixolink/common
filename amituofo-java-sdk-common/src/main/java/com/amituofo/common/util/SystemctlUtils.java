@@ -10,7 +10,7 @@ public class SystemctlUtils {
 //		systemctl is-active  oeos-ks01
 		ExeResult result = CmdUtils.execShellCommand("systemctl is-active " + serviceName, 5, true);
 //		if (result.isExitNot0()) {
-//			throw new Exception("Command execute failed!" + result.getOutput());
+//			throw new Exception("Command execute failed." + result.getOutput());
 //		}
 		String output = result.getOutput();
 		if (output.contains("inactive")) {

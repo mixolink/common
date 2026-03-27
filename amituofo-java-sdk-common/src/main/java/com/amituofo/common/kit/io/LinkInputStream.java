@@ -9,8 +9,8 @@ import java.io.PipedOutputStream;
 import com.amituofo.common.api.IOAbortable;
 
 public class LinkInputStream extends FilterInputStream implements IOAbortable {
-	private final PipedInputStream pis;
-	private final PipedOutputStream pos;
+	private PipedInputStream pis;
+	private PipedOutputStream pos;
 	private boolean closed = false;
 
 	public LinkInputStream() throws IOException {
@@ -38,6 +38,10 @@ public class LinkInputStream extends FilterInputStream implements IOAbortable {
 		if (!closed) {
 			closed = true;
 			super.close();
+			pos.close();
+
+			pis = null;
+			pos = null;
 		}
 	}
 
@@ -46,7 +50,6 @@ public class LinkInputStream extends FilterInputStream implements IOAbortable {
 		if (in instanceof IOAbortable) {
 			((IOAbortable) in).abort();
 		}
-
 	}
 
 }

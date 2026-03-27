@@ -174,6 +174,6 @@ public class VersionUtils {
         assert compareVersions("1.0.0", "1.0") == 0;
         assert compareVersions("1.0.0-alpha", "1.0.0-alpha.1") < 0;
 
-        System.out.println("All tests passed!");
+        System.out.println("All tests passed.");
     }
 }

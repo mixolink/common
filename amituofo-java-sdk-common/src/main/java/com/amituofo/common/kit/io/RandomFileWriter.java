@@ -151,6 +151,10 @@ public class RandomFileWriter implements Runnable, Interruptable {
 			totalLen += len;
 			int remainSize = bufferSize - len;
 			while (remainSize > 0) {
+				if (interrupted) {
+					return null;
+				}
+				
 				len = in.read(buf, totalLen, remainSize);
 				if (len <= 0) {
 					break;

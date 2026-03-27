@@ -26,7 +26,7 @@ public class FontPreviewApp extends JFrame {
 
 	private static final int MAX_COLUMNS = 3; // 最多三列
 	private static final int CELL_HEIGHT = 120; // 统一格子高度
-	private String previewText = "Hello 世界 123! Abc 字体效果 The quick brown fox";
+	private String previewText = "Hello 世界 123. Abc 字体效果 The quick brown fox";
 	private int fontSize = 22;
 
 	private JPanel gridPanel;

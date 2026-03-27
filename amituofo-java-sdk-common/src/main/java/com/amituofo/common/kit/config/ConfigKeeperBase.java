@@ -96,7 +96,7 @@ public abstract class ConfigKeeperBase<CONFIG extends Config> implements ConfigK
 				throw new InvalidConfigException(e);
 			}
 			if (existConCfg != null && !existConCfg.getId().equals(setting.getId())) {
-				throw new InvalidConfigException("Setting with the same name [" + setting.getName() + "] already exists!");
+				throw new InvalidConfigException("Setting with the same name [" + setting.getName() + "] already exists.");
 			}
 		}
 

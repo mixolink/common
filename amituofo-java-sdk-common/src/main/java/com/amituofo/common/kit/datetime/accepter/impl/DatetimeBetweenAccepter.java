@@ -37,7 +37,7 @@ public class DatetimeBetweenAccepter extends DatetimeAccepterBase {
 		} else {
 			operator = null;
 
-			throw new InvalidParameterException("From datetime[Millisecond] and To datetime[Millisecond] required!");
+			throw new InvalidParameterException("From datetime[Millisecond] and To datetime[Millisecond] required.");
 		}
 	}
 

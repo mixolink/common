@@ -344,7 +344,7 @@ public class JEWizardPanelContainer extends SimpleDialogContentPanel {
 
 			panel = getWizardPanel(topWizardIndex);
 			if (panel == null) {
-				UIUtils.openError("Failed to create next wizard!");
+				UIUtils.openError("Failed to create next wizard.");
 				return;
 			}
 			if (isLast || panel.isEnabled()) {

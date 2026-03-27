@@ -160,7 +160,7 @@ public class Base64Utils {
 			/* ie all padding */ }
 
 		/*
-		 * Set byteDest, this is smaller than byteData due to 4 -> 3 byte munge. Note that this is an integer division! This fact is used in the
+		 * Set byteDest, this is smaller than byteData due to 4 -> 3 byte munge. Note that this is an integer division. This fact is used in the
 		 * logic l8r. to make sure we don't fall out of the array and create an OutOfBoundsException and also in handling the remainder
 		 */
 		byte byteDest[] = new byte[((reviSrcIdx * 3) / 4)];

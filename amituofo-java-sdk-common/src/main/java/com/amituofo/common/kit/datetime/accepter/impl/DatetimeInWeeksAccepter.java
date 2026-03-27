@@ -16,7 +16,7 @@ public class DatetimeInWeeksAccepter extends DatetimeAccepterBase {
 		super(DatetimeAccepters.IS_IN_WEEKS);
 
 		if (dayOfWeeks == null || dayOfWeeks.length == 0) {
-			throw new InvalidParameterException("Day of weeks [MONDAY;TUESDAY;WEDNESDAY;THURSDAY;SATURDAY;SUNDAY] required!");
+			throw new InvalidParameterException("Day of weeks [MONDAY;TUESDAY;WEDNESDAY;THURSDAY;SATURDAY;SUNDAY] required.");
 		}
 		this.dayOfWeeks = dayOfWeeks;
 	}

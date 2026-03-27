@@ -146,7 +146,7 @@ public class CmdUtils {
 				if (maxtimes <= 0) {
 					process.destroy();
 //					process.destroyForcibly();
-					throw new TimeoutException("Command " + StringUtils.toString(cmdarray, ' ') + " execute timeount!");
+					throw new TimeoutException("Command " + StringUtils.toString(cmdarray, ' ') + " execute timeount.");
 				}
 			}
 

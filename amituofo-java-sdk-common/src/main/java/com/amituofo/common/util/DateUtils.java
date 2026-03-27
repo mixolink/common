@@ -481,7 +481,7 @@ public class DateUtils {
 	public static Date minuteFlow(Date date, int mm) {
 
 		if (mm <= 0) {
-			throw new IllegalArgumentException("Minute must be specified!");
+			throw new IllegalArgumentException("Minute must be specified.");
 		}
 
 		Calendar calendar = GregorianCalendar.getInstance();
@@ -668,7 +668,7 @@ public class DateUtils {
 
 	public static String nextYearMonth(String yyyymm) {
 		if (StringUtils.isEmpty(yyyymm) || yyyymm.length() != 6) {
-			throw new IllegalArgumentException("WrongFormat! Please YYYYMM");
+			throw new IllegalArgumentException("WrongFormat. Please YYYYMM");
 		}
 		int year = Integer.parseInt(yyyymm.substring(0, 4));
 		int month = Integer.parseInt(yyyymm.substring(4, 6));
@@ -695,7 +695,7 @@ public class DateUtils {
 
 	public static String prevYearMonth(String yyyymm) {
 		if (StringUtils.isEmpty(yyyymm) || yyyymm.length() != 6) {
-			throw new IllegalArgumentException("WrongFormat! Please YYYYMM");
+			throw new IllegalArgumentException("WrongFormat. Please YYYYMM");
 		}
 		int year = Integer.parseInt(yyyymm.substring(0, 4));
 		int month = Integer.parseInt(yyyymm.substring(4, 6));

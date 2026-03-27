@@ -26,7 +26,7 @@ public class FunctionParser {
 		// 提取函数名
 		String funcName = expression.substring(0, leftParen).trim();
 		if (StringUtils.isEmpty(funcName)) {
-			throw new ParseException("Invalid function expression: " + expression + ", Function name not found! ");
+			throw new ParseException("Invalid function expression: " + expression + ", Function name not found. ");
 		}
 
 		// 提取参数部分（去掉括号）

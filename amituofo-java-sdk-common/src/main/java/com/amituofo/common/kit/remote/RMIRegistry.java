@@ -52,7 +52,7 @@ public class RMIRegistry {
 
 	public void bind(String name, Remote obj) throws AccessException, RemoteException, AlreadyBoundException {
 		if (obj == null || StringUtils.isEmpty(name)) {
-			throw new AccessException("name or remote object required!");
+			throw new AccessException("name or remote object required.");
 		}
 
 		getRegistry().bind(name, obj);
@@ -60,7 +60,7 @@ public class RMIRegistry {
 
 	public void rebind(String name, Remote obj) throws AccessException, RemoteException, AlreadyBoundException {
 		if (obj == null || StringUtils.isEmpty(name)) {
-			throw new AccessException("name or remote object required!");
+			throw new AccessException("name or remote object required.");
 		}
 
 		getRegistry().rebind(name, obj);

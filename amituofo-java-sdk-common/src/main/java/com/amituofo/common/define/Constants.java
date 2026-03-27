@@ -30,7 +30,7 @@ public class Constants {
 
 	public final static String INVALID_NAME_CHARS_STR = "\\/:*?\"<>|";
 	public final static String[] INVALID_NAME_CHARS = new String[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
-	public final static String[] INVALID_PATH_CHARS = new String[] { ":", "*", "?", "\"", "<", ">", "|" };
+	public final static String[] INVALID_PATH_CHARS = new String[] { ":", "*", "?", "\"", "<", ">", "|", "//", "\\" };
 
 	public final static String SYSTEM_SHORT_NAME = "OCTSYS";
 	public final static String SYSTEM_AUTH_NAME = SYSTEM_SHORT_NAME + "JA";

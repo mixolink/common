@@ -229,12 +229,12 @@ public class FileUtils {
 	 */
 	public static void moveFile(File srcfile, File destfile) throws IOException {
 		if (!srcfile.exists()) {
-			throw new IOException("Source file not exist! " + srcfile);
+			throw new IOException("Source file not exist. " + srcfile);
 		}
 
 		if (destfile.exists()) {
 			if (!destfile.delete()) {
-				throw new IOException("Distination file could not delete! " + destfile);
+				throw new IOException("Distination file could not delete. " + destfile);
 			}
 		}
 
@@ -244,11 +244,11 @@ public class FileUtils {
 		flFolder = destfile.getParentFile();
 		if ((flFolder != null) && (!flFolder.exists())) {
 			if (!flFolder.mkdirs()) {
-				throw new IOException("Cannot create directory! " + flFolder);
+				throw new IOException("Cannot create directory. " + flFolder);
 			}
 
 			if (!flFolder.exists()) {
-				throw new IOException("Target directory not found! " + flFolder);
+				throw new IOException("Target directory not found. " + flFolder);
 			}
 		}
 		
@@ -329,7 +329,7 @@ public class FileUtils {
 
 			if (srcfile.length() != bytesTransferred) {
 				destfile.delete();
-				throw new IOException("Transfer length invalid! " + srcfile.length() + "!=" + bytesTransferred);
+				throw new IOException("Transfer length invalid. " + srcfile.length() + "!=" + bytesTransferred);
 			}
 		}
 	}

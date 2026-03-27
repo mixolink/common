@@ -684,7 +684,7 @@ public class RetryHelper {
 
 		synchronized (THREADS) {
 			if (THREADS.containsKey(id)) {
-				throw new IDConflictException("ID " + id + " already exist!");
+				throw new IDConflictException("ID " + id + " already exist.");
 			}
 
 			InterruptableRunnable runnable = new ThreadSleepTryer<T>(id, action, resultCallback, maxRetryTimes, waitIntervalFirst, retryInterval, forever);
@@ -699,7 +699,7 @@ public class RetryHelper {
 			final long retryInterval, final long waitIntervalFirst) throws IDConflictException {
 		synchronized (THREADS) {
 			if (THREADS.containsKey(id)) {
-				throw new IDConflictException("ID " + id + " already exist!");
+				throw new IDConflictException("ID " + id + " already exist.");
 			}
 
 			InterruptableRunnable runnable = new TimerTryer<T>(id, action, resultCallback, maxRetryTimes, waitIntervalFirst, retryInterval, true);
@@ -715,7 +715,7 @@ public class RetryHelper {
 
 		synchronized (THREADS) {
 			if (THREADS.containsKey(id)) {
-				throw new IDConflictException("ID " + id + " already exist!");
+				throw new IDConflictException("ID " + id + " already exist.");
 			}
 
 			InterruptableRunnable runnable = new FixTimerTryer<T>(id, action, resultCallback, maxRetryTimes, retryInterval, retryAtTime, true);

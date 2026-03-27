@@ -85,7 +85,7 @@ public class JEXMLEditPanel extends JEPanel {
 						contentEditor.setCaretPosition(0);
 					} catch (Exception e1) {
 						// e1.printStackTrace();
-						UIUtils.openError("Unsupported character encode!", e1);
+						UIUtils.openError("Unsupported character encode.", e1);
 						// GlobalContext.getLogger().error("The character encoding is not supported.", e1);
 					}
 				}
