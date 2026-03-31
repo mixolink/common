@@ -21,33 +21,33 @@ public abstract class CustomTableModel<ITEM> extends TableRecordModel<ITEM> impl
 
 	private Class[] columnClass;
 	private String[] columnNames;
-	private int[] columnWidths;
+	private int[] COLUMNS_WIDTH;
 	private int[] columnMaxWidths;
-	private int[] columnHAlignments;
+	private int[] COLUMNS_ALIGNMENTS;
 	private TableCellRenderer[] cellRenderers;
 	private TableCellEditor[] cellEditors;
 	private TableStyle tableStyle;
 
-	public CustomTableModel(Class[] columnTypes, String[] columnNames, int[] columnWidths, int[] columnHAlignments, TableCellRenderer[] cellRenderers,
+	public CustomTableModel(Class[] COLUMNS_TYPE, String[] columnNames, int[] COLUMNS_WIDTH, int[] COLUMNS_ALIGNMENTS, TableCellRenderer[] cellRenderers,
 			TableCellEditor[] cellEditors) {
-		this(null, columnTypes, columnNames, columnWidths, new int[0], columnHAlignments, cellRenderers, cellEditors);
+		this(null, COLUMNS_TYPE, columnNames, COLUMNS_WIDTH, new int[0], COLUMNS_ALIGNMENTS, cellRenderers, cellEditors);
 	}
 
-	public CustomTableModel(TableStyle tableStyle, Class[] columnTypes, String[] columnNames, int[] columnWidths, int[] columnHAlignments,
+	public CustomTableModel(TableStyle tableStyle, Class[] COLUMNS_TYPE, String[] columnNames, int[] COLUMNS_WIDTH, int[] COLUMNS_ALIGNMENTS,
 			TableCellRenderer[] cellRenderers, TableCellEditor[] cellEditors) {
-		this(tableStyle, columnTypes, columnNames, columnWidths, new int[0], columnHAlignments, cellRenderers, cellEditors);
+		this(tableStyle, COLUMNS_TYPE, columnNames, COLUMNS_WIDTH, new int[0], COLUMNS_ALIGNMENTS, cellRenderers, cellEditors);
 	}
 
-	public CustomTableModel(TableStyle tableStyle, Class[] columnTypes, String[] columnNames, int[] columnWidths,
+	public CustomTableModel(TableStyle tableStyle, Class[] COLUMNS_TYPE, String[] columnNames, int[] COLUMNS_WIDTH,
 			// int[] columnMinWidths,
-			int[] columnMaxWidths, int[] columnHAlignments, TableCellRenderer[] cellRenderers, TableCellEditor[] cellEditors) {
+			int[] columnMaxWidths, int[] COLUMNS_ALIGNMENTS, TableCellRenderer[] cellRenderers, TableCellEditor[] cellEditors) {
 		this.tableStyle = (tableStyle == null ? new TableStyle() : tableStyle);
-		this.columnClass = columnTypes;
+		this.columnClass = COLUMNS_TYPE;
 		this.columnNames = columnNames;
-		this.columnWidths = columnWidths;
+		this.COLUMNS_WIDTH = COLUMNS_WIDTH;
 		// this.columnMinWidths = columnMinWidths;
 		this.columnMaxWidths = columnMaxWidths;
-		this.columnHAlignments = columnHAlignments;
+		this.COLUMNS_ALIGNMENTS = COLUMNS_ALIGNMENTS;
 		this.cellRenderers = cellRenderers;
 		this.cellEditors = cellEditors;
 	}
@@ -76,7 +76,7 @@ public abstract class CustomTableModel<ITEM> extends TableRecordModel<ITEM> impl
 	}
 
 	public int[] getColumnWidths() {
-		return columnWidths;
+		return COLUMNS_WIDTH;
 	}
 
 	public int[] getColumnMaxWidths() {
@@ -84,7 +84,7 @@ public abstract class CustomTableModel<ITEM> extends TableRecordModel<ITEM> impl
 	}
 
 	public int[] getColumnHorizontalAlignments() {
-		return columnHAlignments;
+		return COLUMNS_ALIGNMENTS;
 	}
 
 	@Override

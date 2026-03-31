@@ -8,7 +8,7 @@ import javax.swing.text.NumberFormatter;
 public class JEIntegerInputField extends JFormattedTextField {
 
 	public JEIntegerInputField() {
-		this(0, Integer.MAX_VALUE, true);
+		this(0, Integer.MAX_VALUE, false);
 	}
 	
 	public JEIntegerInputField(boolean comma) {
