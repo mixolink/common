@@ -1,7 +1,6 @@
 package com.amituofo.common.ui.swingexts.component;
 
 import java.awt.BorderLayout;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.nio.charset.Charset;
@@ -56,7 +55,7 @@ public class JEXMLEditPanel extends JEPanel {
 //	    };
 		contentEditor.setBackground(UIManager.getColor("TextField.background"));
 
-		JScrollPane scrollPane = new JScrollPane();
+		JScrollPane scrollPane = new ArcScrollPane();
 		panel.add(scrollPane, "2, 3, fill, fill");
 
 		scrollPane.setViewportView(contentEditor);

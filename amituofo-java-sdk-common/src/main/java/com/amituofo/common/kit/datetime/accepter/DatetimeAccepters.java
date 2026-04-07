@@ -197,6 +197,22 @@ public enum DatetimeAccepters {
 		}
 	}),
 	//
+	IS_YEAR(true, new DatetimeAccepterBuilder() {
+
+		@Override
+		public DatetimeAccepter build(DatetimeAccepterOption option) throws InvalidParameterException {
+			int monthOfYear;
+			if (option.getTimeOffset().intValue() <= 12) {
+				monthOfYear = (int) option.getTimeOffset().intValue();
+			} else {
+				monthOfYear = (int) (option.getTimeOffsetInMillisecond() / Constants.TIME_MILLISECONDS_1_DAY);
+			}
+			DatetimeMonthOfYearAccepter itemDatetimeAccepter = new DatetimeMonthOfYearAccepter(monthOfYear);
+			itemDatetimeAccepter.setOption(option);
+			return itemDatetimeAccepter;
+		}
+	}),
+	//
 	IS_MONTH(true, new DatetimeAccepterBuilder() {
 
 		@Override

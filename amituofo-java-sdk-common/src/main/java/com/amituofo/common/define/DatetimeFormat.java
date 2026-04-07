@@ -56,7 +56,12 @@ public enum DatetimeFormat {
 	 */
 	YYYY_MM_DD_HHMM(new SimpleDateFormat("yyyy-MM-dd HH:mm")),
 	YYYY_MM_DD_HHMMSS(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
-	YYYY_MM_DD_HHMMSSS(new SimpleDateFormat("yyyy-MM-dd HH:mm:sss"));
+	YYYY_MM_DD_HHMMSSS(new SimpleDateFormat("yyyy-MM-dd HH:mm:sss")),
+	
+	
+	HHMMSS(new SimpleDateFormat("HHmmss")),
+	HHMMSSS(new SimpleDateFormat("HHmmsss"));
+
 
 	private final SimpleDateFormat formater;
 

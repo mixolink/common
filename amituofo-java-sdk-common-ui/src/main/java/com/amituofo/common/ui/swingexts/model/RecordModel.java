@@ -6,6 +6,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import javax.swing.SwingUtilities;
+
+import com.amituofo.common.ui.util.UIUtils;
+
 public class RecordModel<ITEM> {
 
 	private List<Record<ITEM>> list;
@@ -303,6 +307,13 @@ public class RecordModel<ITEM> {
 		fireRecordsInserted(0, getRecordCount() - 1);
 	}
 
+	public void fireRecordsInserted(int from) {
+		if (this.list.isEmpty()) {
+			return;
+		}
+
+		fireRecordsInserted(from, getRecordCount() - 1);
+	}
 	// ------------------------------------------------------------------------------------------------------------------------
 
 }

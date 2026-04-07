@@ -27,11 +27,11 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimerTask;
 
 import javax.swing.AbstractButton;
 import javax.swing.Box;
@@ -74,13 +74,14 @@ import com.amituofo.common.api.Callback;
 import com.amituofo.common.api.Destroyable;
 import com.amituofo.common.ex.InvalidParameterException;
 import com.amituofo.common.global.DialogManager;
-import com.amituofo.common.global.DialogManager.Interactive;
 import com.amituofo.common.kit.counter.Counter;
 import com.amituofo.common.kit.kv.KeyValue;
 import com.amituofo.common.kit.value.Value;
 import com.amituofo.common.ui.action.InputValidator;
+import com.amituofo.common.ui.swingexts.component.ArcTextPane;
 import com.amituofo.common.ui.swingexts.component.JEPropertyDialogPanel;
 import com.amituofo.common.ui.swingexts.dialog.SimpleDialog;
+import com.amituofo.common.ui.swingexts.dialog.SimpleDialogOption;
 import com.amituofo.common.util.StringUtils;
 
 public class UIUtils {
@@ -91,15 +92,17 @@ public class UIUtils {
 	public static String DEFAULT_TITLE_OF_WARNING = "Warning";
 	public static String DEFAULT_TITLE_OF_ERROR_STACK_TRACE = "Stack Trace";
 
-	protected static Component DEFAULT_MAIN_FRAME = null;
+	protected static JFrame DEFAULT_MAIN_FRAME = null;
 
 	private final static Map<String, Timer> timerMap = new HashMap<String, Timer>();
 
-	public static Component getDefaultTopFrame() {
+	private static String[] monoFonts = null;
+	
+	public static JFrame getDefaultTopFrame() {
 		return DEFAULT_MAIN_FRAME;
 	}
 
-	public static void setDefaultTopFrame(Component c) {
+	public static void setDefaultTopFrame(JFrame c) {
 		DEFAULT_MAIN_FRAME = c;
 	}
 
@@ -635,7 +638,7 @@ public class UIUtils {
 		});
 
 //		JLabel panel1 = new JLabel();
-		JTextPane pane = new JTextPane();
+		JTextPane pane = new ArcTextPane();
 		if (backgroudColor != null) {
 			pane.setBackground(backgroudColor);
 		}
@@ -682,7 +685,7 @@ public class UIUtils {
 
 	public static void openProperty(List<KeyValue> kvlist) {
 		JEPropertyDialogPanel panel = new JEPropertyDialogPanel(kvlist);
-		SimpleDialog.open(panel, 600, 1000, true, true, false, true);
+		SimpleDialog.open(panel, SimpleDialogOption.New().withWidth(600).withHeight(1000).withCloseClickOutsite(true));
 	}
 
 	public static void removeAllComponents(JComponent panel) {
@@ -1351,4 +1354,109 @@ public class UIUtils {
 		}
 		return null;
 	}
+
+	public static String[] getMonospacedFonts() {
+		if (monoFonts != null) {
+			return monoFonts;
+		}
+
+		String[] testChars = { "i", "l", "m", "w", "M", "W" };
+		List<String> monoFontList = new ArrayList<>();
+
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		String[] allFonts = ge.getAvailableFontFamilyNames();
+
+		for (String fontName : allFonts) {
+			Font font = new Font(fontName, Font.PLAIN, 12);
+			if (isMonospaced(font, testChars)) {
+				monoFontList.add(fontName);
+			}
+		}
+		return monoFonts = monoFontList.toArray(new String[monoFontList.size()]);
+	}
+
+	private static boolean isMonospaced(Font font, String[] testChars) {
+		// 用 Canvas 测量字符宽度
+		java.awt.Canvas canvas = new java.awt.Canvas();
+		java.awt.FontMetrics fm = canvas.getFontMetrics(font);
+
+		int width = fm.stringWidth(testChars[0]);
+		for (String ch : testChars) {
+			if (fm.stringWidth(ch) != width) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	// 每种语言的代表性测试字符串
+	private static final Map<String, String> LOCALE_TEST_STRINGS = new HashMap<>();
+	static {
+	    LOCALE_TEST_STRINGS.put("de_DE", "äöüÄÖÜß");
+	    LOCALE_TEST_STRINGS.put("en_US", "ABCDEFGabcdefg");
+	    LOCALE_TEST_STRINGS.put("es_ES", "áéíóúüñÁÉÍÓÚÜÑ¿¡");
+	    LOCALE_TEST_STRINGS.put("fr_FR", "àâçéèêëîïôùûüÿœæ");
+	    LOCALE_TEST_STRINGS.put("ja_JP", "あいうえおアイウエオ日本語");
+	    LOCALE_TEST_STRINGS.put("ko_KR", "가나다라마바사아자차카타파하");
+	    LOCALE_TEST_STRINGS.put("pt_BR", "áâãàçéêíóôõú");
+	    LOCALE_TEST_STRINGS.put("ru_RU", "абвгдеёжзийклмнопрстуфхцчшщъыьэюя");
+	    LOCALE_TEST_STRINGS.put("zh_CN", "的一是在不了有和人这");
+	}
+
+	/**
+	 * 获取支持指定语言的等宽字体列表
+	 * @param localeCode 语言代码，如 "zh_CN"，传 null 则返回全部等宽字体
+	 */
+	public static String[] getMonospacedFontsForLocale(String localeCode) {
+		String[] monoFonts = getMonospacedFonts();
+	    
+	    if (localeCode == null) {
+	        return monoFonts;
+	    }
+	    
+	    String testString = LOCALE_TEST_STRINGS.get(localeCode);
+	    if (testString == null) {
+	        return monoFonts;
+	    }
+	    
+	    List<String> result = new ArrayList<>();
+	    for (String fontName : monoFonts) {
+	        Font font = new Font(fontName, Font.PLAIN, 12);
+	        // canDisplayUpTo 返回 -1 表示全部字符都能显示
+	        if (font.canDisplayUpTo(testString) == -1) {
+	            result.add(fontName);
+	        }
+	    }
+	    return result.toArray(new String[result.size()]);
+	}
+
+	/**
+	 * 获取同时支持多个语言的等宽字体列表
+	 * @param localeCodes 语言代码列表
+	 */
+	public static String[] getMonospacedFontsForLocales(List<String> localeCodes) {
+		String[] monoFonts = getMonospacedFonts();
+	    
+	    // 合并所有语言的测试字符
+	    StringBuilder combined = new StringBuilder();
+	    for (String localeCode : localeCodes) {
+	        String testString = LOCALE_TEST_STRINGS.get(localeCode);
+	        if (testString != null) {
+	            combined.append(testString);
+	        }
+	    }
+	    
+	    if (combined.length() == 0) {
+	        return monoFonts;
+	    }
+	    
+	    String testString = combined.toString();
+	    List<String> result = new ArrayList<>();
+	    for (String fontName : monoFonts) {
+	        Font font = new Font(fontName, Font.PLAIN, 12);
+	        if (font.canDisplayUpTo(testString) == -1) {
+	            result.add(fontName);
+	        }
+	    }
+	    return result.toArray(new String[result.size()]);	}
 }

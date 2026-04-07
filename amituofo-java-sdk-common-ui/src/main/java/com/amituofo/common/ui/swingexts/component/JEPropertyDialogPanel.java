@@ -38,9 +38,9 @@ public class JEPropertyDialogPanel extends SimpleDialogContentPanel {
 //		tableModel.addRow(new Object[] { "Country", "Wonderland" });
 
 		// Add table to a JScrollPane
-		JScrollPane scrollPane = new JScrollPane(table);
+		JScrollPane scrollPane = new ArcScrollPane(table);
 
-		TableColumn keyColumn = table.getColumnModel().getColumn(0);
+//		TableColumn keyColumn = table.getColumnModel().getColumn(0);
 //		keyColumn.setMaxWidth(250);
 
 		// Set dialog layout and add components

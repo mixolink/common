@@ -40,6 +40,11 @@ public class Constants {
 
 	public final static String TRUE = "true";
 	public final static String FALSE = "false";
+	
+	public final static int INT_ON = 1;
+	public final static int INT_OFF = 0;
+	public final static int INT_ON_ONCE = 2;
+	public final static int INT_OFF_ONCE = 3;
 
 	public final static String DEFAULT_URL_ENCODE = "UTF-8";
 

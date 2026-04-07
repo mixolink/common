@@ -2,18 +2,19 @@ package com.amituofo.common.ui.util;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.SystemColor;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JTextPane;
+import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.SoftBevelBorder;
-import javax.swing.JLabel;
-import javax.swing.SwingConstants;
+
+import com.amituofo.common.ui.swingexts.component.ArcTextPane;
 
 public class MessageTip extends JDialog {
 
@@ -47,9 +48,9 @@ public class MessageTip extends JDialog {
 		setType(Type.UTILITY);
 		setResizable(false);
 
-		JTextPane pane = new JTextPane();
+		JTextPane pane = new ArcTextPane();
 		pane.setBackground(SystemColor.info);
-		pane.setBorder(new SoftBevelBorder(BevelBorder.RAISED, null, null, null, null));
+//		pane.setBorder(new SoftBevelBorder(BevelBorder.RAISED, null, null, null, null));
 		pane.setText(message);
 		pane.addMouseListener(new MouseAdapter() {
 			@Override

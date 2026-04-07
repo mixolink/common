@@ -326,7 +326,7 @@ public class JEMacStyleTabbedPanel extends JPanel {
 //        label.setFont(label.getFont().deriveFont(Font.BOLD, 16f));
 //        panel.add(label, BorderLayout.CENTER);
 //        
-//        JSpinner spinner = new JSpinner(new SpinnerNumberModel(10, 0, 100, 1));
+//        JSpinner spinner = new ArcSpinner(new SpinnerNumberModel(10, 0, 100, 1));
 //        spinner.setPreferredSize(new Dimension(100, 30));
 //        
 //        JPanel bottomPanel = new JPanel(new FlowLayout());

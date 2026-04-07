@@ -390,7 +390,7 @@ public class CmdUtils {
 	public static String getCmdPath() {
 		if (SystemUtils.isWindows()) {
 			return "";
-		} else if (SystemUtils.isLinux() || SystemUtils.isMacOS()) {
+		} else if (SystemUtils.isPosixSystem()) {
 			return "/usr/sbin/";
 		}
 		return "";

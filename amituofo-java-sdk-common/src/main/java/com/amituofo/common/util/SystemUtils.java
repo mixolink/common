@@ -52,7 +52,12 @@ public class SystemUtils {
 	private static boolean isLinux = (OS.indexOf("linux") >= 0 || OS.contains("nix") || OS.contains("nux") || OS.contains("aix"));
 	private static boolean isMacOS = (OS.indexOf("mac") >= 0);
 	private static boolean isWindows = (OS.indexOf("windows") >= 0);
+	private static boolean isPosixSystem = isLinux || isMacOS;
 
+	public static boolean isPosixSystem() {
+		return isPosixSystem;
+	}
+	
 	public static boolean isLinux() {
 		return isLinux;
 	}
@@ -363,7 +368,7 @@ public class SystemUtils {
 	}
 
 	public static boolean shutdown(int sec) throws IOException, InterruptedException {
-		if (isLinux()) {
+		if (isPosixSystem()) {
 			Process p = Runtime.getRuntime().exec("sudo shutdown -h +" + Math.abs(sec));
 			return p.waitFor() == 0;
 		}
@@ -377,7 +382,7 @@ public class SystemUtils {
 	}
 
 	public static boolean reboot(int sec) throws IOException, InterruptedException {
-		if (isLinux()) {
+		if (isPosixSystem()) {
 			Process p = Runtime.getRuntime().exec("sudo shutdown -r +" + Math.abs(sec));
 			return p.waitFor() == 0;
 		}
@@ -994,85 +999,46 @@ public class SystemUtils {
 
 	private static void openWindowsTerminal(String path, String cmd) throws Exception {
 		// 优先用 Windows Terminal（wt.exe），次选 PowerShell，最后 cmd
-		if (isCommandAvailable("wt.exe")) {
-			openWindowsTerminalWt(path, cmd);
-		} else if (isCommandAvailable("pwsh.exe")) {
-			openWindowsPowerShell("pwsh.exe", path, cmd);
-		} else if (isCommandAvailable("powershell.exe")) {
+		if (isCommandAvailable("powershell.exe")) {
 			openWindowsPowerShell("powershell.exe", path, cmd);
 		} else {
 			openWindowsCmd(path, cmd);
 		}
 	}
 
-	/** Windows Terminal (wt.exe) */
-	private static void openWindowsTerminalWt(String path, String cmd) throws Exception {
-		java.util.List<String> args = new java.util.ArrayList<>();
-		args.add("wt.exe");
-		if (path != null) {
-			args.add("--startingDirectory");
-			args.add(path);
-		}
-		if (cmd != null) {
-			// wt 启动 PowerShell，用 ReadLine 预填命令（显示不执行）
-			args.add("powershell.exe");
-			args.add("-NoExit");
-			args.add("-Command");
-			// PSReadLine 的 InvokePrompt + InsertText 可以把文字写入输入缓冲
-			args.add("[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" + "[Console]::InputEncoding=[System.Text.Encoding]::UTF8;"
-					+ "Set-PSReadLineOption -HistorySaveStyle SaveNothing 2>$null;" + "Set-PSReadLineOption -AddToHistoryHandler { $false } 2>$null;"
-					+
-					// 把命令插入 ReadLine 缓冲区（不执行）
-					"[Microsoft.PowerShell.PSConsoleReadLine]::Insert('" + escapeSingleQuotePs(cmd) + "')");
-		}
-		new ProcessBuilder(args).start();
-	}
-
-	/** PowerShell（直接，非 wt） */
 	private static void openWindowsPowerShell(String exe, String path, String cmd) throws Exception {
-		java.util.List<String> args = new java.util.ArrayList<>();
-		args.add(exe);
-		args.add("-NoLogo");
-		args.add("-NoExit");
-		args.add("-Command");
+	    StringBuilder sb = new StringBuilder();
+	    sb.append("[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; ");
+	    if (path != null) {
+	        sb.append("Set-Location '").append(escapeSingleQuotePs(path)).append("'; Clear-Host; ");
+	    }
+	    if (cmd != null) {
+	        sb.append("[Microsoft.PowerShell.PSConsoleReadLine]::Insert('").append(escapeSingleQuotePs(cmd)).append("')");
+	    }
 
-		StringBuilder sb = new StringBuilder();
-		sb.append("[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;");
-		sb.append("[Console]::InputEncoding=[System.Text.Encoding]::UTF8;");
-
-		if (path != null) {
-			sb.append("Set-Location '").append(escapeSingleQuotePs(path)).append("'; ");
-			sb.append("Clear-Host; ");
-		}
-		if (cmd != null) {
-			// PSReadLine：把命令写入缓冲区，光标在末尾，用户可编辑后回车执行
-			sb.append("[Microsoft.PowerShell.PSConsoleReadLine]::Insert('").append(escapeSingleQuotePs(cmd)).append("')");
-		}
-		args.add(sb.toString());
-		new ProcessBuilder(args).start();
+	    // 核心修改：使用 cmd /c start 来弹出窗口
+	    ProcessBuilder pb = new ProcessBuilder(
+	        "cmd.exe", "/c", "start", exe, "-NoExit", "-Command", sb.toString()
+	    );
+	    pb.start();
 	}
-
-	/** cmd.exe 兜底 */
+	
 	private static void openWindowsCmd(String path, String cmd) throws Exception {
-		// cmd 没有"预填命令不执行"的机制，只能用 /K 执行 cd 后让用户手动输
-		java.util.List<String> args = new java.util.ArrayList<>();
-		args.add("cmd.exe");
-		args.add("/K");
+	    StringBuilder sb = new StringBuilder("chcp 65001 >nul");
+	    if (path != null) {
+	        sb.append(" & cd /d \"").append(path).append("\"");
+	    }
+	    if (cmd != null) {
+	        sb.append(" & title ").append(cmd.replace("&", "^&"));
+	        sb.append(" & echo [Pending] ").append(cmd);
+	    }
 
-		StringBuilder sb = new StringBuilder("chcp 65001 >nul");
-		if (path != null) {
-			sb.append(" & cd /d \"").append(path).append("\"");
-		}
-		if (cmd != null) {
-			// cmd 无法预填不执行，退而求其次：把命令作为标题提示用户
-			sb.append(" & title ").append(cmd.replace("&", "^&"));
-			// 也可以用 echo 打印出来提示用户复制
-			sb.append(" & echo [Pending] ").append(cmd);
-		}
-		args.add(sb.toString());
-		new ProcessBuilder(args).start();
+	    // 核心修改：使用 cmd /c start 弹出新窗口
+	    ProcessBuilder pb = new ProcessBuilder(
+	        "cmd.exe", "/c", "start", "cmd.exe", "/K", sb.toString()
+	    );
+	    pb.start();
 	}
-
 	// ─────────────────────────────────────────────────────────────────
 	// Linux
 	// ─────────────────────────────────────────────────────────────────

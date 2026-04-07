@@ -40,12 +40,14 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -1785,6 +1787,43 @@ public class FileUtils {
 		}
 
 		return "";
+	}
+	
+	public static String[] splitFileNameAndExtension(String name) {
+		if (name == null) {
+			return new String[] { "", "" };
+		}
+
+		// 1. 找到最后一个点的位置
+		int i = name.lastIndexOf('.');
+		if (i > 0) {
+			String _ext_ = name.substring(i + 1);
+			if (_ext_.length() > 15) {
+				_ext_ = "";
+			} else {
+				_ext_ = _ext_.toLowerCase();
+			}
+			return new String[] { name.substring(0, i), _ext_ };
+		}
+
+		return new String[] { name, "" };
+	}
+	
+	public static  int posixPermissionsToMode(Set<PosixFilePermission> perms) {
+	    int mode = 0;
+	    // Owner
+	    if (perms.contains(PosixFilePermission.OWNER_READ))    mode |= 0400;
+	    if (perms.contains(PosixFilePermission.OWNER_WRITE))   mode |= 0200;
+	    if (perms.contains(PosixFilePermission.OWNER_EXECUTE)) mode |= 0100;
+	    // Group
+	    if (perms.contains(PosixFilePermission.GROUP_READ))    mode |= 0040;
+	    if (perms.contains(PosixFilePermission.GROUP_WRITE))   mode |= 0020;
+	    if (perms.contains(PosixFilePermission.GROUP_EXECUTE)) mode |= 0010;
+	    // Others
+	    if (perms.contains(PosixFilePermission.OTHERS_READ))   mode |= 0004;
+	    if (perms.contains(PosixFilePermission.OTHERS_WRITE))  mode |= 0002;
+	    if (perms.contains(PosixFilePermission.OTHERS_EXECUTE))mode |= 0001;
+	    return mode;
 	}
 	
 }

@@ -5,21 +5,22 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.SystemColor;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.Constructor;
 
-import javax.swing.AbstractButton;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTextPane;
-import javax.swing.border.EtchedBorder;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.border.MatteBorder;
 
 import com.amituofo.common.ex.InvalidConfigException;
 import com.amituofo.common.kit.config.Configuration;
@@ -29,14 +30,6 @@ import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import java.awt.GridLayout;
-import javax.swing.SwingConstants;
-import javax.swing.border.BevelBorder;
-import javax.swing.border.MatteBorder;
-import javax.swing.UIManager;
 
 public class JEWizardPanelContainer extends SimpleDialogContentPanel {
 	public static enum LabelOfButton {
@@ -218,9 +211,8 @@ public class JEWizardPanelContainer extends SimpleDialogContentPanel {
 //		lblNewLabel.setIcon(new ImageIcon(WizardPanelContainer.class.getResource("/javax/swing/plaf/basic/icons/image-delayed.png")));
 		panel_2.add(lblNewLabel, "3, 7, fill, top");
 
-		textPane = new JTextPane();
+		textPane = new ArcTextPane();
 //		textPane.setFont(UIUtils.deriveFont(Font.BOLD, UIUtils.getDefaultFont().getSize() + 1));
-		textPane.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
 		textPane.setBackground(UIManager.getColor("AUI.Wizard.StepDesc.background"));
 		textPane.setForeground(UIManager.getColor("AUI.Wizard.StepDesc.foreground"));
 		textPane.setEnabled(false);
@@ -462,7 +454,7 @@ public class JEWizardPanelContainer extends SimpleDialogContentPanel {
 		for (int i = 0; i < wizardSteps.length; i++) {
 			JLabel label = new JLabel(i + 1 + ".");
 			label.setHorizontalAlignment(SwingConstants.CENTER);
-//			label.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
+//			label.setBordeArcBorder.DEFAULT());
 			label.setOpaque(true);
 			label.setFont(UIUtils.deriveFont(Font.BOLD, 10));
 			label.setBackground(currentwizardStepInactiveBackground);

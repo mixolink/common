@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Image;
 
 import com.amituofo.common.ui.swingexts.dialog.SimpleDialog;
+import com.amituofo.common.ui.swingexts.dialog.SimpleDialogOption;
 
 public class JEWizardDialog {
 
@@ -29,7 +30,8 @@ public class JEWizardDialog {
 //			dlg.show();
 //		});
 
-		SimpleDialog dlg = SimpleDialog.open(dialogContentPanel, width, height, withContentBorder, false, false, closeClickOutsite);
+		SimpleDialog dlg = SimpleDialog.open(dialogContentPanel,
+				SimpleDialogOption.New().withWidth(width).withHeight(height).withTitleIcon(titleIcon).withEmptyBorder(withContentBorder).withCloseClickOutsite(closeClickOutsite));
 		dialogContentPanel.showFirst();
 		return dlg;
 	}

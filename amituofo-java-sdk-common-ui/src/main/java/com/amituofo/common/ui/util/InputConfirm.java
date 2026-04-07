@@ -24,5 +24,9 @@ public class InputConfirm {
 	public boolean isRemember() {
 		return remember;
 	}
+	
+	public boolean isYesSelected() {
+		return isFirstSelected();
+	}
 
 }

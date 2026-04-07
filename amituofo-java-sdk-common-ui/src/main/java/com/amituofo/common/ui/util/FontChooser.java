@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
@@ -23,6 +24,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import com.amituofo.common.ui.swingexts.JComponents;
+import com.amituofo.common.ui.swingexts.component.ArcScrollPane;
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
@@ -79,25 +81,37 @@ public class FontChooser extends JPanel {
 	private Font chooseFont;
 	private boolean okPressed = false;
 
-	// 无参初始化
 	public FontChooser() {
-		// this.selectedfont = null;
-		this.selectedcolor = null;
-		/* 初始化界面 */
-		init(JComponents.getDefaultSystemFont(), null);
+		this(false);
 	}
 
 	// 重载构造，有参的初始化 用于初始化字体界面
 	public FontChooser(Font font, Color color) {
-		if (font != null) {
-			init(font, color);
-		} else {
-			init(JComponents.getDefaultSystemFont(), null);
-		}
+		this(false, font, color);
 	}
 
 	public FontChooser(Font font) {
-		this(font, null);
+		this(false, font);
+	}
+
+	public FontChooser(boolean monospacedFontsOnly) {
+		// this.selectedfont = null;
+		this.selectedcolor = null;
+		/* 初始化界面 */
+		init(monospacedFontsOnly, JComponents.getDefaultSystemFont(), null);
+	}
+
+	// 重载构造，有参的初始化 用于初始化字体界面
+	public FontChooser(boolean monospacedFontsOnly, Font font, Color color) {
+		if (font != null) {
+			init(monospacedFontsOnly, font, color);
+		} else {
+			init(monospacedFontsOnly, JComponents.getDefaultSystemFont(), null);
+		}
+	}
+
+	public FontChooser(boolean monospacedFontsOnly, Font font) {
+		this(monospacedFontsOnly, font, null);
 	}
 
 	// 可供外部调用的方法
@@ -118,7 +132,7 @@ public class FontChooser extends JPanel {
 	}
 
 	/* 初始化界面 */
-	private void init(final Font font, final Color color) {
+	private void init(boolean monospacedFontsOnly, final Font font, final Color color) {
 		this.chooseFont = font;
 		// 实例化变量
 		JLabel lblFont = new JLabel("Font:");
@@ -129,26 +143,56 @@ public class FontChooser extends JPanel {
 		txtSize = new JTextField();
 
 		// 取得当前环境可用字体.
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		String[] fontNames = ge.getAvailableFontFamilyNames();
+		String[] fontNames;
+
+		if (monospacedFontsOnly) {
+			fontNames = UIUtils.getMonospacedFonts();
+		} else {
+			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+			fontNames = ge.getAvailableFontFamilyNames();
+		}
 
 		lstFont = new JList<String>(fontNames);
-		lstStyle = new JList<Style>(Style.values());
 		lstSize = new JList<Integer>(FONT_SIZES);
 //		lstFont = new JList<String>();
 //		lstStyle = new JList<Style>();
 //		lstSize = new JList<Integer>();
 
-		JScrollPane spFont = new JScrollPane(lstFont);
-		JScrollPane spSize = new JScrollPane(lstSize);
+		lstStyle = new JList<Style>(Style.values());
+		lstStyle.setSelectedValue(Style.valueOf(font), true); // 初始化样式list
+		lstStyle.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				updateSelectFont();
+			}
+		});
+
+		JScrollPane spFont = new ArcScrollPane(lstFont);
+		JScrollPane spSize = new ArcScrollPane(lstSize);
+		JScrollPane spStyle = new ArcScrollPane(lstStyle);
 
 		JPanel showPan = new JPanel();
 		JButton ok = new JButton("OK");
-		setLayout(new FormLayout(
-				new ColumnSpec[] { FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("155px:grow"), FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("119px"), FormSpecs.RELATED_GAP_COLSPEC,
-						ColumnSpec.decode("69px"), FormSpecs.RELATED_GAP_COLSPEC, },
-				new RowSpec[] { FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("20px"), FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("20px"),
-						RowSpec.decode("100px"), FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("100px"), FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("21px"), }));
+		setLayout(new FormLayout(new ColumnSpec[] {
+				FormSpecs.RELATED_GAP_COLSPEC,
+				ColumnSpec.decode("155px:grow"),
+				FormSpecs.RELATED_GAP_COLSPEC,
+				ColumnSpec.decode("119px:grow"),
+				FormSpecs.RELATED_GAP_COLSPEC,
+				ColumnSpec.decode("69px"),
+				FormSpecs.RELATED_GAP_COLSPEC,},
+			new RowSpec[] {
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("20px"),
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("29px"),
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("100px:grow"),
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				RowSpec.decode("100px"),
+				FormSpecs.RELATED_GAP_ROWSPEC,
+				FormSpecs.DEFAULT_ROWSPEC,
+				FormSpecs.RELATED_GAP_ROWSPEC,}));
 		add(lblFont, "2, 2, center, fill");
 
 		JSeparator separator = new JSeparator();
@@ -162,20 +206,21 @@ public class FontChooser extends JPanel {
 		txtFont.setEditable(false);
 		add(txtFont, "2, 5, fill, fill");
 
-		add(spFont, "2, 6, 1, 3, fill, fill");
+		add(spFont, "2, 7, 1, 3, fill, fill");
 
 		// 样式
 		add(lblStyle, "4, 2, center, fill");
 		txtStyle.setEditable(false);
 		add(txtStyle, "4, 5, fill, fill");
-		lstStyle.setBorder(javax.swing.BorderFactory.createLineBorder(Color.gray));
-		add(lstStyle, "4, 6, fill, fill");
 
 		// 大小
 		add(lblSize, "6, 2, center, fill");
 		txtSize.setEditable(false);
 		add(txtSize, "6, 5, fill, fill");
-		add(spSize, "6, 6, fill, fill");
+
+		add(spStyle, "4, 7, fill, fill");
+
+		add(spSize, "6, 7, fill, fill");
 
 		// 展示框
 		example = new JTextField();
@@ -185,13 +230,13 @@ public class FontChooser extends JPanel {
 //		example.setBackground(Color.white);
 		example.setEditable(false);
 		showPan.setBorder(javax.swing.BorderFactory.createTitledBorder("Example"));
-		add(showPan, "4, 8, 3, 1, fill, fill");
+		add(showPan, "4, 9, 3, 1, fill, fill");
 		showPan.setLayout(new BorderLayout());
 		showPan.add(example);
 		example.setForeground(color);
 
 		// 确定和取消按钮
-		add(ok, "4, 10, 3, 1, fill, fill");
+		add(ok, "4, 11, 3, 1, fill, fill");
 
 //		updateSelectFont();
 
@@ -206,10 +251,9 @@ public class FontChooser extends JPanel {
 				}
 			}
 		});
-		add(btnColor, "2, 10, fill, fill");
+		add(btnColor, "2, 11, fill, fill");
 
 		lstFont.setSelectedValue(font.getFamily(), true);
-		lstStyle.setSelectedValue(Style.valueOf(font), true); // 初始化样式list
 		lstSize.setSelectedValue(font.getSize(), true);
 
 		Integer size = lstSize.getSelectedValue();
@@ -227,11 +271,6 @@ public class FontChooser extends JPanel {
 		});
 
 		/* 用户选择字型 */
-		lstStyle.addListSelectionListener(new ListSelectionListener() {
-			public void valueChanged(ListSelectionEvent e) {
-				updateSelectFont();
-			}
-		});
 
 		/* 用户选择字体大小 */
 		lstSize.addListSelectionListener(new ListSelectionListener() {
@@ -294,7 +333,7 @@ public class FontChooser extends JPanel {
 //		dialog = new JDialog(parent, "Font", true);
 		dialog.getContentPane().add(this);
 		dialog.setResizable(false);
-		dialog.setSize(410, 345);
+		dialog.setSize(410, 360);
 		// 设置接界面的启动位置
 		// dialog.setLocation(x, y);
 		dialog.addWindowListener(new WindowAdapter() {
@@ -323,4 +362,5 @@ public class FontChooser extends JPanel {
 			System.out.println(color);
 		}
 	}
+
 }

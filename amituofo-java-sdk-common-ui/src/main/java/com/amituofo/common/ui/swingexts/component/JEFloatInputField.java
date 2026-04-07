@@ -217,68 +217,68 @@ public class JEFloatInputField extends JFormattedTextField {
     /**
      * 测试示例
      */
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("JFloatInputField 测试");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setLayout(new GridBagLayout());
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(5, 5, 5, 5);
-            gbc.anchor = GridBagConstraints.WEST;
-            
-            // 示例1：普通浮点数输入
-            gbc.gridx = 0; gbc.gridy = 0;
-            frame.add(new JLabel("普通浮点数:"), gbc);
-            
-            gbc.gridx = 1;
-            JEFloatInputField field1 = new JEFloatInputField();
-            frame.add(field1, gbc);
-            
-            // 示例2：带初始值的输入
-            gbc.gridx = 0; gbc.gridy = 1;
-            frame.add(new JLabel("带初始值 (3.14):"), gbc);
-            
-            gbc.gridx = 1;
-            JEFloatInputField field2 = new JEFloatInputField(3.14f);
-            frame.add(field2, gbc);
-            
-            // 示例3：带范围限制的输入
-            gbc.gridx = 0; gbc.gridy = 2;
-            frame.add(new JLabel("范围限制 (0-100):"), gbc);
-            
-            gbc.gridx = 1;
-            JEFloatInputField field3 = new JEFloatInputField();
-            field3.setRange(0f, 100f);
-            frame.add(field3, gbc);
-            
-            // 获取值按钮
-            gbc.gridx = 0; gbc.gridy = 3;
-            gbc.gridwidth = 2;
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            JButton btnGetValue = new JButton("获取所有值");
-            frame.add(btnGetValue, gbc);
-            
-            // 结果显示区域
-            gbc.gridy = 4;
-            JTextArea resultArea = new JTextArea(6, 30);
-            resultArea.setEditable(false);
-            JScrollPane scrollPane = new JScrollPane(resultArea);
-            frame.add(scrollPane, gbc);
-            
-            // 按钮事件
-            btnGetValue.addActionListener(e -> {
-                StringBuilder sb = new StringBuilder();
-                sb.append("普通浮点数: ").append(field1.getFloatValue()).append("\n");
-                sb.append("带初始值: ").append(field2.getFloatValue()).append("\n");
-                sb.append("范围限制: ").append(field3.getFloatValue()).append("\n");
-                sb.append("范围限制是否有效: ").append(field3.isValueValid()).append("\n");
-                
-                resultArea.setText(sb.toString());
-            });
-            
-            frame.pack();
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-        });
-    }
+//    public static void main(String[] args) {
+//        SwingUtilities.invokeLater(() -> {
+//            JFrame frame = new JFrame("JFloatInputField 测试");
+//            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//            frame.setLayout(new GridBagLayout());
+//            GridBagConstraints gbc = new GridBagConstraints();
+//            gbc.insets = new Insets(5, 5, 5, 5);
+//            gbc.anchor = GridBagConstraints.WEST;
+//            
+//            // 示例1：普通浮点数输入
+//            gbc.gridx = 0; gbc.gridy = 0;
+//            frame.add(new JLabel("普通浮点数:"), gbc);
+//            
+//            gbc.gridx = 1;
+//            JEFloatInputField field1 = new JEFloatInputField();
+//            frame.add(field1, gbc);
+//            
+//            // 示例2：带初始值的输入
+//            gbc.gridx = 0; gbc.gridy = 1;
+//            frame.add(new JLabel("带初始值 (3.14):"), gbc);
+//            
+//            gbc.gridx = 1;
+//            JEFloatInputField field2 = new JEFloatInputField(3.14f);
+//            frame.add(field2, gbc);
+//            
+//            // 示例3：带范围限制的输入
+//            gbc.gridx = 0; gbc.gridy = 2;
+//            frame.add(new JLabel("范围限制 (0-100):"), gbc);
+//            
+//            gbc.gridx = 1;
+//            JEFloatInputField field3 = new JEFloatInputField();
+//            field3.setRange(0f, 100f);
+//            frame.add(field3, gbc);
+//            
+//            // 获取值按钮
+//            gbc.gridx = 0; gbc.gridy = 3;
+//            gbc.gridwidth = 2;
+//            gbc.fill = GridBagConstraints.HORIZONTAL;
+//            JButton btnGetValue = new JButton("获取所有值");
+//            frame.add(btnGetValue, gbc);
+//            
+//            // 结果显示区域
+//            gbc.gridy = 4;
+//            JTextArea resultArea = new ArcTextArea(6, 30);
+//            resultArea.setEditable(false);
+//            JScrollPane scrollPane = new JScrollPane(resultArea);
+//            frame.add(scrollPane, gbc);
+//            
+//            // 按钮事件
+//            btnGetValue.addActionListener(e -> {
+//                StringBuilder sb = new StringBuilder();
+//                sb.append("普通浮点数: ").append(field1.getFloatValue()).append("\n");
+//                sb.append("带初始值: ").append(field2.getFloatValue()).append("\n");
+//                sb.append("范围限制: ").append(field3.getFloatValue()).append("\n");
+//                sb.append("范围限制是否有效: ").append(field3.isValueValid()).append("\n");
+//                
+//                resultArea.setText(sb.toString());
+//            });
+//            
+//            frame.pack();
+//            frame.setLocationRelativeTo(null);
+//            frame.setVisible(true);
+//        });
+//    }
 }
