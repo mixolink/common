@@ -1,5 +1,6 @@
 package com.amituofo.common.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
@@ -65,6 +66,10 @@ public class ProcessUtils {
 	}
 
 	public static Process startInProcess(String command, Callback<Integer> callback, String... params) throws IOException {
+		return startInProcess(command, null, callback, params);
+	}
+	
+	public static Process startInProcess(String command, File workdirectory, Callback<Integer> callback, String... params) throws IOException {
 		List<String> commands = new ArrayList<String>();
 		commands.add(command);
 //		commands.add("\"" + command + "\"");
@@ -73,7 +78,9 @@ public class ProcessUtils {
 		}
 
 		ProcessBuilder processBuilder = new ProcessBuilder(commands.toArray(new String[commands.size()]));
-
+		if (workdirectory != null) {
+			processBuilder.directory(workdirectory);
+		}
 		processBuilder.redirectErrorStream(true);
 		Process process = processBuilder.start();
 

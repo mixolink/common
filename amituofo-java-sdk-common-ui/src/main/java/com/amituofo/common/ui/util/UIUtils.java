@@ -26,6 +26,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -43,6 +44,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -67,6 +69,7 @@ import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.MatteBorder;
+import javax.swing.filechooser.FileSystemView;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.table.TableModel;
 
@@ -83,6 +86,9 @@ import com.amituofo.common.ui.swingexts.component.JEPropertyDialogPanel;
 import com.amituofo.common.ui.swingexts.dialog.SimpleDialog;
 import com.amituofo.common.ui.swingexts.dialog.SimpleDialogOption;
 import com.amituofo.common.util.StringUtils;
+import com.amituofo.common.util.SystemUtils;
+import com.formdev.flatlaf.util.SystemFileChooser;
+import com.formdev.flatlaf.util.SystemFileChooser.FileFilter;
 
 public class UIUtils {
 	public static String DEFAULT_TITLE_OF_ERROR = "Error";
@@ -97,7 +103,7 @@ public class UIUtils {
 	private final static Map<String, Timer> timerMap = new HashMap<String, Timer>();
 
 	private static String[] monoFonts = null;
-	
+
 	public static JFrame getDefaultTopFrame() {
 		return DEFAULT_MAIN_FRAME;
 	}
@@ -1388,75 +1394,165 @@ public class UIUtils {
 		}
 		return true;
 	}
-	
+
 	// 每种语言的代表性测试字符串
 	private static final Map<String, String> LOCALE_TEST_STRINGS = new HashMap<>();
 	static {
-	    LOCALE_TEST_STRINGS.put("de_DE", "äöüÄÖÜß");
-	    LOCALE_TEST_STRINGS.put("en_US", "ABCDEFGabcdefg");
-	    LOCALE_TEST_STRINGS.put("es_ES", "áéíóúüñÁÉÍÓÚÜÑ¿¡");
-	    LOCALE_TEST_STRINGS.put("fr_FR", "àâçéèêëîïôùûüÿœæ");
-	    LOCALE_TEST_STRINGS.put("ja_JP", "あいうえおアイウエオ日本語");
-	    LOCALE_TEST_STRINGS.put("ko_KR", "가나다라마바사아자차카타파하");
-	    LOCALE_TEST_STRINGS.put("pt_BR", "áâãàçéêíóôõú");
-	    LOCALE_TEST_STRINGS.put("ru_RU", "абвгдеёжзийклмнопрстуфхцчшщъыьэюя");
-	    LOCALE_TEST_STRINGS.put("zh_CN", "的一是在不了有和人这");
+		LOCALE_TEST_STRINGS.put("de_DE", "äöüÄÖÜß");
+		LOCALE_TEST_STRINGS.put("en_US", "ABCDEFGabcdefg");
+		LOCALE_TEST_STRINGS.put("es_ES", "áéíóúüñÁÉÍÓÚÜÑ¿¡");
+		LOCALE_TEST_STRINGS.put("fr_FR", "àâçéèêëîïôùûüÿœæ");
+		LOCALE_TEST_STRINGS.put("ja_JP", "あいうえおアイウエオ日本語");
+		LOCALE_TEST_STRINGS.put("ko_KR", "가나다라마바사아자차카타파하");
+		LOCALE_TEST_STRINGS.put("pt_BR", "áâãàçéêíóôõú");
+		LOCALE_TEST_STRINGS.put("ru_RU", "абвгдеёжзийклмнопрстуфхцчшщъыьэюя");
+		LOCALE_TEST_STRINGS.put("zh_CN", "的一是在不了有和人这");
 	}
 
 	/**
 	 * 获取支持指定语言的等宽字体列表
+	 * 
 	 * @param localeCode 语言代码，如 "zh_CN"，传 null 则返回全部等宽字体
 	 */
 	public static String[] getMonospacedFontsForLocale(String localeCode) {
 		String[] monoFonts = getMonospacedFonts();
-	    
-	    if (localeCode == null) {
-	        return monoFonts;
-	    }
-	    
-	    String testString = LOCALE_TEST_STRINGS.get(localeCode);
-	    if (testString == null) {
-	        return monoFonts;
-	    }
-	    
-	    List<String> result = new ArrayList<>();
-	    for (String fontName : monoFonts) {
-	        Font font = new Font(fontName, Font.PLAIN, 12);
-	        // canDisplayUpTo 返回 -1 表示全部字符都能显示
-	        if (font.canDisplayUpTo(testString) == -1) {
-	            result.add(fontName);
-	        }
-	    }
-	    return result.toArray(new String[result.size()]);
+
+		if (localeCode == null) {
+			return monoFonts;
+		}
+
+		String testString = LOCALE_TEST_STRINGS.get(localeCode);
+		if (testString == null) {
+			return monoFonts;
+		}
+
+		List<String> result = new ArrayList<>();
+		for (String fontName : monoFonts) {
+			Font font = new Font(fontName, Font.PLAIN, 12);
+			// canDisplayUpTo 返回 -1 表示全部字符都能显示
+			if (font.canDisplayUpTo(testString) == -1) {
+				result.add(fontName);
+			}
+		}
+		return result.toArray(new String[result.size()]);
 	}
 
 	/**
 	 * 获取同时支持多个语言的等宽字体列表
+	 * 
 	 * @param localeCodes 语言代码列表
 	 */
 	public static String[] getMonospacedFontsForLocales(List<String> localeCodes) {
 		String[] monoFonts = getMonospacedFonts();
-	    
-	    // 合并所有语言的测试字符
-	    StringBuilder combined = new StringBuilder();
-	    for (String localeCode : localeCodes) {
-	        String testString = LOCALE_TEST_STRINGS.get(localeCode);
-	        if (testString != null) {
-	            combined.append(testString);
+
+		// 合并所有语言的测试字符
+		StringBuilder combined = new StringBuilder();
+		for (String localeCode : localeCodes) {
+			String testString = LOCALE_TEST_STRINGS.get(localeCode);
+			if (testString != null) {
+				combined.append(testString);
+			}
+		}
+
+		if (combined.length() == 0) {
+			return monoFonts;
+		}
+
+		String testString = combined.toString();
+		List<String> result = new ArrayList<>();
+		for (String fontName : monoFonts) {
+			Font font = new Font(fontName, Font.PLAIN, 12);
+			if (font.canDisplayUpTo(testString) == -1) {
+				result.add(fontName);
+			}
+		}
+		return result.toArray(new String[result.size()]);
+	}
+
+	/**
+	 * 选择可执行文件或程序包 适配 Windows (.exe/.bat/.cmd), macOS (.app 或 Unix Binary), Linux (Executable) * @param
+	 * parent 父组件（用于定位弹窗，可传 null）
+	 * 
+	 * @return 选中的 File 对象；如果取消、关闭窗口或选择无效文件夹则返回 null
+	 */
+	public static File chooseExecutable(Component parent) {
+	    // 1. 确定初始显示目录
+	    File defaultDir;
+	    if (SystemUtils.isWindows()) {
+	        String pf = System.getenv("ProgramFiles");
+	        defaultDir = (pf != null) ? new File(pf) : new File("C:\\");
+	    } else if (SystemUtils.isMacOS()) {
+	        defaultDir = new File("/Applications");
+	    } else {
+	        defaultDir = new File("/usr/bin");
+	    }
+
+	    // 容错：如果路径不存在则使用用户主目录
+	    if (!defaultDir.exists()) {
+	        defaultDir = FileSystemView.getFileSystemView().getHomeDirectory();
+	    }
+
+	    // 2. 创建 SystemFileChooser
+	    SystemFileChooser fc = new SystemFileChooser();
+	    fc.setCurrentDirectory(defaultDir);
+
+	    // 3. 文件选择模式
+	    // FILES_AND_DIRECTORIES 不被支持，macOS 下通过平台属性 + approveCallback 替代
+	    fc.setFileSelectionMode(SystemFileChooser.FILES_ONLY);
+	    fc.setAcceptAllFileFilterUsed(true);
+
+	    // 4. macOS：允许进入 .app 包内部导航（反过来才能"看见"它作为可选文件）
+	    //    注意：这里设为 false，让 .app 包作为整体文件而非目录出现
+	    if (SystemUtils.isMacOS()) {
+	        fc.putPlatformProperty(SystemFileChooser.MAC_TREATS_FILE_PACKAGES_AS_DIRECTORIES, false);
+	    }
+
+	    // 5. 文件过滤器（SystemFileChooser 只支持按扩展名过滤）
+	    if (SystemUtils.isWindows()) {
+	        fc.addChoosableFileFilter(
+	            new SystemFileChooser.FileNameExtensionFilter(
+	                "Executable Files (*.exe, *.bat, *.cmd)", "exe", "bat", "cmd"));
+	    } else if (SystemUtils.isMacOS()) {
+	        fc.addChoosableFileFilter(
+	            new SystemFileChooser.FileNameExtensionFilter(
+	                "Applications (*.app)", "app"));
+	        // "All Files" 保留，让用户也能选无扩展名的可执行文件
+	    }
+	    // Linux：不添加扩展名过滤器，仅靠 approveCallback 校验执行权限
+
+	    // 6. Approve 回调：做原代码中无法通过过滤器表达的后置校验
+	    fc.setApproveCallback((selectedFiles, context) -> {
+	        File selected = selectedFiles[0];
+
+	        // macOS：.app 包本质是目录，FILES_ONLY 模式下系统已将其作为文件处理，直接放行
+	        if (SystemUtils.isMacOS()) {
+	            // .app 包或具有执行权限的文件均视为有效
+	            if (selected.getName().toLowerCase().endsWith(".app")) {
+	                return SystemFileChooser.APPROVE_OPTION;
+	            }
 	        }
-	    }
-	    
-	    if (combined.length() == 0) {
-	        return monoFonts;
-	    }
-	    
-	    String testString = combined.toString();
-	    List<String> result = new ArrayList<>();
-	    for (String fontName : monoFonts) {
-	        Font font = new Font(fontName, Font.PLAIN, 12);
-	        if (font.canDisplayUpTo(testString) == -1) {
-	            result.add(fontName);
+
+	        // Linux/macOS：校验执行权限
+	        if (!SystemUtils.isWindows()) {
+	            if (!selected.canExecute()) {
+	                context.showMessageDialog(
+	                    JOptionPane.WARNING_MESSAGE,
+	                    "The selected file is not executable.",
+	                    null, 0);
+	                return SystemFileChooser.CANCEL_OPTION;
+	            }
 	        }
+
+	        return SystemFileChooser.APPROVE_OPTION;
+	    });
+
+	    // 7. 显示对话框
+	    int returnVal = fc.showOpenDialog(parent);
+
+	    if (returnVal == SystemFileChooser.APPROVE_OPTION) {
+	        return fc.getSelectedFile();
 	    }
-	    return result.toArray(new String[result.size()]);	}
+
+	    return null; // 用户取消或点击 X 关闭
+	}
 }

@@ -9,7 +9,7 @@ public enum RunStatus {
 	//
 	Running(10), // Pause(11), Idle(12),
 	//
-	Interrupting(20), Stoping(21),
+	Interrupting(20), Stopping(21),
 	//
 	Stoped(00);
 
@@ -39,8 +39,8 @@ public enum RunStatus {
 		return isRunningStatus(this);
 	}
 
-	public boolean isStopingStatus() {
-		return isStopingStatus(this);
+	public boolean isStoppingStatus() {
+		return isStoppingStatus(this);
 	}
 
 	public boolean isStopStatus() {
@@ -51,7 +51,7 @@ public enum RunStatus {
 		return (status.code >= 10 && status.code <= 19) || (status.code == 2 || status.code == 3);
 	}
 
-	public static boolean isStopingStatus(RunStatus status) {
+	public static boolean isStoppingStatus(RunStatus status) {
 		return status.code >= 20 && status.code < 29;
 	}
 

@@ -34,7 +34,7 @@ public abstract class DefaultStatusRenderer extends TableLabelCellRenderer {
 	public final static Color Pause = new Color(120, 144, 156);
 	public final static Color Idle = new Color(120, 144, 156);
 	public final static Color Restarting = new Color(142, 36, 170);
-	public final static Color Stoping = new Color(142, 36, 170);
+	public final static Color Stopping = new Color(142, 36, 170);
 	public final static Color Stoped = new Color(117, 117, 117);
 	public final static Color Interrupting = new Color(142, 36, 170);
 //	public final static Color Interrupted = new Color(215, 204, 200);
@@ -96,7 +96,7 @@ public abstract class DefaultStatusRenderer extends TableLabelCellRenderer {
 //		colorMap.put("Pause", Pause);
 //		colorMap.put("Idle", Idle);
 //		colorMap.put("Restarting", Restarting);
-//		colorMap.put("Stoping", Stoping);
+//		colorMap.put("Stopping", Stopping);
 //		colorMap.put("Stoped", Stoped);
 //		colorMap.put("Interrupting", Interrupting);
 //		colorMap.put("Error", Error);

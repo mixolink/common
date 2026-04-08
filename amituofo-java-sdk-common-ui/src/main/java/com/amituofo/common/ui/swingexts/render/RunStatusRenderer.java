@@ -48,8 +48,8 @@ public class RunStatusRenderer extends DefaultStatusRenderer {
 //			case Restarting:
 //				setBackground(Restarting);
 //				break;
-			case Stoping:
-				setBackground(Stoping);
+			case Stopping:
+				setBackground(Stopping);
 				break;
 			case Interrupting:
 				setBackground(Interrupting);

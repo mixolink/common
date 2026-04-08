@@ -25,7 +25,7 @@ public interface ConfigKeeper<CONFIG extends Config> extends Closeable {
 	String getExt();
 
 	void addListener(ConfigChangesListener<CONFIG> listener) throws UnsupportedException;
-	
+
 	void fireConfigChanged();
 
 	boolean save(CONFIG setting, boolean overwrite) throws InvalidConfigException, IOException;
@@ -77,7 +77,7 @@ public interface ConfigKeeper<CONFIG extends Config> extends Closeable {
 			String s = setting.toPrettyJsonString();
 			String name = setting.getName();
 			name = name.replace("\\", "").replace("/", "").replace(":", "").replace("?", "").replace("*", "").replace(">", "").replace("<", "").replace("|", "");
-			File file = new File(URLUtils.catFilePath(saveLocation, name + ext));
+			File file = new File(URLUtils.catFilePath(saveLocation, name + (ext.charAt(0) == '.' ? ext : "." + ext)));
 			FileUtils.writeToFile(s, file, "utf-8", false);
 		} catch (Exception e) {
 			throw new InvalidConfigException(e);

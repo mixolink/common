@@ -52,13 +52,13 @@ public class SimpleDialog {
 
 		if (!option.isCloseClickOutsite()) {
 			dialog.setModal(true);
-			dialog.addWindowFocusListener(new WindowAdapter() {
-				@Override
-				public void windowLostFocus(WindowEvent e) {
-					if (dialog != null)
-						dialog.toFront();
-				}
-			});
+//			dialog.addWindowFocusListener(new WindowAdapter() {
+//				@Override
+//				public void windowLostFocus(WindowEvent e) {
+//					if (dialog != null)
+//						dialog.toFront();
+//				}
+//			});
 		} else {
 			dialog.addWindowFocusListener(new WindowFocusListener() {
 
