@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
@@ -57,7 +58,7 @@ public class SystemUtils {
 	public static boolean isPosixSystem() {
 		return isPosixSystem;
 	}
-	
+
 	public static boolean isLinux() {
 		return isLinux;
 	}
@@ -74,7 +75,61 @@ public class SystemUtils {
 		return !isWindows;
 	}
 
-	public static boolean isMacInDarkMode() {
+	/**
+	 * 检测系统是否处于深色模式
+	 */
+	public static boolean isSystemAppearanceInDark() {
+		if (isWindows) {
+			return isWindowsInDark();
+		} else if (isMacOS) {
+			return isMacInDark();
+		} else if (isLinux) {
+			return isLinuxInDark();
+		}
+		// macOS 逻辑类似，可按需添加
+		return false;
+	}
+
+	/**
+	 * Windows 逻辑：通过注册表查询 AppsUseLightTheme
+	 */
+	private static boolean isWindowsInDark() {
+		try {
+			// 使用 reg query 检查当前用户的个人化设置
+			Process process = new ProcessBuilder("reg", "query", "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", "/v", "AppsUseLightTheme")
+					.start();
+
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+				String line;
+				while ((line = reader.readLine()) != null) {
+					if (line.contains("AppsUseLightTheme") && line.contains("REG_DWORD")) {
+						// 0x0 代表深色 (Dark)，0x1 代表浅色 (Light)
+						return line.trim().endsWith("0x0");
+					}
+				}
+			}
+		} catch (Exception ignored) {
+			// 权限问题或旧版系统可能报错，默认返回 false
+		}
+		return false;
+	}
+
+	/**
+	 * Linux 逻辑：尝试 gsettings (GNOME/Cinnamon)
+	 */
+	private static boolean isLinuxInDark() {
+		// 方案 1: 检查现代 GNOME 的 color-scheme (最准确)
+		String colorScheme = CmdUtils.executeCommand("gsettings", "get", "org.gnome.desktop.interface", "color-scheme");
+		if (colorScheme.contains("prefer-dark")) {
+			return true;
+		}
+
+		// 方案 2: 兜底方案，检查 GTK 主题名是否包含 "dark" 关键字
+		String gtkTheme = CmdUtils.executeCommand("gsettings", "get", "org.gnome.desktop.interface", "gtk-theme");
+		return gtkTheme.toLowerCase().contains("dark");
+	}
+
+	public static boolean isMacInDark() {
 		if (!isMacOS) {
 			return false;
 		}
@@ -676,10 +731,9 @@ public class SystemUtils {
 //		return pid;
 //	}
 
-	public static boolean moveToRecycleBin(File file) throws IOException, InterruptedException {
-		if (!file.exists())
-			return false;
-		String os = System.getProperty("os.name").toLowerCase();
+	public static boolean moveToRecycleBin(Path file) throws IOException, InterruptedException {
+//		if (!file.exists())
+//			return false;
 
 		if (isWindows()) {
 			return move2WindowsRecycleBin(file);
@@ -688,16 +742,18 @@ public class SystemUtils {
 		} else if (isMacOS()) {
 			return move2MacRecycleBin(file);
 		} else {
-			System.err.println("Unsupported OS: " + os);
+			System.err.println("Unsupported OS: " + System.getProperty("os.name"));
 			return false;
 		}
+
+//		return !Files.exists(file);
 	}
 
 	// Windows: 使用 PowerShell
-	private static boolean move2WindowsRecycleBin(File file) throws IOException, InterruptedException {
-		String path = file.getAbsolutePath().replace("\\", "\\\\");
+	private static boolean move2WindowsRecycleBin(Path file) throws IOException, InterruptedException {
+		String path = file.toAbsolutePath().toString().replace("\\", "\\\\");
 		String cmd;
-		if (file.isDirectory()) {
+		if (Files.isDirectory(file)) {
 			cmd = String.format("powershell -Command \"$ErrorActionPreference='Stop'; " + "Add-Type -AssemblyName Microsoft.VisualBasic; "
 					+ "[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteDirectory('%s','OnlyErrorDialogs','SendToRecycleBin')\"", path);
 		} else {
@@ -712,8 +768,8 @@ public class SystemUtils {
 	}
 
 	// macOS: 使用 AppleScript
-	private static boolean move2MacRecycleBin(File file) throws IOException, InterruptedException {
-		String path = file.getAbsolutePath();
+	private static boolean move2MacRecycleBin(Path file) throws IOException, InterruptedException {
+		String path = file.toAbsolutePath().toString();
 		String[] cmd = { "osascript", "-e", "tell application \"Finder\" to delete POSIX file \"" + path + "\"" };
 		Process process = Runtime.getRuntime().exec(cmd);
 		int exitCode = process.waitFor();
@@ -722,7 +778,7 @@ public class SystemUtils {
 	}
 
 	// Linux: FreeDesktop Trash
-	private static boolean move2LinuxRecycleBin(File file) {
+	private static boolean move2LinuxRecycleBin(Path file) {
 		try {
 			Path trashFiles = Paths.get(System.getProperty("user.home"), ".local/share/Trash/files");
 			Path trashInfo = Paths.get(System.getProperty("user.home"), ".local/share/Trash/info");
@@ -730,13 +786,12 @@ public class SystemUtils {
 			Files.createDirectories(trashInfo);
 
 			String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-			String fileName = file.getName();
+			String fileName = file.getFileName().toString();
 			Path targetFile = trashFiles.resolve(fileName + "_" + timestamp);
-			Files.move(file.toPath(), targetFile, StandardCopyOption.REPLACE_EXISTING);
+			Files.move(file, targetFile, StandardCopyOption.REPLACE_EXISTING);
 
 			Path infoFile = trashInfo.resolve(fileName + "_" + timestamp + ".trashinfo");
-			String content = "[Trash Info]\n" + "Path=" + file.getAbsolutePath() + "\n" + "DeletionDate="
-					+ new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(new Date()) + "\n";
+			String content = "[Trash Info]\n" + "Path=" + file.toAbsolutePath() + "\n" + "DeletionDate=" + new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(new Date()) + "\n";
 			Files.write(infoFile, content.getBytes());
 			return true;
 		} catch (IOException e) {
@@ -983,8 +1038,8 @@ public class SystemUtils {
 			// print -z 是 zsh 内置：把字符串写入 readline 行缓冲区，不执行
 			// bash 下用 bind 没法可靠跨版本，所以先检测 shell 再选方案：
 			// $(basename $SHELL) 运行时判断
-			sb.append("__cmd='").append(escapeSingleQuote(cmd)).append("'; ").append("__sh=$(basename \"$SHELL\"); ")
-					.append("if [ \"$__sh\" = \"zsh\" ]; then ").append("print -z \"$__cmd\"; ").append("elif [ \"$__sh\" = \"bash\" ]; then ")
+			sb.append("__cmd='").append(escapeSingleQuote(cmd)).append("'; ").append("__sh=$(basename \"$SHELL\"); ").append("if [ \"$__sh\" = \"zsh\" ]; then ")
+					.append("print -z \"$__cmd\"; ").append("elif [ \"$__sh\" = \"bash\" ]; then ")
 					// bash：把命令写入历史并用 readline 的 fetch-history 拉出来
 					.append("history -s \"$__cmd\" && bind '\"\\e[0n\": fetch-history' 2>/dev/null; ").append("printf '\\e[0n'; ") // 触发刚才绑定的序列
 					.append("fi");
@@ -1007,37 +1062,33 @@ public class SystemUtils {
 	}
 
 	private static void openWindowsPowerShell(String exe, String path, String cmd) throws Exception {
-	    StringBuilder sb = new StringBuilder();
-	    sb.append("[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; ");
-	    if (path != null) {
-	        sb.append("Set-Location '").append(escapeSingleQuotePs(path)).append("'; Clear-Host; ");
-	    }
-	    if (cmd != null) {
-	        sb.append("[Microsoft.PowerShell.PSConsoleReadLine]::Insert('").append(escapeSingleQuotePs(cmd)).append("')");
-	    }
+		StringBuilder sb = new StringBuilder();
+		sb.append("[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; ");
+		if (path != null) {
+			sb.append("Set-Location '").append(escapeSingleQuotePs(path)).append("'; Clear-Host; ");
+		}
+		if (cmd != null) {
+			sb.append("[Microsoft.PowerShell.PSConsoleReadLine]::Insert('").append(escapeSingleQuotePs(cmd)).append("')");
+		}
 
-	    // 核心修改：使用 cmd /c start 来弹出窗口
-	    ProcessBuilder pb = new ProcessBuilder(
-	        "cmd.exe", "/c", "start", exe, "-NoExit", "-Command", sb.toString()
-	    );
-	    pb.start();
+		// 核心修改：使用 cmd /c start 来弹出窗口
+		ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", "start", exe, "-NoExit", "-Command", sb.toString());
+		pb.start();
 	}
-	
-	private static void openWindowsCmd(String path, String cmd) throws Exception {
-	    StringBuilder sb = new StringBuilder("chcp 65001 >nul");
-	    if (path != null) {
-	        sb.append(" & cd /d \"").append(path).append("\"");
-	    }
-	    if (cmd != null) {
-	        sb.append(" & title ").append(cmd.replace("&", "^&"));
-	        sb.append(" & echo [Pending] ").append(cmd);
-	    }
 
-	    // 核心修改：使用 cmd /c start 弹出新窗口
-	    ProcessBuilder pb = new ProcessBuilder(
-	        "cmd.exe", "/c", "start", "cmd.exe", "/K", sb.toString()
-	    );
-	    pb.start();
+	private static void openWindowsCmd(String path, String cmd) throws Exception {
+		StringBuilder sb = new StringBuilder("chcp 65001 >nul");
+		if (path != null) {
+			sb.append(" & cd /d \"").append(path).append("\"");
+		}
+		if (cmd != null) {
+			sb.append(" & title ").append(cmd.replace("&", "^&"));
+			sb.append(" & echo [Pending] ").append(cmd);
+		}
+
+		// 核心修改：使用 cmd /c start 弹出新窗口
+		ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", "start", "cmd.exe", "/K", sb.toString());
+		pb.start();
 	}
 	// ─────────────────────────────────────────────────────────────────
 	// Linux
@@ -1071,8 +1122,8 @@ public class SystemUtils {
 		}
 		if (cmd != null) {
 			// 和 macOS bash/zsh 一样的方式预填命令
-			sb.append("__cmd='").append(escapeSingleQuote(cmd)).append("'; ").append("__sh=$(basename \"$SHELL\"); ")
-					.append("if [ \"$__sh\" = \"zsh\" ]; then ").append("print -z \"$__cmd\"; ").append("else ")
+			sb.append("__cmd='").append(escapeSingleQuote(cmd)).append("'; ").append("__sh=$(basename \"$SHELL\"); ").append("if [ \"$__sh\" = \"zsh\" ]; then ")
+					.append("print -z \"$__cmd\"; ").append("else ")
 					// bash：写入历史然后用 Readline Up-arrow 拉出来
 					.append("history -s \"$__cmd\"; ").append("fi; ").append("exec \"$SHELL\""); // 替换当前 shell，保持交互
 		} else {
@@ -1156,13 +1207,12 @@ public class SystemUtils {
 			}
 		} else if (isMacOS) {
 			// macOS: 用 Terminal.app 执行 ssh 命令
-			String script = String.format("tell application \"Terminal\"\n" + "    activate\n" + "    do script \"%s\"\n" + "end tell",
-					sshCommand.replace("\"", "\\\""));
+			String script = String.format("tell application \"Terminal\"\n" + "    activate\n" + "    do script \"%s\"\n" + "end tell", sshCommand.replace("\"", "\\\""));
 			pb = new ProcessBuilder("osascript", "-e", script);
 		} else {
 			// Linux: 尝试 GNOME Terminal, Konsole, xterm...
-			String[] terminals = { "gnome-terminal", "--", "bash", "-c", sshCommand, "konsole", "-e", "bash", "-c", sshCommand, "xfce4-terminal",
-					"-e", "bash -c '" + sshCommand + "'", "xterm", "-e", "bash", "-c", sshCommand };
+			String[] terminals = { "gnome-terminal", "--", "bash", "-c", sshCommand, "konsole", "-e", "bash", "-c", sshCommand, "xfce4-terminal", "-e",
+					"bash -c '" + sshCommand + "'", "xterm", "-e", "bash", "-c", sshCommand };
 
 			IOException lastEx = null;
 			for (int i = 0; i < terminals.length; i += 2) {
@@ -1223,8 +1273,7 @@ public class SystemUtils {
 	}
 
 	public static void main(String[] arg) throws IOException, InterruptedException { // 测试用例，基于你提供的版本号顺序
-		String[][] testCases = { { "2.3", "2.0.1" }, { "2.0.1", "1.9" }, { "1.9", "1.1.2" }, { "1.1.2", "1.1.0" }, { "1.1.0", "1.0" },
-				{ "1.0", "1.0" } // 测试相等情况
+		String[][] testCases = { { "2.3", "2.0.1" }, { "2.0.1", "1.9" }, { "1.9", "1.1.2" }, { "1.1.2", "1.1.0" }, { "1.1.0", "1.0" }, { "1.0", "1.0" } // 测试相等情况
 		};
 
 		System.out.println("Version comparison results:");

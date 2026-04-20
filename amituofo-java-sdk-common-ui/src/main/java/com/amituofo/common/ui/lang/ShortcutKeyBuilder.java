@@ -48,6 +48,11 @@ public class ShortcutKeyBuilder {
 		return this;
 	}
 
+	public ShortcutKeyBuilder withOption() {
+		this.withModifier(KeyEvent.ALT_DOWN_MASK);
+		return this;
+	}
+	
 	public ShortcutKeyBuilder withAlt() {
 		this.withModifier(KeyEvent.ALT_DOWN_MASK);
 		return this;

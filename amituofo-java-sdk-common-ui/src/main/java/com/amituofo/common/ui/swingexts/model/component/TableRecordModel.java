@@ -190,6 +190,10 @@ public abstract class TableRecordModel<ITEM> extends AbstractTableModel implemen
 		recmodel.insertItem(rownum, items);
 	}
 
+	public void removeRecordFromIndex(int fromrow) {
+		 recmodel.removeRecordFromIndex(fromrow);
+	}
+
 	public List<ITEM> getAllItemList() {
 		return recmodel.getAllItemList();
 	}

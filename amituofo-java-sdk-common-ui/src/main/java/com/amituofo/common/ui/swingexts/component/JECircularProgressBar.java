@@ -12,7 +12,6 @@ public class JECircularProgressBar extends JComponent {
 	private Color progressColor;
 	private Color backgroundColor;
 	private boolean showText = true;
-//	private Font textFont = new Font("SansSerif", Font.BOLD, 12);
 	private float percentage = 0;
 
 	public JECircularProgressBar() {

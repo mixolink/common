@@ -4,15 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.LayoutManager;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import com.amituofo.common.api.Callback;
@@ -20,7 +19,6 @@ import com.amituofo.common.api.Destroyable;
 import com.amituofo.common.ui.action.CardAction;
 import com.amituofo.common.ui.action.DestroyAction;
 import com.amituofo.common.ui.lang.CardComponent;
-import com.amituofo.common.ui.listener.ActiveListener;
 import com.amituofo.common.ui.util.UIUtils;
 
 public class JECardContainerPanel<C extends JComponent, D> extends JEPanel {
@@ -125,39 +123,36 @@ public class JECardContainerPanel<C extends JComponent, D> extends JEPanel {
 			}
 
 			final CardComponent<C, D> nextComponent = components.get(name);
+			try {
+				if (nextComponent == topDataComponent || nextComponent == null) {
+					return;
+				}
+				setIgnoreRepaint(true);
+				if (topDataComponent != null) {
+					Component c = topDataComponent.getComponent();
+					if (c instanceof CardAction) {
+						((CardAction) c).deactiving();
+					}
+				}
 
-			if (nextComponent == topDataComponent || nextComponent == null) {
+				JComponent nextPanel = nextComponent.getComponent();
+				super.removeAll();
+				super.add(nextPanel, BorderLayout.CENTER);
+				super.revalidate();
+				super.repaint();
+
+				topDataComponent = nextComponent;
+
+				if (nextPanel instanceof CardAction) {
+					((CardAction) nextPanel).activing();
+				}
+
+			} finally {
 				if (callback != null) {
 					callback.callback(nextComponent);
 				}
-				return;
-			}
-
-			if (topDataComponent != null) {
-				Component c = topDataComponent.getComponent();
-				if (c instanceof CardAction) {
-					((CardAction) c).deactiving();
-				}
-			}
-
-			JComponent nextPanel = nextComponent.getComponent();
-			super.removeAll();
-//			System.out.println("0Is EDT: " + SwingUtilities.isEventDispatchThread() + " " + name + " " + System.identityHashCode(CardContainerPanel.this));
-			super.add(nextPanel, BorderLayout.CENTER);
-			super.revalidate();
-			super.repaint();
-
-			topDataComponent = nextComponent;
-
-			if (nextPanel instanceof CardAction) {
-				((CardAction) nextPanel).activing();
-			} else {
-//				nextPanel.revalidate();
-//				nextPanel.repaint();
-			}
-
-			if (callback != null) {
-				callback.callback(nextComponent);
+				setIgnoreRepaint(false);
+				repaint(); // 最终确认绘制
 			}
 		}
 	}

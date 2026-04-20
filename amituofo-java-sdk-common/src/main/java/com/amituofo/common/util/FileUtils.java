@@ -66,8 +66,9 @@ import com.amituofo.common.type.HandleFeedback;
  */
 public class FileUtils {
 	/**
-	 * Default 10 digit file storage distribution array. This means that if I want to name file as 10 digit number e.g. number 123 as 0000000123 or number
-	 * 123456789 as 01234567890. Then the path constructed from number 1234567890 using distribution 2/2/2/4 would be 12/34/56/0123456789
+	 * Default 10 digit file storage distribution array. This means that if I want to name file as 10
+	 * digit number e.g. number 123 as 0000000123 or number 123456789 as 01234567890. Then the path
+	 * constructed from number 1234567890 using distribution 2/2/2/4 would be 12/34/56/0123456789
 	 */
 	public static final int[] DEFAULT_STRORAGE_TREE_DISTRIBUTION = { 2, 2, 2, 4 };
 
@@ -220,69 +221,130 @@ public class FileUtils {
 	}
 
 	/**
-	 * Move file to a new location. If the destination is on different volume, this file will be copied and then original file will be deleted. If the
-	 * destination already exists, this method renames it with different name and leaves it in that directory and moves the new file along side the
-	 * renamed one.
+	 * Move file to a new location. If the destination is on different volume, this file will be copied
+	 * and then original file will be deleted. If the destination already exists, this method renames it
+	 * with different name and leaves it in that directory and moves the new file along side the renamed
+	 * one.
 	 * 
-	 * @param  srcfile      - file to move
-	 * @param  destfile     - destination file
+	 * @param srcfile  - file to move
+	 * @param destfile - destination file
 	 * @throws IOException  - error message
 	 * @throws OSSException - error message
 	 */
 	public static void moveFile(File srcfile, File destfile) throws IOException {
+		Path srcPath = srcfile.toPath();
+		Path destPath = destfile.toPath();
+
+		// 1. 基础检查
 		if (!srcfile.exists()) {
-			throw new IOException("Source file not exist. " + srcfile);
+			throw new IOException("Source file does not exist: " + srcfile);
 		}
 
-		if (destfile.exists()) {
-			if (!destfile.delete()) {
-				throw new IOException("Distination file could not delete. " + destfile);
+		// 2. 确保目标父目录存在
+		File parentDir = destfile.getParentFile();
+		if (parentDir != null && !parentDir.exists()) {
+			// 使用 mkdirs() 创建多级目录
+			if (!parentDir.mkdirs()) {
+				// 双重检查，防止并发创建失败的情况
+				if (!parentDir.exists()) {
+					throw new IOException("Failed to create target directory: " + parentDir);
+				}
 			}
 		}
 
-		// Make sure the directory exists and if not create it
-		File flFolder;
-
-		flFolder = destfile.getParentFile();
-		if ((flFolder != null) && (!flFolder.exists())) {
-			if (!flFolder.mkdirs()) {
-				throw new IOException("Cannot create directory. " + flFolder);
-			}
-
-			if (!flFolder.exists()) {
-				throw new IOException("Target directory not found. " + flFolder);
-			}
-		}
-		
 		try {
-			Files.move(srcfile.toPath(), destfile.toPath(), 
-			        StandardCopyOption.ATOMIC_MOVE,     // 优先原子移动
-			        StandardCopyOption.REPLACE_EXISTING // 如果目标已存在就覆盖
-					);
-		} catch (Exception e) {
-			copyFile(srcfile, destfile);
+			// 3. 尝试原子移动
+			// 注意：ATOMIC_MOVE 通常要求源和目标在同一文件系统分区
+			Files.move(srcPath, destPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
 
-			if (!srcfile.delete()) {
-				destfile.delete();
-				throw new IOException("Cannot delete already copied file " + srcfile);
+		} catch (IOException e) {
+			// 4. 如果原子移动失败（例如跨分区），回退到 复制+删除 模式
+
+			// 区分处理：如果是符号链接，必须特殊处理，否则会移动实体文件
+			if (Files.isSymbolicLink(srcPath)) {
+				moveSymlink(srcPath, destPath);
+			} else {
+				// 普通文件：先复制
+				Files.copy(srcPath, destPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+			}
+
+			// 最后删除源文件
+			try {
+				Files.delete(srcPath);
+			} catch (IOException deleteEx) {
+				// 如果删除失败，尝试清理刚才创建的目标文件，保持状态一致
+				try {
+					Files.deleteIfExists(destPath);
+				} catch (IOException ignored) {
+				}
+				throw new IOException("Failed to move file. Copy succeeded, but failed to delete source: " + srcfile, deleteEx);
 			}
 		}
-		
-//		if (!srcfile.renameTo(destfile)) {
-//			copyFile(srcfile, destfile);
-//
-//			if (!srcfile.delete()) {
-//				destfile.delete();
-//				throw new IOException("Cannot delete already copied file " + srcfile);
-//			}
-//		}
+	}
+
+	public static void moveFile(Path srcPath, Path destPath) throws IOException {
+		// 1. 基础检查
+		if (!Files.exists(srcPath)) {
+			throw new IOException("Source file does not exist: " + srcPath);
+		}
+
+		// 2. 确保目标父目录存在
+		Path parentDir = destPath.getParent();
+		if (parentDir != null && !Files.exists(parentDir)) {
+			// 使用 mkdirs() 创建多级目录
+			Files.createDirectories(parentDir);
+			// 双重检查，防止并发创建失败的情况
+			if (!Files.exists(parentDir)) {
+				throw new IOException("Failed to create target directory: " + parentDir);
+			}
+		}
+
+		try {
+			// 3. 尝试原子移动
+			// 注意：ATOMIC_MOVE 通常要求源和目标在同一文件系统分区
+			Files.move(srcPath, destPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			// 4. 如果原子移动失败（例如跨分区），回退到 复制+删除 模式
+
+			// 区分处理：如果是符号链接，必须特殊处理，否则会移动实体文件
+			if (Files.isSymbolicLink(srcPath)) {
+				moveSymlink(srcPath, destPath);
+			} else {
+				// 普通文件：先复制
+				Files.copy(srcPath, destPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+			}
+
+			// 最后删除源文件
+			try {
+				Files.delete(srcPath);
+			} catch (IOException deleteEx) {
+				// 如果删除失败，尝试清理刚才创建的目标文件，保持状态一致
+				try {
+					Files.deleteIfExists(destPath);
+				} catch (IOException ignored) {
+				}
+				throw new IOException("Failed to move file. Copy succeeded, but failed to delete source: " + srcPath, deleteEx);
+			}
+		}
+	}
+
+	/**
+	 * 专门处理符号链接的移动（复制链接本身）
+	 */
+	public static void moveSymlink(Path srcLink, Path destLink) throws IOException {
+		// 1. 读取链接指向的目标
+		Path target = Files.readSymbolicLink(srcLink);
+		// 2. 创建新的链接
+		Files.createSymbolicLink(destLink, target);
+		// 3. 删除旧链接
+		Files.delete(srcLink);
 	}
 
 	/**
 	 * Copy the current file to the destination file.
 	 * 
-	 * @param  srcfile      - source file
-	 * @param  destfile     - destination file
+	 * @param srcfile  - source file
+	 * @param destfile - destination file
 	 * @throws IOException  - error message
 	 * @throws OSSException - error message
 	 */
@@ -296,24 +358,6 @@ public class FileUtils {
 				}
 			}
 		}
-
-//		FileInputStream finInput = null;
-//
-//		try {
-//			finInput = new FileInputStream(flCurrent);
-//		} catch (Exception e) {
-//			if (finInput != null) {
-//				try {
-//					finInput.close();
-//				} catch (Throwable thr) {
-//
-//				}
-//			}
-//			throw e;
-//		}
-
-//		copyStreamToFile(finInput, flDestination, StreamUtils.DEFAULT_BUFFER_SIZE);
-//		Files.copy(flCurrent.toPath(), flCurrent.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
 		FileInputStream fis = null;
 		FileOutputStream fos = null;
@@ -335,6 +379,36 @@ public class FileUtils {
 			}
 		}
 	}
+	
+	  /**
+     * 智能复制文件/目录/符号链接
+     * 如果是符号链接，只复制链接本身（不复制目标文件内容）
+     * 如果是普通文件，复制内容和属性
+     */
+    public static void copyFile(Path srcfile, Path destfile) throws IOException {
+        // 1. 确保目标父目录存在
+        Path parent = destfile.getParent();
+        if (parent != null && !Files.exists(parent)) {
+            Files.createDirectories(parent);
+        }
+
+        // 2. 判断源文件是否为符号链接
+        if (Files.isSymbolicLink(srcfile)) {
+            // --- 情况 A: 是符号链接 ---
+            // 读取链接指向的目标路径
+            Path  target = Files.readSymbolicLink(srcfile);
+            // 创建一个新的符号链接指向该目标
+            // 注意：这里不需要 REPLACE_EXISTING，通常先删除旧文件或捕获异常处理
+            Files.createSymbolicLink(destfile, target);
+        } else {
+            // --- 情况 B: 是普通文件 ---
+            // 使用标准复制，并保留属性（权限、时间戳等）
+            // REPLACE_EXISTING: 如果目标存在则覆盖
+            Files.copy(srcfile, destfile, 
+                       StandardCopyOption.REPLACE_EXISTING, 
+                       StandardCopyOption.COPY_ATTRIBUTES);
+        }
+    }
 
 	public static enum MovingOption {
 		REPLACE_EXIST, IGNORE_EXIST
@@ -441,9 +515,9 @@ public class FileUtils {
 	/**
 	 * Rename the file to temporaty name with given prefix
 	 * 
-	 * @param  flFileToRename - file to rename
-	 * @param  strPrefix      - prefix to use
-	 * @throws IOException    - error message
+	 * @param flFileToRename - file to rename
+	 * @param strPrefix      - prefix to use
+	 * @throws IOException - error message
 	 */
 	public static void renameToTemporaryName(File flFileToRename, String strPrefix) throws IOException {
 		assert strPrefix != null : "Prefix cannot be null.";
@@ -513,8 +587,8 @@ public class FileUtils {
 	/**
 	 * Delete all files and directories in directory but do not delete the directory itself.
 	 * 
-	 * @param  strDir - string that specifies directory to delete
-	 * @return        boolean - sucess flag
+	 * @param strDir - string that specifies directory to delete
+	 * @return boolean - sucess flag
 	 */
 	public static boolean deleteDirectoryContent(String strDir) {
 		return ((strDir != null) && (strDir.length() > 0)) ? deleteDirectoryContent(new File(strDir)) : false;
@@ -523,8 +597,8 @@ public class FileUtils {
 	/**
 	 * Delete all files and directories in directory but do not delete the directory itself.
 	 * 
-	 * @param  fDir - directory to delete
-	 * @return      boolean - sucess flag
+	 * @param fDir - directory to delete
+	 * @return boolean - sucess flag
 	 */
 	public static boolean deleteDirectoryContent(File fDir) {
 		boolean bRetval = false;
@@ -558,20 +632,22 @@ public class FileUtils {
 	}
 
 	/**
-	 * Deletes all files and subdirectories under the specified directory including the specified directory
+	 * Deletes all files and subdirectories under the specified directory including the specified
+	 * directory
 	 * 
-	 * @param  strDir - string that specifies directory to be deleted
-	 * @return        boolean - true if directory was successfully deleted
+	 * @param strDir - string that specifies directory to be deleted
+	 * @return boolean - true if directory was successfully deleted
 	 */
 	public static boolean deleteDir(String strDir) {
 		return ((strDir != null) && (strDir.length() > 0)) ? deleteDir(new File(strDir)) : false;
 	}
 
 	/**
-	 * Deletes all files and subdirectories under the specified directory including the specified directory
+	 * Deletes all files and subdirectories under the specified directory including the specified
+	 * directory
 	 * 
-	 * @param  fDir - directory to be deleted
-	 * @return      boolean - true if directory was successfully deleted
+	 * @param fDir - directory to be deleted
+	 * @return boolean - true if directory was successfully deleted
 	 */
 	public static boolean deleteDir(File fDir) {
 		boolean bRetval = false;
@@ -656,9 +732,9 @@ public class FileUtils {
 	/**
 	 * Compare binary files. Both files must be files (not directories) and exist.
 	 * 
-	 * @param  first       - first file
-	 * @param  second      - second file
-	 * @return             boolean - true if files are binery equal
+	 * @param first  - first file
+	 * @param second - second file
+	 * @return boolean - true if files are binery equal
 	 * @throws IOException - error in function
 	 */
 	public boolean isFileBinaryEqual(File first, File second) throws IOException {
@@ -723,8 +799,8 @@ public class FileUtils {
 	/**
 	 * Copy any input stream to output file. Once the data will be copied the stream will be closed.
 	 * 
-	 * @param  input             - InputStream to copy from
-	 * @param  output            - File to copy to
+	 * @param input  - InputStream to copy from
+	 * @param output - File to copy to
 	 * @throws IOException       - error in function
 	 * @throws OSSMultiException - double error in function
 	 */
@@ -759,8 +835,8 @@ public class FileUtils {
 	/**
 	 * Copy any input stream to output stream. Once the data will be copied both streams will be closed.
 	 * 
-	 * @param  input             - InputStream to copy from
-	 * @param  output            - OutputStream to copy to
+	 * @param input  - InputStream to copy from
+	 * @param output - OutputStream to copy to
 	 * @throws IOException       - io error in function
 	 * @throws OSSMultiException - double error in function
 	 */
@@ -1592,7 +1668,8 @@ public class FileUtils {
 	}
 
 	public static String getTempRemoteFileEditingRandomFolder() {
-		File tempWorkingDir = new File(getTempWorkingFolder() + File.separator + "edit" + File.separator + System.currentTimeMillis() + "_" + RandomUtils.randomInt(100000, 999999));
+		File tempWorkingDir = new File(
+				getTempWorkingFolder() + File.separator + "edit" + File.separator + System.currentTimeMillis() + "_" + RandomUtils.randomInt(100000, 999999));
 		tempWorkingDir.mkdirs();
 		return tempWorkingDir.getPath();
 	}
@@ -1764,8 +1841,8 @@ public class FileUtils {
 	}
 
 	/**
-	 * 获取文件名后缀（不含点）
-	 * 示例: "test.txt" -> "txt", "archive.tar.gz" -> "gz"
+	 * 获取文件名后缀（不含点） 示例: "test.txt" -> "txt", "archive.tar.gz" -> "gz"
+	 * 
 	 * @param name 文件名或路径
 	 * @return 后缀名，如果没有后缀则返回空字符串 ""
 	 */
@@ -1788,7 +1865,7 @@ public class FileUtils {
 
 		return "";
 	}
-	
+
 	public static String[] splitFileNameAndExtension(String name) {
 		if (name == null) {
 			return new String[] { "", "" };
@@ -1808,22 +1885,31 @@ public class FileUtils {
 
 		return new String[] { name, "" };
 	}
-	
-	public static  int posixPermissionsToMode(Set<PosixFilePermission> perms) {
-	    int mode = 0;
-	    // Owner
-	    if (perms.contains(PosixFilePermission.OWNER_READ))    mode |= 0400;
-	    if (perms.contains(PosixFilePermission.OWNER_WRITE))   mode |= 0200;
-	    if (perms.contains(PosixFilePermission.OWNER_EXECUTE)) mode |= 0100;
-	    // Group
-	    if (perms.contains(PosixFilePermission.GROUP_READ))    mode |= 0040;
-	    if (perms.contains(PosixFilePermission.GROUP_WRITE))   mode |= 0020;
-	    if (perms.contains(PosixFilePermission.GROUP_EXECUTE)) mode |= 0010;
-	    // Others
-	    if (perms.contains(PosixFilePermission.OTHERS_READ))   mode |= 0004;
-	    if (perms.contains(PosixFilePermission.OTHERS_WRITE))  mode |= 0002;
-	    if (perms.contains(PosixFilePermission.OTHERS_EXECUTE))mode |= 0001;
-	    return mode;
+
+	public static int posixPermissionsToMode(Set<PosixFilePermission> perms) {
+		int mode = 0;
+		// Owner
+		if (perms.contains(PosixFilePermission.OWNER_READ))
+			mode |= 0400;
+		if (perms.contains(PosixFilePermission.OWNER_WRITE))
+			mode |= 0200;
+		if (perms.contains(PosixFilePermission.OWNER_EXECUTE))
+			mode |= 0100;
+		// Group
+		if (perms.contains(PosixFilePermission.GROUP_READ))
+			mode |= 0040;
+		if (perms.contains(PosixFilePermission.GROUP_WRITE))
+			mode |= 0020;
+		if (perms.contains(PosixFilePermission.GROUP_EXECUTE))
+			mode |= 0010;
+		// Others
+		if (perms.contains(PosixFilePermission.OTHERS_READ))
+			mode |= 0004;
+		if (perms.contains(PosixFilePermission.OTHERS_WRITE))
+			mode |= 0002;
+		if (perms.contains(PosixFilePermission.OTHERS_EXECUTE))
+			mode |= 0001;
+		return mode;
 	}
-	
+
 }

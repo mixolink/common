@@ -24,6 +24,7 @@ import javax.swing.border.MatteBorder;
 
 import com.amituofo.common.ex.InvalidConfigException;
 import com.amituofo.common.kit.config.Configuration;
+import com.amituofo.common.ui.swingexts.JComponents;
 import com.amituofo.common.ui.swingexts.dialog.SimpleDialogContentPanel;
 import com.amituofo.common.ui.util.UIUtils;
 import com.jgoodies.forms.layout.ColumnSpec;
@@ -143,7 +144,7 @@ public class JEWizardPanelContainer extends SimpleDialogContentPanel {
 
 		stepLabel = new JLabel("1 / 10");
 //		stepLabel.setForeground(new Color(210, 180, 140));
-		stepLabel.setFont(new Font("Arial Black", Font.PLAIN, 12));
+		stepLabel.setFont(JComponents.newPlainFont("Arial Black"));
 		panel_6.add(stepLabel);
 
 		panel_2 = new JPanel();

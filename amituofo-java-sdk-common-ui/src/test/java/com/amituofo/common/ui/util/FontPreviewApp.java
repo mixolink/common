@@ -22,6 +22,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import com.amituofo.common.ui.swingexts.JComponents;
+
 public class FontPreviewApp extends JFrame {
 
 	private static final int MAX_COLUMNS = 3; // 最多三列
@@ -133,7 +135,7 @@ public class FontPreviewApp extends JFrame {
 			cell.setBackground(Color.WHITE);
 
 			JLabel nameLabel = new JLabel(fontName);
-			nameLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+			nameLabel.setFont(JComponents.newBoldFont("SansSerif"));
 
 			JLabel previewLabel = new JLabel("<html>" + previewText.replace("\n", "<br>") + "</html>");
 			previewLabel.setFont(new Font(fontName, Font.PLAIN, fontSize));

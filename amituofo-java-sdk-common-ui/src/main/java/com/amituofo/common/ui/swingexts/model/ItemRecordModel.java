@@ -130,6 +130,31 @@ public class ItemRecordModel<ITEM> extends RecordModel<ITEM> implements ItemComp
 			}
 		}
 	}
+	
+
+	public void addItems(List<ITEM> items) {
+		addItems(items, items.size());
+	}
+
+	public void addItems(List<ITEM> items, int size) {
+		if (items == null || items.size() == 0 || size > items.size()) {
+			return;
+		}
+
+		for (int i = 0; i < size; i++) {
+			ITEM item = items.get(i);
+			if (item == null) {
+				continue;
+			}
+
+			Record<ITEM> rowData = convert.convertRow0(i, item);
+
+			if (rowData != null) {
+				rowData.setUserData(item);
+				addRecord(rowData);
+			}
+		}
+	}
 
 	public Record<ITEM> insertItem(int rownum, ITEM item) {
 		if (item == null) {

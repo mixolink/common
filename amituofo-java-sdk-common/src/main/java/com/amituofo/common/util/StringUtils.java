@@ -538,6 +538,23 @@ public class StringUtils {
 		return buf.substring(0, buf.length() - 1);
 	}
 
+	public static <T> String toString(Collection<T> params, String separator) {
+		if (params == null || params.size() == 0) {
+			return "";
+		}
+
+		StringBuffer buf = new StringBuffer();
+		for (T string : params) {
+			if (string != null) {
+				buf.append(string.toString()).append(separator);
+			} else {
+				buf.append(separator);
+			}
+		}
+
+		return buf.substring(0, buf.length() - 1);
+	}
+
 	public static <T> List<String> toGroupString(Collection<T> params, char separator, int maxItemsInGroup) {
 		List<String> strings = new ArrayList<>();
 

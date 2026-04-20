@@ -81,10 +81,12 @@ import com.amituofo.common.kit.counter.Counter;
 import com.amituofo.common.kit.kv.KeyValue;
 import com.amituofo.common.kit.value.Value;
 import com.amituofo.common.ui.action.InputValidator;
+import com.amituofo.common.ui.swingexts.JComponents;
 import com.amituofo.common.ui.swingexts.component.ArcTextPane;
 import com.amituofo.common.ui.swingexts.component.JEPropertyDialogPanel;
 import com.amituofo.common.ui.swingexts.dialog.SimpleDialog;
 import com.amituofo.common.ui.swingexts.dialog.SimpleDialogOption;
+import com.amituofo.common.util.StreamUtils;
 import com.amituofo.common.util.StringUtils;
 import com.amituofo.common.util.SystemUtils;
 import com.formdev.flatlaf.util.SystemFileChooser;
@@ -1215,34 +1217,10 @@ public class UIUtils {
 			}
 		});
 
-		splitPane.setDividerLocation(initialBottomHeight);
-
-		// 初始设置
-//	    SwingUtilities.invokeLater(() -> {
-//	        if (splitPane.isShowing()) {
-//	            isAdjustingByCode[0] = true;
-//	            try {
-//	                splitPane.setDividerLocation(
-//	                    splitPane.getHeight() - initialBottomHeight - splitPane.getDividerSize()
-//	                );
-//	            } finally {
-//	                isAdjustingByCode[0] = false;
-//	            }
-//	        }
-//	    });
+		if (initialBottomHeight > 0) {
+			splitPane.setDividerLocation(initialBottomHeight);
+		}
 	}
-
-	// public static void workerExec() {
-	// new SwingWorker<Void, Void>() {
-	//
-	// @Override
-	// protected Void doInBackground() throws Exception {
-	// // TODO Auto-generated method stub
-	// return null;
-	// }
-	//
-	// }.execute();
-	// }
 
 	/**
 	 * 计算 JLabel 中图标和文本的绘制区域
@@ -1373,7 +1351,7 @@ public class UIUtils {
 		String[] allFonts = ge.getAvailableFontFamilyNames();
 
 		for (String fontName : allFonts) {
-			Font font = new Font(fontName, Font.PLAIN, 12);
+			Font font = new Font(fontName, Font.PLAIN, JComponents.getDefaultSystemFont().getSize());
 			if (isMonospaced(font, testChars)) {
 				monoFontList.add(fontName);
 			}
@@ -1428,7 +1406,7 @@ public class UIUtils {
 
 		List<String> result = new ArrayList<>();
 		for (String fontName : monoFonts) {
-			Font font = new Font(fontName, Font.PLAIN, 12);
+			Font font = new Font(fontName, Font.PLAIN, JComponents.getDefaultSystemFont().getSize());
 			// canDisplayUpTo 返回 -1 表示全部字符都能显示
 			if (font.canDisplayUpTo(testString) == -1) {
 				result.add(fontName);
@@ -1461,7 +1439,7 @@ public class UIUtils {
 		String testString = combined.toString();
 		List<String> result = new ArrayList<>();
 		for (String fontName : monoFonts) {
-			Font font = new Font(fontName, Font.PLAIN, 12);
+			Font font = new Font(fontName, Font.PLAIN, JComponents.getDefaultSystemFont().getSize());
 			if (font.canDisplayUpTo(testString) == -1) {
 				result.add(fontName);
 			}
@@ -1476,83 +1454,117 @@ public class UIUtils {
 	 * @return 选中的 File 对象；如果取消、关闭窗口或选择无效文件夹则返回 null
 	 */
 	public static File chooseExecutable(Component parent) {
-	    // 1. 确定初始显示目录
-	    File defaultDir;
-	    if (SystemUtils.isWindows()) {
-	        String pf = System.getenv("ProgramFiles");
-	        defaultDir = (pf != null) ? new File(pf) : new File("C:\\");
-	    } else if (SystemUtils.isMacOS()) {
-	        defaultDir = new File("/Applications");
-	    } else {
-	        defaultDir = new File("/usr/bin");
+		// 1. 确定初始显示目录
+		File defaultDir;
+		if (SystemUtils.isWindows()) {
+			String pf = System.getenv("ProgramFiles");
+			defaultDir = (pf != null) ? new File(pf) : new File("C:\\");
+		} else if (SystemUtils.isMacOS()) {
+			defaultDir = new File("/Applications");
+		} else {
+			defaultDir = new File("/usr/bin");
+		}
+
+		// 容错：如果路径不存在则使用用户主目录
+		if (!defaultDir.exists()) {
+			defaultDir = FileSystemView.getFileSystemView().getHomeDirectory();
+		}
+
+		// 2. 创建 SystemFileChooser
+		SystemFileChooser fc = new SystemFileChooser();
+		fc.setCurrentDirectory(defaultDir);
+
+		// 3. 文件选择模式
+		// FILES_AND_DIRECTORIES 不被支持，macOS 下通过平台属性 + approveCallback 替代
+		fc.setFileSelectionMode(SystemFileChooser.FILES_ONLY);
+		fc.setAcceptAllFileFilterUsed(true);
+
+		// 4. macOS：允许进入 .app 包内部导航（反过来才能"看见"它作为可选文件）
+		// 注意：这里设为 false，让 .app 包作为整体文件而非目录出现
+		if (SystemUtils.isMacOS()) {
+			fc.putPlatformProperty(SystemFileChooser.MAC_TREATS_FILE_PACKAGES_AS_DIRECTORIES, false);
+		}
+
+		// 5. 文件过滤器（SystemFileChooser 只支持按扩展名过滤）
+		if (SystemUtils.isWindows()) {
+			fc.addChoosableFileFilter(new SystemFileChooser.FileNameExtensionFilter("Executable Files (*.exe, *.bat, *.cmd)", "exe", "bat", "cmd"));
+		} else if (SystemUtils.isMacOS()) {
+			fc.addChoosableFileFilter(new SystemFileChooser.FileNameExtensionFilter("Applications (*.app)", "app"));
+			// "All Files" 保留，让用户也能选无扩展名的可执行文件
+		}
+		// Linux：不添加扩展名过滤器，仅靠 approveCallback 校验执行权限
+
+		// 6. Approve 回调：做原代码中无法通过过滤器表达的后置校验
+		fc.setApproveCallback((selectedFiles, context) -> {
+			File selected = selectedFiles[0];
+
+			// macOS：.app 包本质是目录，FILES_ONLY 模式下系统已将其作为文件处理，直接放行
+			if (SystemUtils.isMacOS()) {
+				// .app 包或具有执行权限的文件均视为有效
+				if (selected.getName().toLowerCase().endsWith(".app")) {
+					return SystemFileChooser.APPROVE_OPTION;
+				}
+			}
+
+			// Linux/macOS：校验执行权限
+			if (!SystemUtils.isWindows()) {
+				if (!selected.canExecute()) {
+					context.showMessageDialog(JOptionPane.WARNING_MESSAGE, "The selected file is not executable.", null, 0);
+					return SystemFileChooser.CANCEL_OPTION;
+				}
+			}
+
+			return SystemFileChooser.APPROVE_OPTION;
+		});
+
+		// 7. 显示对话框
+		int returnVal = fc.showOpenDialog(parent);
+
+		if (returnVal == SystemFileChooser.APPROVE_OPTION) {
+			return fc.getSelectedFile();
+		}
+
+		return null; // 用户取消或点击 X 关闭
+	}
+	
+	public static void setupLinuxScaling() {
+		if(!SystemUtils.isLinux()) {
+			return;
+		}
+	    // 方法1：读 GDK_SCALE 环境变量
+	    String gdkScale = System.getenv("GDK_SCALE");
+	    if (gdkScale != null) {
+	        System.setProperty("sun.java2d.uiScale", gdkScale);
+	        return;
 	    }
-
-	    // 容错：如果路径不存在则使用用户主目录
-	    if (!defaultDir.exists()) {
-	        defaultDir = FileSystemView.getFileSystemView().getHomeDirectory();
-	    }
-
-	    // 2. 创建 SystemFileChooser
-	    SystemFileChooser fc = new SystemFileChooser();
-	    fc.setCurrentDirectory(defaultDir);
-
-	    // 3. 文件选择模式
-	    // FILES_AND_DIRECTORIES 不被支持，macOS 下通过平台属性 + approveCallback 替代
-	    fc.setFileSelectionMode(SystemFileChooser.FILES_ONLY);
-	    fc.setAcceptAllFileFilterUsed(true);
-
-	    // 4. macOS：允许进入 .app 包内部导航（反过来才能"看见"它作为可选文件）
-	    //    注意：这里设为 false，让 .app 包作为整体文件而非目录出现
-	    if (SystemUtils.isMacOS()) {
-	        fc.putPlatformProperty(SystemFileChooser.MAC_TREATS_FILE_PACKAGES_AS_DIRECTORIES, false);
-	    }
-
-	    // 5. 文件过滤器（SystemFileChooser 只支持按扩展名过滤）
-	    if (SystemUtils.isWindows()) {
-	        fc.addChoosableFileFilter(
-	            new SystemFileChooser.FileNameExtensionFilter(
-	                "Executable Files (*.exe, *.bat, *.cmd)", "exe", "bat", "cmd"));
-	    } else if (SystemUtils.isMacOS()) {
-	        fc.addChoosableFileFilter(
-	            new SystemFileChooser.FileNameExtensionFilter(
-	                "Applications (*.app)", "app"));
-	        // "All Files" 保留，让用户也能选无扩展名的可执行文件
-	    }
-	    // Linux：不添加扩展名过滤器，仅靠 approveCallback 校验执行权限
-
-	    // 6. Approve 回调：做原代码中无法通过过滤器表达的后置校验
-	    fc.setApproveCallback((selectedFiles, context) -> {
-	        File selected = selectedFiles[0];
-
-	        // macOS：.app 包本质是目录，FILES_ONLY 模式下系统已将其作为文件处理，直接放行
-	        if (SystemUtils.isMacOS()) {
-	            // .app 包或具有执行权限的文件均视为有效
-	            if (selected.getName().toLowerCase().endsWith(".app")) {
-	                return SystemFileChooser.APPROVE_OPTION;
+	    
+	    // 方法2：读 Xft.dpi（X11）
+	    try {
+	        Process p = Runtime.getRuntime().exec("xrdb -query");
+	        String output = StreamUtils.inputStreamToString(p.getInputStream(), true).trim();
+	        for (String line : output.split("\n")) {
+	            if (line.startsWith("Xft.dpi")) {
+	                int dpi = Integer.parseInt(line.split(":")[1].trim());
+	                float scale = dpi / 96.0f;
+	                System.setProperty("sun.java2d.uiScale", String.valueOf(scale));
+	                return;
 	            }
 	        }
-
-	        // Linux/macOS：校验执行权限
-	        if (!SystemUtils.isWindows()) {
-	            if (!selected.canExecute()) {
-	                context.showMessageDialog(
-	                    JOptionPane.WARNING_MESSAGE,
-	                    "The selected file is not executable.",
-	                    null, 0);
-	                return SystemFileChooser.CANCEL_OPTION;
-	            }
+	    } catch (Exception ignored) {}
+	    
+	    // 方法3：读 gsettings（GNOME）
+	    try {
+	        Process p = Runtime.getRuntime().exec(
+	            "gsettings get org.gnome.desktop.interface scaling-factor"
+	        );
+	        String output = StreamUtils.inputStreamToString(p.getInputStream(), true).trim();
+	        // 输出类似 "uint32 2"
+	        String[] parts = output.split(" ");
+	        String value = parts[parts.length - 1];
+	        int scale = Integer.parseInt(value);
+	        if (scale > 1) {
+	            System.setProperty("sun.java2d.uiScale", String.valueOf(scale));
 	        }
-
-	        return SystemFileChooser.APPROVE_OPTION;
-	    });
-
-	    // 7. 显示对话框
-	    int returnVal = fc.showOpenDialog(parent);
-
-	    if (returnVal == SystemFileChooser.APPROVE_OPTION) {
-	        return fc.getSelectedFile();
-	    }
-
-	    return null; // 用户取消或点击 X 关闭
+	    } catch (Exception ignored) {}
 	}
 }

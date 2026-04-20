@@ -372,6 +372,22 @@ public class CmdUtils {
 		return exec(true, false, waitSecond, psctl, cmdarray);
 	}
 
+	public static String executeCommand(String... command) {
+		StringBuilder output = new StringBuilder();
+		try {
+			Process p = new ProcessBuilder(command).start();
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+				String line;
+				while ((line = reader.readLine()) != null) {
+					output.append(line);
+				}
+			}
+			p.waitFor();
+		} catch (Exception ignored) {
+		}
+		return output.toString();
+	}
+
 	private static void closeStream(Closeable stream) {
 		if (stream != null) {
 			try {

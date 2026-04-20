@@ -20,7 +20,7 @@ public abstract class InterruptableProcesser implements Interruptable {
 	}
 
 	public boolean isInterrupted() {
-		return interrupter.isInterrupted();//|| status == ProcesserStatus.Stoped;
+		return interrupter.isInterrupted();// || status == ProcesserStatus.Stoped;
 	}
 
 	public ProcesserStatus getProcesserStatus() {
@@ -34,21 +34,21 @@ public abstract class InterruptableProcesser implements Interruptable {
 	public boolean interrupt() throws InterruptedException {
 		interrupter.markInterrupted(true);
 
-		if (log != null && name == null) {
+		if (log != null && log.isDebugEnabled() && name == null) {
 			name = this.getClass().getSimpleName() + "@" + Thread.currentThread().getName();
 		}
 
 		boolean stoped = tryStop();
 		if (stoped) {
 			while (isRunning()) {
-				if (log != null) {
+				if (name != null) {
 					log.info("Waitting Processer [" + name + "] stop...");
 				}
 				Thread.sleep(300);
 			}
 		}
 
-		if (log != null) {
+		if (name != null) {
 			if (stoped) {
 				log.info("Processer [" + name + "] stopped.");
 			} else {

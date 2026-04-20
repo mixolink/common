@@ -4,15 +4,18 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class LimitFileInputStream extends InputStream {
 	private final long OFFSET; // 读取的偏移量
 	private final long MAX_LENGTH; // 最大读取长度
 	private long readLen;
 
-	private FileInputStream in;
-	private File file;
+	private InputStream in;
+	private File file = null;
+	private Path path = null;
 
 	public LimitFileInputStream(File file, long offset, long maxLength) throws IOException {
 		this.file = file;
@@ -20,6 +23,19 @@ public class LimitFileInputStream extends InputStream {
 		this.MAX_LENGTH = maxLength;
 
 		long len = file.length();
+		if ((len - offset) < maxLength) {
+			throw new IOException("Max length exceed.");
+		}
+
+		this.reset();
+	}
+
+	public LimitFileInputStream(Path path, long offset, long maxLength) throws IOException {
+		this.path = path;
+		this.OFFSET = offset;
+		this.MAX_LENGTH = maxLength;
+
+		long len = Files.size(path);
 		if ((len - offset) < maxLength) {
 			throw new IOException("Max length exceed.");
 		}
@@ -87,6 +103,8 @@ public class LimitFileInputStream extends InputStream {
 
 	public void close() throws IOException {
 		in.close();
+		file = null;
+		path = null;
 	}
 
 	public void reset() throws IOException {
@@ -94,15 +112,23 @@ public class LimitFileInputStream extends InputStream {
 			this.in.close();
 		}
 
-		this.in = new FileInputStream(file);
+		if (path != null) {
+			this.in = Files.newInputStream(path);
+		} else {
+			this.in = new FileInputStream(file);
+		}
 		if (OFFSET > 0) {
 			in.skip(OFFSET); // 跳过指定长度的字节，从offset开始读取
 		}
 		readLen = 0;
 	}
 
-	public FileChannel getChannel() {
-		return in.getChannel();
+	public SeekableByteChannel getChannel() throws IOException {
+		if (path != null) {
+			return Files.newByteChannel(path);
+		} else {
+			return ((FileInputStream) in).getChannel();
+		}
 	}
 
 	public boolean markSupported() {

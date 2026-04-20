@@ -19,11 +19,16 @@ public class JEUnavailablePanel extends JPanel {
 	private static final Color COLOR_TEXT = new Color(140, 140, 140);
 	private static final Color COLOR_DASH = new Color(210, 210, 210);
 	private static final Color COLOR_ICON_BG = new Color(248, 248, 248);
-	
-	private String text = "No Preview Available";
+
+	private String text;
 	private Font font = UIUtils.deriveFont(Font.PLAIN, 13);
 
-	public JEUnavailablePanel() {
+//	public JEUnavailablePanel() {
+//		this("Feature Not Available");
+//	}
+
+	public JEUnavailablePanel(String message) {
+		this.text = message;
 		// 设置透明背景，以便更好地融入 Mixolink 的不同主题背景
 		setOpaque(false);
 	}
@@ -59,25 +64,22 @@ public class JEUnavailablePanel extends JPanel {
 		g2d.setColor(COLOR_DASH);
 		g2d.setStroke(new BasicStroke(1.0f));
 		g2d.drawRoundRect(iconX, iconY, iconW, iconH, 5, 5);
-		
+
 		// 绘制文件折角效果 (Finder 经典特征)
 		int corner = 14;
 		g2d.setColor(new Color(230, 230, 230));
-		g2d.fillPolygon(
-			new int[]{iconX + iconW - corner, iconX + iconW, iconX + iconW - corner}, 
-			new int[]{iconY, iconY, iconY + corner}, 3
-		);
+		g2d.fillPolygon(new int[] { iconX + iconW - corner, iconX + iconW, iconX + iconW - corner }, new int[] { iconY, iconY, iconY + corner }, 3);
 
 		// 3. 绘制说明文字
 		if (StringUtils.isNotEmpty(text)) {
 			g2d.setColor(COLOR_TEXT);
 			g2d.setFont(font);
-			
+
 			FontMetrics metrics = g2d.getFontMetrics(font);
 			int textX = (width - metrics.stringWidth(text)) / 2;
 			// 文字放在图标下方 25 像素处
-			int textY = iconY + iconH + 30; 
-			
+			int textY = iconY + iconH + 30;
+
 			g2d.drawString(text, textX, textY);
 		}
 

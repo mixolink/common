@@ -7,6 +7,7 @@ import java.awt.FontMetrics;
 import java.awt.GraphicsEnvironment;
 import java.util.Locale;
 
+import javax.swing.JLabel;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 
@@ -34,9 +35,13 @@ public enum JComponents {
 		}
 	}
 
-	private final static Font SYSTEM_DEFAULT_FONT;
+	private static Font SYSTEM_DEFAULT_FONT;
 
 	static {
+		SYSTEM_DEFAULT_FONT = Label.getFont();
+	}
+
+	public static void resetDefaultSystemFont() {
 		SYSTEM_DEFAULT_FONT = Label.getFont();
 	}
 
@@ -47,7 +52,16 @@ public enum JComponents {
 	public static Font getDefaultTerminalFont(String localeCode) {
 		String[] fonts = UIUtils.getMonospacedFontsForLocale(localeCode);
 
-		return fonts != null && fonts.length > 0 ? new Font(fonts[0], Font.PLAIN, 14) : new Font("Courier New", Font.PLAIN, 14);
+		return fonts != null && fonts.length > 0 ? new Font(fonts[0], Font.PLAIN, getDefaultSystemFont().getSize())
+				: new Font("Courier New", Font.PLAIN, getDefaultSystemFont().getSize());
+	}
+
+	public static Font newPlainFont(String name) {
+		return new Font(name, Font.PLAIN, JComponents.getDefaultFont().getSize());
+	}
+
+	public static Font newBoldFont(String name) {
+		return new Font(name, Font.BOLD, JComponents.getDefaultFont().getSize());
 	}
 
 	public static boolean isFixedWidth(Font font) {
@@ -154,7 +168,7 @@ public enum JComponents {
 			for (String font : preferredFontFamily) {
 				for (String installed : installedFonts) {
 					if (installed.equalsIgnoreCase(font)) {
-						return new Font(font, Font.PLAIN, 12);
+						return new Font(font, Font.PLAIN, getDefaultSystemFont().getSize());
 					}
 				}
 			}

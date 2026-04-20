@@ -116,6 +116,17 @@ public class RecordModel<ITEM> {
 		}
 	}
 
+	public void removeRecordFromIndex(int index) {
+		int old = getRecordCount();
+		while (this.list.remove(index) != null) {
+
+		}
+
+		if (autoFireRecordsDeleted) {
+			fireRecordsDeleted(index, old - 1);
+		}
+	}
+
 	public void removeRecords() {
 		int old = getRecordCount();
 		if (old == 0) {
