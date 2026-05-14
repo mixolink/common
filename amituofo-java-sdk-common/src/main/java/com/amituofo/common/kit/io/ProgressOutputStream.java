@@ -20,16 +20,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import com.amituofo.common.api.StepProgressListener;
-import com.amituofo.common.kit.event.ProgressPusher;
-import com.amituofo.common.kit.event.StepProgressPusher;
+import com.amituofo.common.kit.event.SyncStepProgressPusher;
 import com.amituofo.common.type.ReadProgressEvent;
 
 public class ProgressOutputStream extends FilterOutputStream {
-	private final StepProgressPusher pusher;
+	private final SyncStepProgressPusher pusher;
 
 	public ProgressOutputStream(OutputStream out, StepProgressListener progressListener) {
 		super(out);
-		this.pusher = new StepProgressPusher(progressListener);
+		this.pusher = new SyncStepProgressPusher(progressListener);
 	}
 
 	@Override

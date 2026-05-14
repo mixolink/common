@@ -39,8 +39,12 @@ public class TimelinessValue<T> {
 	}
 
 	public boolean isExpired() {
-		if (lifetime <= 0) {
+		if (lifetime < 0) {
 			return false;
+		}
+		
+		if (lifetime == 0) {
+			return true;
 		}
 
 		return (System.currentTimeMillis() - lastSetTime) > lifetime;

@@ -144,7 +144,7 @@ public class RecordModel<ITEM> {
 	public void setRecord(int rec, Record<ITEM> recdata) {
 		list.set(rec, recdata);
 		if (autoFireRecordsUpdated) {
-			fireRecordsUpdated(rec, 0);
+			fireRecordsUpdated(rec, rec);
 		}
 	}
 
@@ -154,7 +154,7 @@ public class RecordModel<ITEM> {
 			recdata.set(column, aValue);
 
 			if (autoFireRecordsUpdated) {
-				fireRecordsUpdated(rec, column);
+				fireRecordsUpdated(rec, rec);
 			}
 		}
 	}
@@ -293,20 +293,29 @@ public class RecordModel<ITEM> {
 	}
 
 	public void fireRecordsInserted(int from, int to) {
+		if (from < 0) {
+			return;
+		}
 		for (RecordModelChangedListener listener : recordInsertedListener) {
 			listener.recordsChanged(from, to);
 		}
 	}
 
 	public void fireRecordsDeleted(int from, int to) {
+		if (from < 0) {
+			return;
+		}
 		for (RecordModelChangedListener listener : recordDeletedListener) {
 			listener.recordsChanged(from, to);
 		}
 	}
 
-	public void fireRecordsUpdated(int rec, int column) {
+	public void fireRecordsUpdated(int row, int column) {
+		if (row < 0) {
+			return;
+		}
 		for (RecordModelChangedListener listener : recordUpdatedListener) {
-			listener.recordsChanged(rec, column);
+			listener.recordsChanged(row, column);
 		}
 	}
 

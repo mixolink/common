@@ -73,5 +73,6 @@ public class ProgressUtils {
 
 	public static void finishProgressBar(JProgressBar progressBar) {
 		progressBar.setValue(100); // 显式设置初始值
+//		ThreadUtils.laterRun(() -> {progressBar.setValue(0);}, 1000);
 	}
 }

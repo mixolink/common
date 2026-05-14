@@ -21,15 +21,16 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import com.amituofo.common.api.StepProgressListener;
-import com.amituofo.common.kit.event.StepProgressPusher;
+import com.amituofo.common.kit.event.SyncStepProgressPusher;
 import com.amituofo.common.type.ReadProgressEvent;
 
 public class DigestProgressInputStream extends BaseInputStream {
 	private boolean closed = false;
-	private final StepProgressPusher pusher;
+	private SyncStepProgressPusher pusher;
 	private final MessageDigest md;
 
-	// private final AsynchronousProcess<byte[]> processer = new AsynchronousProcess<byte[]>(new ProcessEvent<byte[]>() {
+	// private final AsynchronousProcess<byte[]> processer = new AsynchronousProcess<byte[]>(new
+	// ProcessEvent<byte[]>() {
 	// @Override
 	// public void valueChanged(int event, byte[] data) {
 	// System.out.println("md="+c++);
@@ -41,14 +42,14 @@ public class DigestProgressInputStream extends BaseInputStream {
 		super(in);
 		this.md = MessageDigest.getInstance(calcHashAlgorithmName);
 		// Assert pl!=null
-		this.pusher = new StepProgressPusher(progressListener);
+		this.pusher = new SyncStepProgressPusher(progressListener);
 	}
 
 	public DigestProgressInputStream(InputStream in, MessageDigest md, StepProgressListener progressListener) {
 		super(in);
 		this.md = md;
 		// Assert pl!=null
-		this.pusher = new StepProgressPusher(progressListener);
+		this.pusher = new SyncStepProgressPusher(progressListener);
 	}
 
 	public int hashCode() {
@@ -134,7 +135,7 @@ public class DigestProgressInputStream extends BaseInputStream {
 			} finally {
 				pusher.push(ReadProgressEvent.BYTE_READ_END_EVENT, 0);
 				pusher.stop();
-				// processer.stopWhenFinished();
+				pusher = null;
 			}
 		}
 	}

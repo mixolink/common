@@ -21,15 +21,14 @@ import java.io.InputStream;
 import com.amituofo.common.api.Interruptable;
 import com.amituofo.common.api.StepProgressListener;
 import com.amituofo.common.define.Constants;
-import com.amituofo.common.kit.event.ProgressPusher;
-import com.amituofo.common.kit.event.StepProgressPusher;
+import com.amituofo.common.kit.event.SyncStepProgressPusher;
 import com.amituofo.common.type.ReadProgressEvent;
 
 public class ProgressInputStream extends InterruptableInputStream {
 	private static int DEFAULT_STEP_COUNT = 100;
 	private static long MAX = 2147483647L * DEFAULT_STEP_COUNT - Constants.SIZE_10MB;
 
-	private final StepProgressPusher pusher;
+	private SyncStepProgressPusher pusher;
 	private final int STEPLEN;
 	private int pushlen;
 
@@ -39,7 +38,8 @@ public class ProgressInputStream extends InterruptableInputStream {
 
 	public ProgressInputStream(InputStream in, long length, StepProgressListener progressListener, Interruptable interrupter) {
 		super(in, interrupter);
-		this.pusher = new StepProgressPusher(progressListener);
+		this.pusher = new SyncStepProgressPusher(progressListener);
+		
 
 		if (length > 0) {
 			int stepcount = DEFAULT_STEP_COUNT;
@@ -109,6 +109,8 @@ public class ProgressInputStream extends InterruptableInputStream {
 					pusher.push(ReadProgressEvent.BYTE_READ_END_EVENT, 0);
 				}
 				pusher.stop();
+				pusher = null;
+				super.in = null;
 			}
 		}
 	}

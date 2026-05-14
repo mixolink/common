@@ -135,7 +135,7 @@ public class FormatUtils {
 		if (size < 0) {
 			return Constants.NO_DATA_MARK;
 		} else if (size == 0) {
-			return "0Byte";
+			return "0 byte";
 		}
 
 		size = Math.abs(size);
@@ -146,7 +146,7 @@ public class FormatUtils {
 		float unitsize = unit.toUnitSize(size);
 		bytes.append(FLOAT_FORMAT_WITH_COMMA_2.format(unitsize)).append(unit.name());
 		if (withOrginalSize && unit != SizeUnit.Bytes) {
-			bytes.append(" ( " + INT_FORMAT_WITH_COMMA.format(size)).append("bytes ) ");
+			bytes.append(" ( " + INT_FORMAT_WITH_COMMA.format(size)).append(" bytes ) ");
 		}
 
 		return bytes.toString();

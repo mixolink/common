@@ -20,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -980,5 +981,9 @@ public class URLUtils {
 		}
 
 		return encodedPathBuilder.toString();
+	}
+
+	public static String catFilePath(Path dir, Path file) {
+		return catFilePath(dir.toString(), file.getFileName().toString());
 	}
 }

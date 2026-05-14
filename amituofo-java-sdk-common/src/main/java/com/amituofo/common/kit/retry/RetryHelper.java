@@ -1,7 +1,6 @@
 package com.amituofo.common.kit.retry;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,16 +12,13 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 import com.amituofo.common.api.Callback;
 import com.amituofo.common.api.InterruptableRunnable;
-import com.amituofo.common.define.Constants;
-import com.amituofo.common.define.DatetimeFormat;
 import com.amituofo.common.ex.IDConflictException;
 import com.amituofo.common.ex.InitializeException;
 import com.amituofo.common.type.HandleFeedback;
-import com.amituofo.common.util.NumberUtils;
 import com.amituofo.common.util.RandomUtils;
 import com.amituofo.common.util.SystemUtils;
 import com.amituofo.common.util.ThreadUtils;

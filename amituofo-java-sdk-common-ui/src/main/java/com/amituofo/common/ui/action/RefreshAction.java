@@ -1,7 +1,9 @@
 package com.amituofo.common.ui.action;
 
-public interface RefreshAction {
-	void refresh();
+import com.amituofo.common.api.Refreshable;
+
+public interface RefreshAction extends Refreshable {
+//	void refresh();
 
 //	void clearCache();
 	default void clearCache() {

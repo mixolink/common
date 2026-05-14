@@ -3,7 +3,7 @@ package com.amituofo.common.kit.retry;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 import com.amituofo.common.kit.interrupt.InterruptableProcesser;
 import com.amituofo.common.kit.thread.ThreadExecutor;
@@ -106,7 +106,7 @@ public class SimpleRetryService<T> extends InterruptableProcesser implements Ret
 						return hf;
 					} catch (Exception e) {
 						if (log != null) {
-							log.fatal("Unknown error occured when retrying to [" + desc + "] on " + context.data, e);
+							log.error("Unknown error occured when retrying to [" + desc + "] on " + context.data, e);
 						}
 
 						return HandleFeedback.failed;

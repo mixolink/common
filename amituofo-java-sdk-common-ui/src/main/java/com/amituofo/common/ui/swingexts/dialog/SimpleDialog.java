@@ -45,7 +45,7 @@ public class SimpleDialog {
 		dialog = new JDialog(option.getOwner());
 
 		if (dialogContentPanel.getIcon() != null) {
-			dialog.setIconImage(((ImageIcon) dialogContentPanel.getIcon()).getImage());
+			dialog.setIconImage((dialogContentPanel.getIcon()).getImage());
 		} else if (option.getTitleIcon() != null) {
 			dialog.setIconImage(option.getTitleIcon());
 		}

@@ -58,5 +58,11 @@
 			<url>https://maven.pkg.github.com/mixolink/common</url>
 		</repository>
 	</distributionManagement>
-
+<!--		<distributionManagement>-->
+<!--			<repository>-->
+<!--				<name>maven</name>-->
+<!--				<id>octea.maven-octea</id>-->
+<!--				<url>https://maven.cnb.cool/octea.maven/octea/-/packages/</url>-->
+<!--			</repository>-->
+<!--		</distributionManagement>-->
 </project>

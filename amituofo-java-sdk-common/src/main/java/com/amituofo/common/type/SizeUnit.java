@@ -1,16 +1,7 @@
 package com.amituofo.common.type;
 
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.text.ParseException;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.status.StatusLogger;
-
-import com.amituofo.common.define.Constants;
 import com.amituofo.common.util.StringUtils;
 
 public enum SizeUnit {

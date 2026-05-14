@@ -16,9 +16,6 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.UIManager;
 
-//import org.apache.batik.util.gui.xmleditor.LineNumberBorder;
-import org.apache.batik.util.gui.xmleditor.XMLTextEditor;
-
 import com.amituofo.common.resource.IconResource;
 import com.amituofo.common.ui.listener.DataSavingListener;
 import com.amituofo.common.ui.util.UIUtils;
@@ -27,7 +24,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
-public class JEXMLEditPanel extends JEPanel {
+public class JESimpleEditPanel extends JEPanel {
 	protected JTextField nameTextField;
 	protected JEditorPane contentEditor;
 	protected JComboBox<String> encodeCombox;
@@ -35,7 +32,7 @@ public class JEXMLEditPanel extends JEPanel {
 	private DataSavingListener<String, byte[]> dataSavingListener;
 	private JButton btnSave;
 
-	public JEXMLEditPanel(boolean showNameField, boolean showXMLEditorSaveButton) {
+	public JESimpleEditPanel(boolean showNameField, boolean showXMLEditorSaveButton) {
 		setLayout(new BorderLayout(0, 0));
 
 		JPanel panel = new JPanel();
@@ -43,7 +40,7 @@ public class JEXMLEditPanel extends JEPanel {
 		panel.setBounds(0, 0, 445, 106);
 		panel.setLayout(new FormLayout(new ColumnSpec[] { FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("450px:grow"), FormSpecs.RELATED_GAP_COLSPEC, },
 				new RowSpec[] { FormSpecs.DEFAULT_ROWSPEC, FormSpecs.RELATED_GAP_ROWSPEC, RowSpec.decode("fill:default:grow"), FormSpecs.RELATED_GAP_ROWSPEC, }));
-		contentEditor = new XMLTextEditor();
+		contentEditor = new JEditorPane();
 //		org.apache.batik.util.gui.xmleditor.XMLTextEditor.
 //		Font font = new Font(contentEditor.getFont().getFontName(),contentEditor.getFont().getStyle(),18);
 //		contentEditor.setFont(font);

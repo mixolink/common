@@ -69,6 +69,23 @@ public class StreamUtils {
 		return os.toByteArray();
 	}
 
+	public static byte[] inputStreamToBytes(InputStream ins, int size, boolean autoCloseInputStream) throws IOException {
+		if (size > 0) {
+			byte[] databuf = new byte[size];
+			ByteArrayOutputStream os = new ByteArrayOutputStream() {
+				{
+					super.buf = databuf;
+				}
+			};
+			inputStream2OutputStream(ins, autoCloseInputStream, os, true);
+			return databuf;
+		} else {
+			ByteArrayOutputStream os = new ByteArrayOutputStream();
+			inputStream2OutputStream(ins, autoCloseInputStream, os, true);
+			return os.toByteArray();
+		}
+	}
+
 	public static void skip(InputStream ins, int length) throws IOException {
 		inputStream2ByteArray(ins, length, true);
 	}
@@ -233,6 +250,11 @@ public class StreamUtils {
 		return new ByteArrayInputStream(buf);
 	}
 
+	public static ByteArrayInputStream inputStream2ByteArrayInputStream(InputStream ins, int size, boolean autoCloseInputStream) throws IOException {
+		byte[] buf = inputStreamToBytes(ins, size, autoCloseInputStream);
+		return new ByteArrayInputStream(buf);
+	}
+
 	public static String inputStreamToString(InputStream ins, String charsetName, boolean autoCloseInputStream) throws IOException {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		inputStream2OutputStream(ins, autoCloseInputStream, os, true);
@@ -268,13 +290,12 @@ public class StreamUtils {
 		return inputStream2OutputStream(ins, autoCloseInputStream, os, autoCloseOutputStream, null);
 	}
 
-	public static long inputStream2OutputStream(int buffersize, InputStream ins, boolean autoCloseInputStream, OutputStream os, boolean autoCloseOutputStream)
-			throws IOException {
+	public static long inputStream2OutputStream(int buffersize, InputStream ins, boolean autoCloseInputStream, OutputStream os, boolean autoCloseOutputStream) throws IOException {
 		return inputStream2OutputStream(buffersize, ins, autoCloseInputStream, os, autoCloseOutputStream, null);
 	}
 
-	public static long inputStream2OutputStream(int buffersize, InputStream ins, boolean autoCloseInputStream, OutputStream os, boolean autoCloseOutputStream,
-			int readLength, Interrupter interrupter) throws IOException {
+	public static long inputStream2OutputStream(int buffersize, InputStream ins, boolean autoCloseInputStream, OutputStream os, boolean autoCloseOutputStream, int readLength,
+			Interrupter interrupter) throws IOException {
 		long outLength = 0;
 
 		int bytesRead = 0;
@@ -473,6 +494,7 @@ public class StreamUtils {
 			}
 		}
 	}
+
 	public static void close(Closeable in) {
 		if (in != null) {
 			try {

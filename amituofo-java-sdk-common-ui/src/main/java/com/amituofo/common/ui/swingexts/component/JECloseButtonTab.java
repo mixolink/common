@@ -16,7 +16,7 @@ import javax.swing.JTabbedPane;
 
 import com.amituofo.common.api.Closeable;
 import com.amituofo.common.api.Destroyable;
-import com.amituofo.common.ui.resource.Icons;
+import com.amituofo.common.resource.IconResource;
 
 public class JECloseButtonTab extends JPanel {
 	protected Component tab;
@@ -38,7 +38,7 @@ public class JECloseButtonTab extends JPanel {
 		label = new JLabel(aTitle);
 		label.setIcon(aIcon);
 		add(label, gbc);
-		closingLabel = new JLabel(Icons.CLOSING_ICON);
+		closingLabel = new JLabel(IconResource.CLOSING_ICON);
 		closingLabel.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				JTabbedPane tabbedPane = (JTabbedPane) getParent().getParent();
@@ -60,15 +60,15 @@ public class JECloseButtonTab extends JPanel {
 
 			@Override
 			public void mouseEntered(MouseEvent e) {
-				if (Icons.CLOSING_ICON_SELECTED != null) {
-					closingLabel.setIcon(Icons.CLOSING_ICON_SELECTED);
+				if (IconResource.CLOSING_ICON_SELECTED != null) {
+					closingLabel.setIcon(IconResource.CLOSING_ICON_SELECTED);
 				}
 			}
 
 			@Override
 			public void mouseExited(MouseEvent e) {
-				if (Icons.CLOSING_ICON_SELECTED != null) {
-					closingLabel.setIcon(Icons.CLOSING_ICON);
+				if (IconResource.CLOSING_ICON_SELECTED != null) {
+					closingLabel.setIcon(IconResource.CLOSING_ICON);
 				}
 			}
 		});

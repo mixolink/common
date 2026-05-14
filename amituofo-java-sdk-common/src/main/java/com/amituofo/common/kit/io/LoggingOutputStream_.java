@@ -3,8 +3,8 @@ package com.amituofo.common.kit.io;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.event.Level;
 
 public class LoggingOutputStream_ extends OutputStream {
 
@@ -98,14 +98,30 @@ public class LoggingOutputStream_ extends OutputStream {
 		}
 		final byte[] bytes = new byte[count];
 		System.arraycopy(buf, 0, bytes, 0, count);
-		String str = new String(bytes);
-		log.log(level, str);
+		String message = new String(bytes);
+		switch (level) {
+		case ERROR:
+			log.error(message);
+			break;
+		case WARN:
+			log.warn(message);
+			break;
+		case INFO:
+			log.info(message);
+			break;
+		case DEBUG:
+			log.debug(message);
+			break;
+		case TRACE:
+			log.trace(message);
+			break;
+		}
+
 		count = 0;
 	}
 
 	/**
-	 * Closes this output stream and releases any system resources associated with this
-	 * stream.
+	 * Closes this output stream and releases any system resources associated with this stream.
 	 */
 	public void close() {
 		flush();

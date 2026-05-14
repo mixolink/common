@@ -1,6 +1,6 @@
 package com.amituofo.common.kit.interrupt;
 
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 import com.amituofo.common.api.Interruptable;
 

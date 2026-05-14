@@ -74,7 +74,7 @@ public class SystemUtils {
 	public static boolean isUnix() {
 		return !isWindows;
 	}
-
+	
 	/**
 	 * 检测系统是否处于深色模式
 	 */
@@ -1270,6 +1270,40 @@ public class SystemUtils {
 
 	public static File getUserHome() {
 		return new File(System.getProperty("user.home"));
+	}
+	
+	public static String getOSExecutableFiles() {
+	    if (isWindows) {
+	        // Windows: 依靠扩展名识别
+	        // .exe (程序), .bat/.cmd (脚本), .msi (安装包), .ps1 (PowerShell)
+	        return "*.exe; *.bat; *.cmd; *.msi; *.ps1; *.com; *.scr";
+	    } else if (isMacOS) {
+	        // macOS: 二进制文件通常无扩展名，.app 是文件夹束
+	        // empty 代表匹配无扩展名的文件，.command 和 .sh 是常见脚本
+	        return "*.app; *.command; *.sh; *.zsh; *.pkg";
+	    } else if (isPosixSystem) {
+	        // Linux: 同样主要看执行权限 (x bit)，通常无扩展名
+	        // .sh (脚本), .run/.bin (安装包), .AppImage (通用格式)
+	        return "*.sh; *.run; *.bin; *.AppImage";
+	    } else {
+	        return "";
+	    }
+	}
+	
+	public static String getOSFolderHiddenMetaFiles() {
+	    if (isMacOS) {
+	        // macOS: 主要是 .DS_Store
+	        return ".DS_Store";
+	    } else if (isWindows) {
+	        // Windows: 缩略图缓存和文件夹自定义配置
+	        return "Thumbs.db; desktop.ini";
+	    } else if (isPosixSystem) {
+	        // Linux/Unix: KDE 的视图配置和 GNOME 的隐藏规则文件
+	        return ".directory; .hidden";
+	    } else {
+	        // 其他系统或未知系统返回空
+	        return "";
+	    }
 	}
 
 	public static void main(String[] arg) throws IOException, InterruptedException { // 测试用例，基于你提供的版本号顺序

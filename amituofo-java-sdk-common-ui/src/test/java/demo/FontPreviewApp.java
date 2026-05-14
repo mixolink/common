@@ -1,4 +1,4 @@
-package com.amituofo.common.ui.util;
+package demo;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;

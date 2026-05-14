@@ -15,18 +15,18 @@
  */
 package com.amituofo.common.kit.event;
 
-import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 
 import com.amituofo.common.api.StepProgressListener;
 import com.amituofo.common.type.ReadProgressEvent;
 
-public class StepProgressPusher {
-	private final Queue<ProgressData> queue = new LinkedList<ProgressData>();
-	private boolean loop = true;
+public class AsyncStepProgressPusher {
+	private Queue<ProgressData> queue = new ArrayBlockingQueue<ProgressData>(100);
+	private volatile boolean loop = true;
 	private CountDownLatch latch = new CountDownLatch(1);
-	private final StepProgressListener progressListener;
+	private StepProgressListener progressListener;
 
 	private ProgressData lastProgressStep = new ProgressData();
 
@@ -66,34 +66,33 @@ public class StepProgressPusher {
 		}
 	}
 
-	public StepProgressPusher(final StepProgressListener progressListener) {
+	public AsyncStepProgressPusher(final StepProgressListener progressListener) {
 		this.progressListener = progressListener;
 
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					do {
-						if (queue.isEmpty()) {
-							Thread.sleep(80);
-							continue;
-						}
+		Thread worker = new Thread(this::consumeLoop, "ProgressPusher-Worker");
+		worker.setDaemon(true);
+		worker.start();
+	}
 
-						push();
-					} while (loop);
-				} catch (Throwable e) {
-				} finally {
-					// 处理剩余的
+	private void consumeLoop() {
+		try {
+			do {
+				if (queue.isEmpty()) {
+					Thread.sleep(80);
+				} else {
 					push();
-
-					latch.countDown();
 				}
-			}
-		}).start();
+			} while (loop);
+		} catch (Throwable e) {
+		} finally {
+			// 处理剩余的
+			push();
+
+			latch.countDown();
+		}
 	}
 
 	public void push(ReadProgressEvent event, int step) {
-//		synchronized (lastProgressStep) {
 		lastProgressStep.addStep(step);
 
 		if (event == ReadProgressEvent.BYTE_READ_END_EVENT) {
@@ -110,7 +109,6 @@ public class StepProgressPusher {
 				}
 			}
 		}
-//		}
 	}
 
 	public void stop() {
@@ -119,6 +117,10 @@ public class StepProgressPusher {
 		try {
 			latch.await();
 		} catch (Throwable e) {
+		} finally {
+			progressListener = null;
+			queue = null;
+			lastProgressStep = null;
 		}
 	}
 
@@ -134,12 +136,9 @@ public class StepProgressPusher {
 //					break;
 //				}
 
-				synchronized (queue) {
-					dt = queue.poll();
-				}
+				dt = queue.poll();
 			}
 		} catch (Throwable e) {
 		}
 	}
-
 }

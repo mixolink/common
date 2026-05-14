@@ -2,12 +2,12 @@ package com.amituofo.common.ui.swingexts.dialog;
 
 import javax.swing.JComponent;
 
-import com.amituofo.common.ui.action.IconAction;
+import com.amituofo.common.ui.action.ImageIconAction;
 import com.amituofo.common.ui.action.OKCancelAction;
 import com.amituofo.common.ui.action.TitleAction;
 import com.amituofo.common.ui.swingexts.component.JEPanel;
 
-public abstract class SimpleDialogContentPanel extends JEPanel implements OKCancelAction, TitleAction, IconAction {
+public abstract class SimpleDialogContentPanel extends JEPanel implements OKCancelAction, TitleAction, ImageIconAction {
 
 	private SimpleDialog simpleDialog;
 

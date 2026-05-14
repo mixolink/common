@@ -1,6 +1,6 @@
 package com.amituofo.common.kit.retry;
 
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 public interface RetryService<T> {
 

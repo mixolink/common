@@ -25,6 +25,10 @@ public class InputPassword {
 	public String getPasswordString() {
 		return new String(password);
 	}
+	
+	public void clearPassword() {
+		password = null;
+	}
 
 	public boolean isEmpty() {
 		return password == null || password.length == 0;

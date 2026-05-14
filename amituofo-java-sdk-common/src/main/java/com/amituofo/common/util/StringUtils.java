@@ -58,7 +58,7 @@ public class StringUtils {
 		return str;
 	}
 
-	public static String printStackTrace(Exception e) {
+	public static String printStackTrace(Throwable e) {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		e.printStackTrace(pw);
@@ -989,6 +989,30 @@ public class StringUtils {
 		} else {
 			return srcstr.toLowerCase().contains(findstr.toLowerCase());
 		}
+	}
+	
+	public static boolean containsAnyChars(String srcstr, char[] findchars, boolean caseSensitive) {
+	    if (srcstr == null || srcstr.isEmpty() || findchars == null || findchars.length == 0) {
+	        return false;
+	    }
+
+	    for (int i = 0; i < srcstr.length(); i++) {
+	        char srcChar = srcstr.charAt(i);
+
+	        for (char findChar : findchars) {
+	            if (caseSensitive) {
+	                if (srcChar == findChar) {
+	                    return true;
+	                }
+	            } else {
+	                if (Character.toLowerCase(srcChar) == Character.toLowerCase(findChar)) {
+	                    return true;
+	                }
+	            }
+	        }
+	    }
+
+	    return false;
 	}
 
 	public static boolean contains(String[] srcstrs, String findstr) {

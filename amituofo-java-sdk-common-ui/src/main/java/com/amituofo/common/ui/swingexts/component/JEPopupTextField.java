@@ -93,15 +93,7 @@ public class JEPopupTextField extends JTextField implements MouseListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JEPopupTextField.this.setText("");
-				paste();
-				try {
-					Thread.sleep(50);
-				} catch (InterruptedException e1) {
-				}
-				UIUtils.invokeLater(() -> {
-					fireEnter();
-				});
+				clearPasteGo();
 			}
 		});
 		selectAllMenu.addActionListener(new ActionListener() {
@@ -142,7 +134,19 @@ public class JEPopupTextField extends JTextField implements MouseListener {
 		});
 	}
 
-	private void fireEnter() {
+	public void clearPasteGo() {
+		JEPopupTextField.this.setText("");
+		paste();
+		try {
+			Thread.sleep(50);
+		} catch (InterruptedException e1) {
+		}
+		UIUtils.invokeLater(() -> {
+			fireEnter();
+		});
+	}
+
+	public void fireEnter() {
 		String text = this.getText();
 		for (Callback<String> callback : entryListener) {
 			callback.callback(text);

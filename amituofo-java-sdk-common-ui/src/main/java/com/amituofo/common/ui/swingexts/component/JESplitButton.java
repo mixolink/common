@@ -16,7 +16,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
 
-import com.amituofo.common.ui.resource.Icons;
+import com.amituofo.common.resource.IconResource;
 
 public class JESplitButton extends JToolBar {
 	private final AbstractButton mainButton;
@@ -42,7 +42,7 @@ public class JESplitButton extends JToolBar {
 		setLayout(new BorderLayout(0, 0));
 
 		mainButton = mainbtn;
-		arrowButton = new JButton(Icons.ARROW_ICON); // 默认外观
+		arrowButton = new JButton(IconResource.ARROW_ICON); // 默认外观
 
 		mainButton.setFocusable(false);
 		arrowButton.setFocusable(false);

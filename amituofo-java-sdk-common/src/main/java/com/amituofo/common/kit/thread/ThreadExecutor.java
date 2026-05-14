@@ -15,37 +15,22 @@
  */
 package com.amituofo.common.kit.thread;
 
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import com.amituofo.common.kit.counter.Counter;
-
 public class ThreadExecutor extends ThreadPoolExecutor {
-//	private boolean seal = false;
 	private ExecuteHandler handler;
-//	private Counter count = new Counter();
-//	private CountDownLatch latch = new CountDownLatch(1);
 
 	public ThreadExecutor(int poolSize) {
 		this(poolSize, poolSize);
 	}
 
 	public ThreadExecutor(int corePoolSize, int maxPoolSize) {
-		super(corePoolSize, maxPoolSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+		super(corePoolSize, maxPoolSize, 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(maxPoolSize * 10), new ThreadPoolExecutor.CallerRunsPolicy());
 	}
 
 	public void seal() {
-//		seal = true;
-
-//		synchronized (count) {
-//			// 如果count是0代表没有正在运行的线程，直接结束；
-//			if (count.n == 0) {
-//				// System.out.println(id+" Found all finished");
-//				latch.countDown();
-//			}
-//		}
-
 		this.shutdown();
 	}
 
@@ -55,55 +40,13 @@ public class ThreadExecutor extends ThreadPoolExecutor {
 
 	public boolean isSealed() {
 		return this.isShutdown();
-//		return seal;
 	}
 
 	public void setExecuteHandler(ExecuteHandler handler) {
 		this.handler = handler;
 	}
 
-//	@Override
-//	public void execute(Runnable command) {
-//		if (isSealed()) {
-//			return;
-//		}
-//
-//		synchronized (count) {
-//			count.n++;
-//		}
-//
-//		super.execute(command);
-//	}
-
-	// @Override
-	// protected void beforeExecute(Thread t, Runnable r) {
-	// }
-
-//	@Override
-//	protected void afterExecute(Runnable r, Throwable t) {
-//		synchronized (count) {
-//			count.n--;
-//			// System.out.println("isSealed=" + this.isSealed() + " getActiveCount=" + getActiveCount() + " getQueue().size()=" + getQueue().size() + "
-//			// count=" + count);
-//			// System.out.println(Thread.currentThread().getId()+" isSealed=" + isSealed() + " count=" + count.i);
-//
-//			// 每个线程运行完count-1，如果为0不代表为最后一个，有可能还在添加exec
-//			// 如果封口了并且count=0代表此为最后一个，即结束线程池。
-//			// 也有可能所有线程都已运行完毕带还没有封口，此时将不会结束线程池。此种情况参见seal()
-////			if (isSealed() && count.n == 0) {
-////				latch.countDown();
-////			}
-//		}
-//	}
-
 	public void waitForComplete() {
-//		try {
-//			latch.await();
-//		} catch (InterruptedException e) {
-//		}
-		// System.out.println(id+" waitForComplete...Completed.");
-
-//		this.shutdownNow();
 		try {
 			super.awaitTermination(7, TimeUnit.DAYS);
 		} catch (InterruptedException e) {
@@ -114,16 +57,4 @@ public class ThreadExecutor extends ThreadPoolExecutor {
 			handler.finalExecute();
 		}
 	}
-
-//	@Override
-//	public void shutdown() {
-////		latch.countDown();
-//		super.shutdown();
-//	}
-
-//	@Override
-//	public List<Runnable> shutdownNow() {
-//		latch.countDown();
-//		return super.shutdownNow();
-//	}
 }
