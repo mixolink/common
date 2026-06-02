@@ -7,7 +7,7 @@ import javax.swing.JComponent;
 import com.amituofo.common.ui.action.ActiveAction;
 import com.amituofo.common.ui.action.RefreshAction;
 
-public class JEDefaultTabPanel<T extends JComponent> extends JETabPanel {
+public class JEDefaultTabPanel<T> extends JETabPanel {
 
 	private String title;
 	private T component;
@@ -30,7 +30,7 @@ public class JEDefaultTabPanel<T extends JComponent> extends JETabPanel {
 
 		setLayout(new BorderLayout(0, 0));
 
-		add(component, BorderLayout.CENTER);
+		add((JComponent) component, BorderLayout.CENTER);
 	}
 
 	public T getTabComponent() {

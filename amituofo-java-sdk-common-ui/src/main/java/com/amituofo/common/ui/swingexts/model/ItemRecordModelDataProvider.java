@@ -9,4 +9,10 @@ public interface ItemRecordModelDataProvider<ITEM> {
 	void list(ObjectHandler<Integer, ITEM> event, Object... args);
 
 	void destroy();
+
+//	int fireUpdatedOf(String name);
+//
+//	void fireInsertedOf(ITEM item);
+//
+//	int fireDeletedOf(String name);
 }

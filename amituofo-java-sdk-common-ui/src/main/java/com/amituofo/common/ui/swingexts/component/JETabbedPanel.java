@@ -36,6 +36,11 @@ public class JETabbedPanel extends JTabbedPane implements LazyInitializeAction {
 		return this.getTabCount() - 1;
 	}
 
+	public int insertTab(JETabPanel component, String title, Icon icon, int index) {
+		super.insertTab(title, icon, component, "", index);
+		return this.getTabCount() - 1;
+	}
+
 	@Override
 	public void enableTabSelectionListener() {
 		if (tabSelectionListenerEnabled) {
@@ -43,7 +48,7 @@ public class JETabbedPanel extends JTabbedPane implements LazyInitializeAction {
 		}
 
 		tabSelectionListenerEnabled = true;
-		
+
 		addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				final Component c = ((JTabbedPane) e.getSource()).getSelectedComponent();
