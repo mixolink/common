@@ -7,6 +7,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,6 +40,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Stack;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import com.alibaba.fastjson.JSON;
 import com.amituofo.common.define.Constants;
@@ -74,7 +76,7 @@ public class SystemUtils {
 	public static boolean isUnix() {
 		return !isWindows;
 	}
-	
+
 	/**
 	 * 检测系统是否处于深色模式
 	 */
@@ -331,6 +333,51 @@ public class SystemUtils {
 		}
 
 		return null;
+	}
+
+	public static void copyToSystemClipboard(List<File> files) {
+//		DataFlavor uriListFlavor;
+//		try {
+//			uriListFlavor = new DataFlavor("text/uri-list;class=java.lang.String");
+//		} catch (ClassNotFoundException e) {
+//			e.printStackTrace();
+//			return;
+//		}
+
+		if (isMacOS()) {
+			return;
+		}
+
+		Transferable contents = new Transferable() {
+			final DataFlavor[] dataFlavors = new DataFlavor[] { DataFlavor.javaFileListFlavor};
+
+			@Override
+			public DataFlavor[] getTransferDataFlavors() {
+				return dataFlavors;
+			}
+
+			@Override
+			public boolean isDataFlavorSupported(DataFlavor flavor) {
+				return DataFlavor.javaFileListFlavor.equals(flavor);// || uriListFlavor.equals(flavor);
+			}
+
+			@Override
+			public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+				if (DataFlavor.javaFileListFlavor.equals(flavor)) {
+					return files;
+				}
+//				if (uriListFlavor.equals(flavor) && isMacOS()) {
+////					return toPlistNSArray(files);
+//					 String plist = toPlistNSArray(files);
+//				        System.out.println("returning plist:\n" + plist); // 确认返回值
+//				        return plist;
+//				}
+				throw new UnsupportedFlavorException(flavor);
+			}
+		};
+
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		clipboard.setContents(contents, null);
 	}
 
 	public static boolean isPortInUsed(int port) {
@@ -1271,42 +1318,67 @@ public class SystemUtils {
 	public static File getUserHome() {
 		return new File(System.getProperty("user.home"));
 	}
-	
+
 	public static String getOSExecutableFiles() {
-	    if (isWindows) {
-	        // Windows: 依靠扩展名识别
-	        // .exe (程序), .bat/.cmd (脚本), .msi (安装包), .ps1 (PowerShell)
-	        return "*.exe; *.bat; *.cmd; *.msi; *.ps1; *.com; *.scr";
-	    } else if (isMacOS) {
-	        // macOS: 二进制文件通常无扩展名，.app 是文件夹束
-	        // empty 代表匹配无扩展名的文件，.command 和 .sh 是常见脚本
-	        return "*.app; *.command; *.sh; *.zsh; *.pkg";
-	    } else if (isPosixSystem) {
-	        // Linux: 同样主要看执行权限 (x bit)，通常无扩展名
-	        // .sh (脚本), .run/.bin (安装包), .AppImage (通用格式)
-	        return "*.sh; *.run; *.bin; *.AppImage";
-	    } else {
-	        return "";
-	    }
-	}
-	
-	public static String getOSFolderHiddenMetaFiles() {
-	    if (isMacOS) {
-	        // macOS: 主要是 .DS_Store
-	        return ".DS_Store";
-	    } else if (isWindows) {
-	        // Windows: 缩略图缓存和文件夹自定义配置
-	        return "Thumbs.db; desktop.ini";
-	    } else if (isPosixSystem) {
-	        // Linux/Unix: KDE 的视图配置和 GNOME 的隐藏规则文件
-	        return ".directory; .hidden";
-	    } else {
-	        // 其他系统或未知系统返回空
-	        return "";
-	    }
+		if (isWindows) {
+			// Windows: 依靠扩展名识别
+			// .exe (程序), .bat/.cmd (脚本), .msi (安装包), .ps1 (PowerShell)
+			return "*.exe; *.bat; *.cmd; *.msi; *.ps1; *.com; *.scr";
+		} else if (isMacOS) {
+			// macOS: 二进制文件通常无扩展名，.app 是文件夹束
+			// empty 代表匹配无扩展名的文件，.command 和 .sh 是常见脚本
+			return "*.app; *.command; *.sh; *.zsh; *.pkg";
+		} else if (isPosixSystem) {
+			// Linux: 同样主要看执行权限 (x bit)，通常无扩展名
+			// .sh (脚本), .run/.bin (安装包), .AppImage (通用格式)
+			return "*.sh; *.run; *.bin; *.AppImage";
+		} else {
+			return "";
+		}
 	}
 
-	public static void main(String[] arg) throws IOException, InterruptedException { // 测试用例，基于你提供的版本号顺序
+	public static String getOSFolderHiddenMetaFiles() {
+		if (isMacOS) {
+			// macOS: 主要是 .DS_Store
+			return ".DS_Store";
+		} else if (isWindows) {
+			// Windows: 缩略图缓存和文件夹自定义配置
+			return "Thumbs.db; desktop.ini";
+		} else if (isPosixSystem) {
+			// Linux/Unix: KDE 的视图配置和 GNOME 的隐藏规则文件
+			return ".directory; .hidden";
+		} else {
+			// 其他系统或未知系统返回空
+			return "";
+		}
+	}
+
+	public static void main(String[] arg) throws IOException, InterruptedException {
+
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		Transferable contents = clipboard.getContents(null);
+
+		if (contents == null) {
+			System.out.println("剪贴板为空");
+			return;
+		}
+
+		System.out.println("=== 剪贴板 Flavor 列表 ===");
+		for (DataFlavor flavor : contents.getTransferDataFlavors()) {
+			System.out.println("MimeType : " + flavor.getMimeType());
+			System.out.println("Class    : " + flavor.getRepresentationClass());
+			try {
+				Object data = contents.getTransferData(flavor);
+				System.out.println("Data     : " + data);
+			} catch (Exception e) {
+				System.out.println("Data     : (无法读取) " + e.getMessage());
+			}
+			System.out.println("---");
+		}
+
+		System.exit(0);
+
+		// 测试用例，基于你提供的版本号顺序
 		String[][] testCases = { { "2.3", "2.0.1" }, { "2.0.1", "1.9" }, { "1.9", "1.1.2" }, { "1.1.2", "1.1.0" }, { "1.1.0", "1.0" }, { "1.0", "1.0" } // 测试相等情况
 		};
 
