@@ -9,6 +9,7 @@ import javax.swing.JPanel;
 import com.amituofo.common.api.DestroyListener;
 import com.amituofo.common.ui.action.DestroyAction;
 import com.amituofo.common.ui.action.RefreshAction;
+import com.amituofo.common.ui.runtime.UIContext;
 import com.amituofo.common.ui.util.UIUtils;
 
 public class JEPanel extends JPanel implements RefreshAction, DestroyAction {
@@ -46,7 +47,7 @@ public class JEPanel extends JPanel implements RefreshAction, DestroyAction {
 	}
 
 	public boolean isDestroyed() {
-		return destroyed;
+		return destroyed || UIContext.isAllDestroyed();
 	}
 
 	// @Override

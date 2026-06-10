@@ -3,10 +3,11 @@ package com.amituofo.common.ui.swingexts.dialog;
 import java.awt.Frame;
 import java.awt.Image;
 
+import com.amituofo.common.ui.runtime.UIContext;
 import com.amituofo.common.ui.util.UIUtils;
 
 public class SimpleDialogOption {
-	private Frame owner = UIUtils.getDefaultTopFrame();
+	private Frame owner = UIContext.getDefaultTopFrame();
 	private Image titleIcon;
 	private int xOffset;
 	private int yOffset;

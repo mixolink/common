@@ -81,6 +81,7 @@ import com.amituofo.common.kit.counter.Counter;
 import com.amituofo.common.kit.kv.KeyValue;
 import com.amituofo.common.kit.value.Value;
 import com.amituofo.common.ui.action.InputValidator;
+import com.amituofo.common.ui.runtime.UIContext;
 import com.amituofo.common.ui.swingexts.JComponents;
 import com.amituofo.common.ui.swingexts.component.ArcTextPane;
 import com.amituofo.common.ui.swingexts.component.JEPropertyDialogPanel;
@@ -100,19 +101,9 @@ public class UIUtils {
 	public static String DEFAULT_TITLE_OF_WARNING = "Warning";
 	public static String DEFAULT_TITLE_OF_ERROR_STACK_TRACE = "Stack Trace";
 
-	protected static JFrame DEFAULT_MAIN_FRAME = null;
-
 	private final static Map<String, Timer> timerMap = new HashMap<String, Timer>();
 
 	private static String[] monoFonts = null;
-
-	public static JFrame getDefaultTopFrame() {
-		return DEFAULT_MAIN_FRAME;
-	}
-
-	public static void setDefaultTopFrame(JFrame c) {
-		DEFAULT_MAIN_FRAME = c;
-	}
 
 	public static void invokeLater(final Runnable runnable) {
 		SwingUtilities.invokeLater(runnable);
@@ -232,7 +223,7 @@ public class UIUtils {
 	}
 
 	public static void openError(Component parent, String message, Exception e) {
-		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
+		Component parentComponent = (parent != null) ? parent : UIContext.getDefaultTopFrame();
 
 		Runnable runnable = () -> {
 			if (e == null) {
@@ -261,7 +252,7 @@ public class UIUtils {
 	}
 
 	public static void openInformation(Component parent, String message) {
-		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
+		Component parentComponent = (parent != null) ? parent : UIContext.getDefaultTopFrame();
 
 		if (SwingUtilities.isEventDispatchThread()) {
 			DialogManager.increaseDialog();
@@ -277,7 +268,7 @@ public class UIUtils {
 	}
 
 	public static boolean openInformationWithDontShowAgain(Component parent, String message, String dontShowText) {
-		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
+		Component parentComponent = (parent != null) ? parent : UIContext.getDefaultTopFrame();
 
 		// 1. 创建复选框
 		JCheckBox dontShowAgain = new JCheckBox(dontShowText);
@@ -319,7 +310,7 @@ public class UIUtils {
 	}
 
 	public static InputConfirm openInfoConfirmWithDontShowAgain(Component parent, String message, String dontShowText) {
-		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
+		Component parentComponent = (parent != null) ? parent : UIContext.getDefaultTopFrame();
 
 		// 1. 创建复选框
 		JCheckBox dontShowAgain = new JCheckBox(dontShowText);
@@ -360,7 +351,7 @@ public class UIUtils {
 	}
 
 	public static boolean openInfoConfirm(Component parent, String message) {
-		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
+		Component parentComponent = (parent != null) ? parent : UIContext.getDefaultTopFrame();
 
 		Counter yes = Counter.newCounter();
 		if (SwingUtilities.isEventDispatchThread()) {
@@ -383,7 +374,7 @@ public class UIUtils {
 	}
 
 	public static boolean openWarnConfirm(Component parent, String message) {
-		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
+		Component parentComponent = (parent != null) ? parent : UIContext.getDefaultTopFrame();
 
 		Counter yes = Counter.newCounter();
 		if (SwingUtilities.isEventDispatchThread()) {
@@ -406,7 +397,7 @@ public class UIUtils {
 	}
 
 	public static void openWarning(Component parent, String message) {
-		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
+		Component parentComponent = (parent != null) ? parent : UIContext.getDefaultTopFrame();
 
 		if (SwingUtilities.isEventDispatchThread()) {
 			DialogManager.increaseDialog();
@@ -422,7 +413,7 @@ public class UIUtils {
 	}
 
 	public static String openInput(Component parent, Object message, Object initValue, InputValidator<String> inputValidator) {
-		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
+		Component parentComponent = (parent != null) ? parent : UIContext.getDefaultTopFrame();
 
 		Value<String> value = new Value<>();
 
@@ -456,7 +447,7 @@ public class UIUtils {
 	}
 
 	public static InputUserPassword openInputUserPassword(Component parent, String title, String usermessage, String pwdmessage, String defaultUsername, boolean allowEmpty) {
-		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
+		Component parentComponent = (parent != null) ? parent : UIContext.getDefaultTopFrame();
 
 		do {
 			JTextField user = new JTextField();
@@ -501,7 +492,7 @@ public class UIUtils {
 	}
 
 	public static InputPassword openInputPassword(Component parent, String title, String message, boolean allowEmpty) {
-		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
+		Component parentComponent = (parent != null) ? parent : UIContext.getDefaultTopFrame();
 
 		do {
 			JPasswordField password = new JPasswordField();
@@ -541,7 +532,7 @@ public class UIUtils {
 	}
 
 	public static Object openInputCombox(Component parent, String title, String message, Object[] selections, Object defaultValue) {
-		Component parentComponent = (parent != null) ? parent : DEFAULT_MAIN_FRAME;
+		Component parentComponent = (parent != null) ? parent : UIContext.getDefaultTopFrame();
 
 		JComboBox<Object> combox = new JComboBox<Object>();
 
@@ -576,43 +567,43 @@ public class UIUtils {
 	}
 
 	public static void openError(String message) {
-		openError(DEFAULT_MAIN_FRAME, message);
+		openError(UIContext.getDefaultTopFrame(), message);
 	}
 
 	public static void openError(String message, Exception e) {
-		openError(DEFAULT_MAIN_FRAME, message, e);
+		openError(UIContext.getDefaultTopFrame(), message, e);
 	}
 
 	public static void openInformation(String message) {
-		openInformation(DEFAULT_MAIN_FRAME, message);
+		openInformation(UIContext.getDefaultTopFrame(), message);
 	}
 
 	public static boolean openInfoConfirm(String message) {
-		return openInfoConfirm(DEFAULT_MAIN_FRAME, message);
+		return openInfoConfirm(UIContext.getDefaultTopFrame(), message);
 	}
 
 	public static boolean openWarnConfirm(String message) {
-		return openWarnConfirm(DEFAULT_MAIN_FRAME, message);
+		return openWarnConfirm(UIContext.getDefaultTopFrame(), message);
 	}
 
 	public static void openWarning(String message) {
-		openWarning(DEFAULT_MAIN_FRAME, message);
+		openWarning(UIContext.getDefaultTopFrame(), message);
 	}
 
 	public static String openInput(Object message, Object initValue, InputValidator<String> inputValidator) {
-		return openInput(DEFAULT_MAIN_FRAME, message, initValue, inputValidator);
+		return openInput(UIContext.getDefaultTopFrame(), message, initValue, inputValidator);
 	}
 
 	public static InputUserPassword openInputUserPassword(String title, String usermessage, String pwdmessage, String defaultUsername, boolean allowEmpty) {
-		return openInputUserPassword(DEFAULT_MAIN_FRAME, title, usermessage, pwdmessage, defaultUsername, allowEmpty);
+		return openInputUserPassword(UIContext.getDefaultTopFrame(), title, usermessage, pwdmessage, defaultUsername, allowEmpty);
 	}
 
 	public static InputPassword openInputPassword(String title, String message, boolean allowEmpty) {
-		return openInputPassword(DEFAULT_MAIN_FRAME, title, message, allowEmpty);
+		return openInputPassword(UIContext.getDefaultTopFrame(), title, message, allowEmpty);
 	}
 
 	public static Object openInputCombox(String title, String message, Object[] selections, Object defaultValue) {
-		return openInputCombox(DEFAULT_MAIN_FRAME, title, message, selections, defaultValue);
+		return openInputCombox(UIContext.getDefaultTopFrame(), title, message, selections, defaultValue);
 	}
 
 	public static void openMessageTip(String message) {
