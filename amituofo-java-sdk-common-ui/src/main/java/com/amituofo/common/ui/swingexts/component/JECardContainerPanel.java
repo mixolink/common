@@ -16,6 +16,7 @@ import javax.swing.Timer;
 
 import com.amituofo.common.api.Callback;
 import com.amituofo.common.api.Destroyable;
+import com.amituofo.common.define.Constants;
 import com.amituofo.common.ui.action.CardAction;
 import com.amituofo.common.ui.action.DestroyAction;
 import com.amituofo.common.ui.lang.CardComponent;
@@ -136,7 +137,9 @@ public class JECardContainerPanel<C extends JComponent, D> extends JEPanel {
 				}
 
 				JComponent nextPanel = nextComponent.getComponent();
-				super.removeAll();
+				if (topDataComponent != null) {
+					super.removeAll();
+				}
 				super.add(nextPanel, BorderLayout.CENTER);
 				super.revalidate();
 				super.repaint();
