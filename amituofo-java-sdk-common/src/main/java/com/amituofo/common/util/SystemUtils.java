@@ -915,6 +915,21 @@ public class SystemUtils {
 			openLinuxFileBrowser(path);
 		}
 	}
+	
+	public static void openFTProwser(String ftpUrl) throws Exception {
+		// 如果 path 为 null、空，或者无效，则使用用户主目录或根目录
+		if (ftpUrl == null || ftpUrl.trim().isEmpty()) {
+			return;
+		}
+
+		if (isWindows) {
+			openWindowsFileBrowser(ftpUrl);
+		} else if (isMacOS) {
+			openMacFileBrowser(ftpUrl);
+		} else {
+			openLinuxFileBrowser(ftpUrl);
+		}
+	}
 
 	private static void openWindowsFileBrowser(String path) throws Exception {
 		// Windows Explorer 接受原生路径（如 C:\Users\...）

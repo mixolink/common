@@ -49,7 +49,7 @@ public class JEHyperlinkLabel extends JLabel {
 		this.url = url;
 		init();
 	}
-	
+
 	public JEHyperlinkLabel(String text, Icon icon, String url) {
 		super(text, icon, SwingConstants.LEADING);
 		this.url = url;
@@ -63,19 +63,32 @@ public class JEHyperlinkLabel extends JLabel {
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (url != null && !url.isEmpty()) {
-					if (url.startsWith("http")) {
-						try {
-							Desktop.getDesktop().browse(new URI(url));
-							setForeground(clickedColor);
-						} catch (Exception ex) {
-							SystemUtils.setClipboardString(url);
-							UIUtils.openMessageTip(url + " copied to clipboard.");
-						}
-					} else {
+				if (url == null || url.isEmpty()) {
+					return;
+				}
+
+				if (url.toLowerCase().startsWith("ftp://")) {
+					try {
+						SystemUtils.openFTProwser(url);
+						setForeground(clickedColor);
+					} catch (Exception ex) {
 						SystemUtils.setClipboardString(url);
 						UIUtils.openMessageTip(url + " copied to clipboard.");
 					}
+
+					return;
+				}
+
+				if (!url.startsWith("http")) {
+					url = "https://" + url;
+				}
+
+				try {
+					Desktop.getDesktop().browse(new URI(url));
+					setForeground(clickedColor);
+				} catch (Exception ex) {
+					SystemUtils.setClipboardString(url);
+					UIUtils.openMessageTip(url + " copied to clipboard.");
 				}
 			}
 

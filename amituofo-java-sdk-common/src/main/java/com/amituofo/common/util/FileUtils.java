@@ -339,6 +339,28 @@ public class FileUtils {
 		// 3. 删除旧链接
 		Files.delete(srcLink);
 	}
+	
+	public static void copyDir(File dirSource, File dirTarget) throws IOException {
+	    if (!dirSource.exists() || !dirSource.isDirectory()) {
+	        throw new IllegalArgumentException("Source folder not exist " + dirSource);
+	    }
+	    
+	    if (!dirTarget.exists()) {
+	        dirTarget.mkdirs();
+	    }
+	    
+	    File[] files = dirSource.listFiles();
+	    if (files == null) return;
+	    
+	    for (File file : files) {
+	        File targetFile = new File(dirTarget, file.getName());
+	        if (file.isDirectory()) {
+	            copyDir(file, targetFile); // 递归复制子目录
+	        } else {
+	            copyFile(file, targetFile);
+	        }
+	    }
+	}
 
 	/**
 	 * Copy the current file to the destination file.

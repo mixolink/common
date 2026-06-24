@@ -63,6 +63,15 @@ public class IconResource {
 	private static Map<String, Icon> CACHE = new HashMap<String, Icon>();
 	public final static Icon ARROW_ICON = createArrowIcon();
 
+	private static SVGLoader svgloader = new SVGLoader();
+
+	public static SVGLoader getSVGLoader() {
+		if (svgloader == null) {
+			svgloader = new SVGLoader();
+		}
+		return svgloader;
+	}
+
 	private static Icon createArrowIcon() {
 		return new Icon() {
 			@Override
@@ -102,11 +111,10 @@ public class IconResource {
 	}
 
 	private static JSVGIcon getSvgIcon(String id, int size) {
-		SVGLoader loader = new SVGLoader();
 		URL url = IconResource.class.getResource(ICON_SVG_PATH + id);
 //		String content = new String(toByteArray(url.openStream()), StandardCharsets.UTF_8);
 //		String fixedContent = content.replace("currentColor", CLR);
-		SVGDocument document = loader.load(url);
+		SVGDocument document = getSVGLoader().load(url);
 
 		if (document == null) {
 			return null; // 加载失败
@@ -130,7 +138,6 @@ public class IconResource {
 	}
 
 	public static JSVGIcon getSvgIcon(Class clazz, String base, String id, int size) {
-		SVGLoader loader = new SVGLoader();
 		URL url = clazz.getResource(base + "/icon/" + id + ".svg");
 
 		if (url == null) {
@@ -140,7 +147,7 @@ public class IconResource {
 
 //		String content = new String(toByteArray(url.openStream()), StandardCharsets.UTF_8);
 //		String fixedContent = content.replace("currentColor", CLR);
-		SVGDocument document = loader.load(url);
+		SVGDocument document = getSVGLoader().load(url);
 
 		if (document == null) {
 			return null; // 加载失败
