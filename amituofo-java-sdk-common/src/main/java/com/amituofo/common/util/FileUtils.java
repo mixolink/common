@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -89,6 +90,58 @@ public class FileUtils {
 			}
 		}
 		return false;
+	}
+
+	public static boolean renameLocalFile(Path source, Path target) throws IOException {
+		if (source == null || target == null) {
+			return false;
+		}
+
+		if (isCaseOnlyRename(source, target)) {
+			renameCaseOnly(source, target);
+		} else {
+			Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+		}
+		return true;
+	}
+
+	private static boolean isCaseOnlyRename(Path source, Path target) {
+		Path sourceName = source.getFileName();
+		Path targetName = target.getFileName();
+		if (sourceName == null || targetName == null) {
+			return false;
+		}
+
+		String sourceValue = sourceName.toString();
+		String targetValue = targetName.toString();
+		return sourceValue.equalsIgnoreCase(targetValue) && !sourceValue.equals(targetValue);
+	}
+
+	private static void renameCaseOnly(Path source, Path target) throws IOException {
+		Path temporary = createRenameTemporaryPath(target);
+		try {
+			Files.move(source, temporary);
+			Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			if (Files.exists(temporary) && !Files.exists(source)) {
+				try {
+					Files.move(temporary, source, StandardCopyOption.REPLACE_EXISTING);
+				} catch (IOException rollbackException) {
+					e.addSuppressed(rollbackException);
+				}
+			}
+			throw e;
+		}
+	}
+
+	private static Path createRenameTemporaryPath(Path target) throws IOException {
+		for (int i = 0; i < 100; i++) {
+			Path temporary = target.resolveSibling(target.getFileName().toString() + ".mixolink-rename-" + UUID.randomUUID().toString() + ".tmp");
+			if (!Files.exists(temporary)) {
+				return temporary;
+			}
+		}
+		throw new IOException("Unable to create temporary path for case-only rename.");
 	}
 
 	/**
