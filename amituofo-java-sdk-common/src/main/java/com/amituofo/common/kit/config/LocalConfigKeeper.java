@@ -5,16 +5,12 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import com.amituofo.common.ex.ParseException;
 import com.amituofo.common.ex.TestException;
-import com.amituofo.common.ex.UnsupportedException;
-import com.amituofo.common.kit.event.EventPusher;
 import com.amituofo.common.util.FileUtils;
-import com.amituofo.common.util.StringUtils;
 
 public class LocalConfigKeeper<CONFIG extends Config> extends ConfigKeeperBase<CONFIG> {
 	protected String configLocation = "./conf/";
@@ -44,7 +40,7 @@ public class LocalConfigKeeper<CONFIG extends Config> extends ConfigKeeperBase<C
 
 	protected boolean fireSettingEvent(int eventcode, CONFIG conf) {
 //		synchronized (listeners) {
-			for (final ConfigChangesListener<CONFIG> listener : listeners) {
+		for (final ConfigChangesListener<CONFIG> listener : listeners) {
 //				ep.push(new Runnable() {
 //					@Override
 //					public void run() {
@@ -52,10 +48,10 @@ public class LocalConfigKeeper<CONFIG extends Config> extends ConfigKeeperBase<C
 //					}
 //				});
 
-				if (!listener.acceptChanges(eventcode, conf)) {
-					return false;
-				}
+			if (!listener.acceptChanges(eventcode, conf)) {
+				return false;
 			}
+		}
 //		}
 
 		return true;
@@ -151,45 +147,48 @@ public class LocalConfigKeeper<CONFIG extends Config> extends ConfigKeeperBase<C
 	}
 
 	@Override
-	protected List<CONFIG> listSettings() {
+	protected void listSettings(ConfigHandler<CONFIG> handler) {
 		synchronized (configLocation) {
-			List<CONFIG> confs = new LinkedList<>();
-			File[] configFiles = null;
-			configFiles = new File(configLocation).listFiles(new FilenameFilter() {
+			try {
+				File[] configFiles = null;
+				configFiles = new File(configLocation).listFiles(new FilenameFilter() {
 
-				@Override
-				public boolean accept(File dir, String name) {
-					if (!name.endsWith(extension)) {
-						return false;
+					@Override
+					public boolean accept(File dir, String name) {
+						if (!name.endsWith(extension)) {
+							return false;
+						}
+
+						String id = name.substring(0, name.length() - extension.length());
+
+						if (cache.containsKey(id)) {
+							return false;
+						}
+
+						return true;
 					}
+				});
 
-					String id = name.substring(0, name.length() - extension.length());
-
-					if (cache.containsKey(id)) {
-						return false;
-					}
-
-					return true;
+				for (CONFIG confcache : cache.values()) {
+					handler.handle(null, confcache);
 				}
-			});
 
-			for (CONFIG confcache : cache.values()) {
-				confs.add(confcache);
-			}
+				if (configFiles != null) {
+					for (int i = 0; i < configFiles.length; i++) {
+						try {
+							CONFIG conf = parse(configFiles[i]);
+							handler.handle(ConfigEvent.CONF_FOUND, conf);
 
-			if (configFiles != null) {
-				for (int i = 0; i < configFiles.length; i++) {
-					try {
-						CONFIG conf = parse(configFiles[i]);
-						confs.add(conf);
-
-						cache.put(conf.getId(), conf);
-					} catch (Throwable e) {
-						e.printStackTrace();
+							cache.put(conf.getId(), conf);
+						} catch (Throwable e) {
+//						e.printStackTrace();
+							handler.exceptionCaught(null, e);
+						}
 					}
 				}
+			} finally {
+				handler.handle(ConfigEvent.EXEC_END, null);
 			}
-			return confs;
 		}
 	}
 

@@ -11,6 +11,7 @@ import java.util.Map;
 
 import com.amituofo.common.ex.InvalidConfigException;
 import com.amituofo.common.ex.ParseException;
+import com.amituofo.common.type.HandleFeedback;
 import com.amituofo.common.util.StringUtils;
 
 public abstract class ConfigKeeperBase<CONFIG extends Config> implements ConfigKeeper<CONFIG> {
@@ -55,7 +56,7 @@ public abstract class ConfigKeeperBase<CONFIG extends Config> implements ConfigK
 
 	protected abstract CONFIG duplicateSetting(String id) throws ParseException, IOException;
 
-	protected abstract List<CONFIG> listSettings() throws ParseException, IOException;
+	protected abstract void listSettings(ConfigHandler<CONFIG> handler) throws ParseException, IOException;
 
 	protected abstract boolean containsSetting(String id) throws IOException;
 
@@ -169,11 +170,26 @@ public abstract class ConfigKeeperBase<CONFIG extends Config> implements ConfigK
 
 	@Override
 	public List<CONFIG> list() throws ParseException, IOException {
-		List<CONFIG> list = listSettings();
-		if (list != null && list.size() != 0) {
+		List<CONFIG> list = new ArrayList<>();
+		listSettings(new ConfigHandler<CONFIG>() {
+
+			@Override
+			public void exceptionCaught(CONFIG data, Throwable e) {
+
+			}
+
+			@Override
+			public HandleFeedback handle(Integer meta, CONFIG config) {
+				if (config != null) {
+					list.add(config);
+				}
+				return null;
+			}
+
+		});
+
+		if (list.size() != 0) {
 			Collections.sort(list, COMPARE);
-		} else if (list == null) {
-			list = new ArrayList<CONFIG>();
 		}
 
 		if (!floatConfList.isEmpty()) {
@@ -190,12 +206,26 @@ public abstract class ConfigKeeperBase<CONFIG extends Config> implements ConfigK
 	@Override
 	public void deleteAll() throws IOException {
 		try {
-			List<CONFIG> list = listSettings();
-			if (list != null && list.size() != 0) {
-				for (CONFIG config : list) {
-					deleteSetting(config.getId());
+			listSettings(new ConfigHandler<CONFIG>() {
+
+				@Override
+				public HandleFeedback handle(Integer meta, CONFIG config) {
+					if (config != null) {
+						try {
+							deleteSetting(config.getId());
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+					return null;
 				}
-			}
+
+				@Override
+				public void exceptionCaught(CONFIG data, Throwable e) {
+					// TODO Auto-generated method stub
+
+				}
+			});
 		} catch (ParseException e) {
 			throw new IOException(e);
 		}

@@ -42,6 +42,15 @@ public interface ConfigKeeper<CONFIG extends Config> extends Closeable {
 
 	List<CONFIG> list() throws ParseException, IOException;
 
+	default void list(ConfigHandler<CONFIG> handler) throws ParseException, IOException {
+		List<CONFIG> list = list();
+
+		for (CONFIG config : list) {
+			handler.handle(ConfigEvent.CONF_FOUND, config);
+		}
+		handler.handle(ConfigEvent.EXEC_END, null);
+	}
+
 //	List<CONFIGKEY> listKeys();
 
 	void reload(ConfigLoadEvent<CONFIG> configLoadEvent);
