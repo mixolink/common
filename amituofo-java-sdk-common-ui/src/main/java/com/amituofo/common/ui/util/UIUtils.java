@@ -247,7 +247,10 @@ public class UIUtils {
 		if (SwingUtilities.isEventDispatchThread()) {
 			runnable.run();
 		} else {
-			SwingUtilities.invokeLater(runnable);
+			try {
+				SwingUtilities.invokeAndWait(runnable);
+			} catch (Exception e1) {
+			}
 		}
 	}
 
@@ -259,11 +262,14 @@ public class UIUtils {
 			JOptionPane.showMessageDialog(parentComponent, message, DEFAULT_TITLE_OF_INFO, JOptionPane.INFORMATION_MESSAGE);
 			DialogManager.decreaseDialog();
 		} else {
-			SwingUtilities.invokeLater(() -> {
-				DialogManager.increaseDialog();
-				JOptionPane.showMessageDialog(parentComponent, message, DEFAULT_TITLE_OF_INFO, JOptionPane.INFORMATION_MESSAGE);
-				DialogManager.decreaseDialog();
-			});
+			try {
+				SwingUtilities.invokeAndWait(() -> {
+					DialogManager.increaseDialog();
+					JOptionPane.showMessageDialog(parentComponent, message, DEFAULT_TITLE_OF_INFO, JOptionPane.INFORMATION_MESSAGE);
+					DialogManager.decreaseDialog();
+				});
+			} catch (Exception e1) {
+			}
 		}
 	}
 
@@ -299,8 +305,7 @@ public class UIUtils {
 					JOptionPane.showMessageDialog(parentComponent, panel, DEFAULT_TITLE_OF_INFO, JOptionPane.INFORMATION_MESSAGE);
 					DialogManager.decreaseDialog();
 				});
-			} catch (InvocationTargetException | InterruptedException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
 				return false;
 			}
 		}
@@ -404,11 +409,14 @@ public class UIUtils {
 			JOptionPane.showMessageDialog(parentComponent, message, DEFAULT_TITLE_OF_WARNING, JOptionPane.WARNING_MESSAGE);
 			DialogManager.decreaseDialog();
 		} else {
-			SwingUtilities.invokeLater(() -> {
-				DialogManager.increaseDialog();
-				JOptionPane.showMessageDialog(parentComponent, message, DEFAULT_TITLE_OF_WARNING, JOptionPane.WARNING_MESSAGE);
-				DialogManager.decreaseDialog();
-			});
+			try {
+				SwingUtilities.invokeAndWait(() -> {
+					DialogManager.increaseDialog();
+					JOptionPane.showMessageDialog(parentComponent, message, DEFAULT_TITLE_OF_WARNING, JOptionPane.WARNING_MESSAGE);
+					DialogManager.decreaseDialog();
+				});
+			} catch (Exception e1) {
+			}
 		}
 	}
 
@@ -470,8 +478,7 @@ public class UIUtils {
 						result.n = JOptionPane.showConfirmDialog(parentComponent, ob, title, JOptionPane.OK_OPTION);
 						DialogManager.decreaseDialog();
 					});
-				} catch (InvocationTargetException | InterruptedException e) {
-					e.printStackTrace();
+				} catch (Exception e) {
 					return InputUserPassword.cancel();
 				}
 			}
@@ -511,8 +518,7 @@ public class UIUtils {
 						result.n = JOptionPane.showConfirmDialog(parentComponent, ob, title, JOptionPane.OK_OPTION);
 						DialogManager.decreaseDialog();
 					});
-				} catch (InvocationTargetException | InterruptedException e) {
-					e.printStackTrace();
+				} catch (Exception e) {
 					return InputPassword.cancel();
 				}
 			}
@@ -1517,45 +1523,45 @@ public class UIUtils {
 
 		return null; // 用户取消或点击 X 关闭
 	}
-	
+
 	public static void setupLinuxScaling() {
-		if(!SystemUtils.isLinux()) {
+		if (!SystemUtils.isLinux()) {
 			return;
 		}
-	    // 方法1：读 GDK_SCALE 环境变量
-	    String gdkScale = System.getenv("GDK_SCALE");
-	    if (gdkScale != null) {
-	        System.setProperty("sun.java2d.uiScale", gdkScale);
-	        return;
-	    }
-	    
-	    // 方法2：读 Xft.dpi（X11）
-	    try {
-	        Process p = Runtime.getRuntime().exec("xrdb -query");
-	        String output = StreamUtils.inputStreamToString(p.getInputStream(), true).trim();
-	        for (String line : output.split("\n")) {
-	            if (line.startsWith("Xft.dpi")) {
-	                int dpi = Integer.parseInt(line.split(":")[1].trim());
-	                float scale = dpi / 96.0f;
-	                System.setProperty("sun.java2d.uiScale", String.valueOf(scale));
-	                return;
-	            }
-	        }
-	    } catch (Exception ignored) {}
-	    
-	    // 方法3：读 gsettings（GNOME）
-	    try {
-	        Process p = Runtime.getRuntime().exec(
-	            "gsettings get org.gnome.desktop.interface scaling-factor"
-	        );
-	        String output = StreamUtils.inputStreamToString(p.getInputStream(), true).trim();
-	        // 输出类似 "uint32 2"
-	        String[] parts = output.split(" ");
-	        String value = parts[parts.length - 1];
-	        int scale = Integer.parseInt(value);
-	        if (scale > 1) {
-	            System.setProperty("sun.java2d.uiScale", String.valueOf(scale));
-	        }
-	    } catch (Exception ignored) {}
+		// 方法1：读 GDK_SCALE 环境变量
+		String gdkScale = System.getenv("GDK_SCALE");
+		if (gdkScale != null) {
+			System.setProperty("sun.java2d.uiScale", gdkScale);
+			return;
+		}
+
+		// 方法2：读 Xft.dpi（X11）
+		try {
+			Process p = Runtime.getRuntime().exec("xrdb -query");
+			String output = StreamUtils.inputStreamToString(p.getInputStream(), true).trim();
+			for (String line : output.split("\n")) {
+				if (line.startsWith("Xft.dpi")) {
+					int dpi = Integer.parseInt(line.split(":")[1].trim());
+					float scale = dpi / 96.0f;
+					System.setProperty("sun.java2d.uiScale", String.valueOf(scale));
+					return;
+				}
+			}
+		} catch (Exception ignored) {
+		}
+
+		// 方法3：读 gsettings（GNOME）
+		try {
+			Process p = Runtime.getRuntime().exec("gsettings get org.gnome.desktop.interface scaling-factor");
+			String output = StreamUtils.inputStreamToString(p.getInputStream(), true).trim();
+			// 输出类似 "uint32 2"
+			String[] parts = output.split(" ");
+			String value = parts[parts.length - 1];
+			int scale = Integer.parseInt(value);
+			if (scale > 1) {
+				System.setProperty("sun.java2d.uiScale", String.valueOf(scale));
+			}
+		} catch (Exception ignored) {
+		}
 	}
 }

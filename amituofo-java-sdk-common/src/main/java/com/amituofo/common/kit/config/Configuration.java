@@ -30,8 +30,8 @@ import com.amituofo.common.util.StringUtils;
 public class Configuration implements Config, Serializable {
 	private static final long serialVersionUID = 4727700807177134139L;
 
-	private final static byte[] DEFAULT_DESKEY = new byte[] { 112, 111, 119, 101, 114, 101, 100, 45, 98, 121, 45, 114, 105, 115, 111, 110, 45, 104,
-			97, 110, 45, 97, 109, 116, 102, 57, 57 };// "powered-by-rison-han-amtf99";
+	private final static byte[] DEFAULT_DESKEY = new byte[] { 112, 111, 119, 101, 114, 101, 100, 45, 98, 121, 45, 114, 105, 115, 111, 110, 45, 104, 97, 110, 45, 97, 109, 116, 102,
+			57, 57 };// "powered-by-rison-han-amtf99";
 
 	public static final String _CONFIG_CATALOG_ID_ = "_<_CONFIG_CATALOG_ID_>_";
 	public static final String _CONFIG_ID_ = "_<_CONFIG_ID_>_";
@@ -586,22 +586,28 @@ public class Configuration implements Config, Serializable {
 	@Override
 	public int hashCode() {
 		int result = 1;
+
+//		if("ck8sg3".equals(getId()))
 //		System.out.println("------------------------------");
 
 		Iterator<String> it = kv.keySet().iterator();
 		while (it.hasNext()) {
 			String key = (String) it.next();
 			Object o = kv.get(key);
-			int kvhash = key.hashCode();
+			int khash = key.hashCode();
+			int vhash = 0;
 			if (o != null) {
-				kvhash += o.hashCode();
+				vhash = o.hashCode();
 			}
 
-//			System.out.println(key + "=" + o + " (" + (o == null ? 0 : o.hashCode()) + ")");
+//			if("ck8sg3".equals(getId()))
+//			System.out.println(key +"["+khash+ "]=" + o + " [" + vhash + "]");
 
-			result += kvhash;
+			result += (khash + vhash);
 
 		}
+
+//		if("ck8sg3".equals(getId()))
 //		System.out.println("------------------------------"+(int)result);
 //		result = prime * result + ((configMap == null) ? 0 : configMap.hashCode());
 		return result;
@@ -678,25 +684,6 @@ public class Configuration implements Config, Serializable {
 		set0(key, String.valueOf(value));
 	}
 
-	public void set(String key, Collection<String> value) {
-		if (value == null || value.size() == 0) {
-			kv.remove(key);
-		} else {
-			String[] values = new String[value.size()];
-			int i = 0;
-			for (String string : value) {
-				values[i++] = StringUtils.encodeBase64String(string);
-			}
-			set0(key, StringUtils.toString(values, ','));
-		}
-	}
-
-	public void set(String key, Configuration value) {
-		set0(key, value);
-		set0(key + "_CLASS_NAME_", value.getClass().getName());
-		set0(key + "_CLASS_", value.getClass());
-	}
-
 	public void set(String key, double value) {
 		set0(key, Double.toString(value));
 	}
@@ -739,6 +726,129 @@ public class Configuration implements Config, Serializable {
 		} else {
 			set0(key, StringUtils.toString(value, ','));
 		}
+	}
+
+	public void set(String key, Collection<String> value) {
+		if (value == null || value.size() == 0) {
+			kv.remove(key);
+		} else {
+			String[] values = new String[value.size()];
+			int i = 0;
+			for (String string : value) {
+				values[i++] = StringUtils.encodeBase64String(string);
+			}
+			set0(key, StringUtils.toString(values, ','));
+		}
+	}
+
+	public void set(String key, Configuration value) {
+		set0(key, value);
+		set0(key + "_CLASS_NAME_", value.getClass().getName());
+		set0(key + "_CLASS_", value.getClass());
+	}
+	
+
+	public void setSkipDefault(String key, boolean defaultValue, boolean value) {
+		if (!has(key) && (defaultValue == value)) {
+			return;
+		}
+		
+		set0(key, Boolean.toString(value));
+	}
+
+	public void setSkipDefault(String key, char defaultValue, char value) {
+		if (!has(key) && (defaultValue == value)) {
+			return;
+		}
+		
+		set0(key, String.valueOf(value));
+	}
+
+	public void setSkipDefault(String key, double defaultValue, double value) {
+		if (!has(key) && (defaultValue == value)) {
+			return;
+		}
+		
+		set0(key, Double.toString(value));
+	}
+
+	public void setSkipDefault(String key, float defaultValue, float value) {
+		if (!has(key) && (defaultValue == value)) {
+			return;
+		}
+		
+		set0(key, Float.toString(value));
+	}
+
+	public void setSkipDefault(String key, int defaultValue, int value) {
+		if (!has(key) && (defaultValue == value)) {
+			return;
+		}
+		
+		set0(key, Integer.toString(value));
+	}
+
+	public void setSkipDefault(String key, long defaultValue, long value) {
+		if (!has(key) && (defaultValue == value)) {
+			return;
+		}
+		
+		set0(key, Long.toString(value));
+	}
+
+	public void setSkipDefault(String key, Object defaultValue, Object value) {
+		if (!has(key) && (defaultValue == value || Objects.equals(defaultValue, value))) {
+			return;
+		}
+
+		set0(key, value);
+	}
+	
+	public void setSkipEmpty(String key, String[] value) {
+		if (value == null || value.length == 0) {
+			kv.remove(key);
+		} else {
+			for (int i = 0; i < value.length; i++) {
+				value[i] = StringUtils.encodeBase64String(value[i]);
+			}
+
+			setSkipEmpty(key, StringUtils.toString(value, ','));
+		}
+	}
+
+	public void setSkipEmpty(String key, int[] value) {
+		if (value == null || value.length == 0) {
+			kv.remove(key);
+		} else {
+			setSkipEmpty(key, StringUtils.toString(value, ','));
+		}
+	}
+
+	public void setSkipEmpty(String key, Collection<String> value) {
+		if (value == null || value.size() == 0) {
+			kv.remove(key);
+		} else {
+			String[] values = new String[value.size()];
+			int i = 0;
+			for (String string : value) {
+				values[i++] = StringUtils.encodeBase64String(string);
+			}
+			setSkipEmpty(key, StringUtils.toString(values, ','));
+		}
+	}
+
+	public void setSkipEmpty(String key, String value) {
+		if (!has(key) && StringUtils.isEmpty(value)) {
+			return;
+		}
+		set0(key, value);
+	}
+
+	public void setSkipNull(String key, Object value) {
+		if (!has(key) && value == null) {
+			return;
+		}
+		set0(key, value);
 	}
 
 	public void setCatalogId(String id) {
@@ -813,14 +923,14 @@ public class Configuration implements Config, Serializable {
 			if (listeners != null) {
 				Object oldValue = kv.get(key);
 
-				if (!Objects.equals(value, oldValue)) {
+				if (value == null && oldValue != null || value != null && oldValue == null || !Objects.equals(value, oldValue)) {
 					for (ConfigChangedListener listener : listeners) {
 						listener.changed(key, value, oldValue);
 					}
 				}
 			}
 		}
-
+		
 		kv.put(key, value);
 	}
 
