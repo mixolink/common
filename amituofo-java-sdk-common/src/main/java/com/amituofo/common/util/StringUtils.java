@@ -1631,6 +1631,13 @@ public class StringUtils {
 		char c = str.charAt(len - 1);
 		return c == '/' || c == '\\';
 	}
+	
+	public static boolean isFirstChar(String str, char c) {
+		if (str == null || str.length() == 0) {
+			return false;
+		}
+		return str.charAt(0) == c;
+	}
 
 	public static String trimSeparator(String str) {
 		if (str == null) {
