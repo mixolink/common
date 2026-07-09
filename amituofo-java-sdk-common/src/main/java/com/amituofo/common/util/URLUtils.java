@@ -854,25 +854,25 @@ public class URLUtils {
 		return retPath;
 	}
 
-	public static String trimPath(String fullpath) {
-		return trimPathHead(trimPathFoot(fullpath));
-	}
-
-//	public static String trimPath(String path) {
-//		if (StringUtils.isNotEmpty(path)) {
-//			while (path.length() > 0 && path.charAt(0) == '/') {
-//				path = path.substring(1);
-//			}
-//
-//			while (path.length() > 0 && path.charAt(path.length() - 1) == '/') {
-//				path = path.substring(0, path.length() - 1);
-//			}
-//
-//			return path;
-//		} else {
-//			return "";
-//		}
+//	public static String trimPath(String fullpath) {
+//		return trimPathHead(trimPathFoot(fullpath));
 //	}
+
+	public static String trimPath(String path) {
+		if (StringUtils.isNotEmpty(path)) {
+			while (path.length() > 0 && path.charAt(0) == '/') {
+				path = path.substring(1);
+			}
+
+			while (path.length() > 0 && path.charAt(path.length() - 1) == '/') {
+				path = path.substring(0, path.length() - 1);
+			}
+
+			return path;
+		} else {
+			return "";
+		}
+	}
 
 	public static String wrapPath(String fullpath, char warpchar) {
 		if (fullpath == null || fullpath.length() == 0) {

@@ -2,6 +2,7 @@ package com.amituofo.common.ui.swingexts.component;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -17,6 +18,8 @@ import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import com.amituofo.common.ui.util.UIUtils;
 
@@ -222,6 +225,8 @@ public class JEMacStyleTabbedPanel extends JPanel {
         private static final Color SELECTED_BG_COLOR;
         private static final Color HOVER_BG_COLOR;
         private static final int ARC = 8; 
+        private final Font normalFont;
+        private final Color normalForeground;
 
         static {
             Color highlight = UIManager.getColor("Button.select");
@@ -235,6 +240,9 @@ public class JEMacStyleTabbedPanel extends JPanel {
 
         public MacStyleToggleButton(String text, Icon icon) {
             super(text, icon);
+
+            this.normalFont = getFont();
+            this.normalForeground = getForeground();
             
             setHorizontalTextPosition(SwingConstants.CENTER);
             setVerticalTextPosition(SwingConstants.BOTTOM);
@@ -248,6 +256,24 @@ public class JEMacStyleTabbedPanel extends JPanel {
                 @Override
                 public void mouseExited(java.awt.event.MouseEvent evt) { repaint(); }
             });
+
+            addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    if (isSelected()) {
+//                        setFont(normalFont.deriveFont(Font.BOLD));
+                        setForeground(Color.GRAY);
+                    } else {
+//                        setFont(normalFont);
+                        setForeground(normalForeground);
+                    }
+                }
+            });
+
+            if (isSelected()) {
+                setFont(normalFont.deriveFont(Font.BOLD));
+                setForeground(Color.WHITE);
+            }
         }
 
         @Override
