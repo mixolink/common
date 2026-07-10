@@ -40,7 +40,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Stack;
 import java.util.TimeZone;
-import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.alibaba.fastjson.JSON;
 import com.amituofo.common.define.Constants;
@@ -349,7 +350,7 @@ public class SystemUtils {
 		}
 
 		Transferable contents = new Transferable() {
-			final DataFlavor[] dataFlavors = new DataFlavor[] { DataFlavor.javaFileListFlavor};
+			final DataFlavor[] dataFlavors = new DataFlavor[] { DataFlavor.javaFileListFlavor };
 
 			@Override
 			public DataFlavor[] getTransferDataFlavors() {
@@ -915,7 +916,7 @@ public class SystemUtils {
 			openLinuxFileBrowser(path);
 		}
 	}
-	
+
 	public static void openFTProwser(String ftpUrl) throws Exception {
 		// 如果 path 为 null、空，或者无效，则使用用户主目录或根目录
 		if (ftpUrl == null || ftpUrl.trim().isEmpty()) {
@@ -1366,6 +1367,39 @@ public class SystemUtils {
 			// 其他系统或未知系统返回空
 			return "";
 		}
+	}
+
+	private static final Pattern ENV_PATTERN = Pattern.compile("%([^%]+)%");
+
+	public static String replaceEnvParameter(String command) {
+		if (command == null || command.isEmpty()) {
+			return command;
+		}
+		
+		if (command.indexOf("%JAVA%") != -1) {
+			String path = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+			command = command.replace("%JAVA%", path);
+		}
+		
+		if (command.indexOf("%JAVA_HOME%") != -1) {
+			String path = System.getProperty("java.home");
+			command = command.replace("%JAVA_HOME%", path);
+		}
+
+		Matcher matcher = ENV_PATTERN.matcher(command);
+		StringBuffer result = new StringBuffer();
+
+		while (matcher.find()) {
+			String envName = matcher.group(1);
+			String envValue = System.getenv(envName);
+
+			String replacement = (envValue != null) ? envValue : matcher.group(0);
+
+			matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+		}
+		matcher.appendTail(result);
+
+		return result.toString();
 	}
 
 	public static void main(String[] arg) throws IOException, InterruptedException {

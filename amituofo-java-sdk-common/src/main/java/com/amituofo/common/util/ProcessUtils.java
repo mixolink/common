@@ -22,11 +22,10 @@ public class ProcessUtils {
 	}
 
 	public static Process startInJVM(Class<? extends Object> clazz, String[] jvmparams, String[] params, Callback<Integer> stopcallback) throws IOException {
-		String separator = System.getProperty("file.separator");
 		String classpath = System.getProperty("java.class.path");
 		String encoding = System.getProperty("file.encoding");// file.encoding=UTF-8
 		encoding = "-Dfile.encoding=" + (StringUtils.isEmpty(encoding) ? "utf-8" : encoding);
-		String path = System.getProperty("java.home") + separator + "bin" + separator + "java";
+		String path = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
 
 		List<String> command = new ArrayList<String>();
 		command.add(path);
@@ -68,8 +67,10 @@ public class ProcessUtils {
 	public static Process startInProcess(String command, Callback<Integer> callback, String... params) throws IOException {
 		return startInProcess(command, null, callback, params);
 	}
-	
+
 	public static Process startInProcess(String command, File workdirectory, Callback<Integer> callback, String... params) throws IOException {
+		command = SystemUtils.replaceEnvParameter(command);
+
 		List<String> commands = new ArrayList<String>();
 		commands.add(command);
 //		commands.add("\"" + command + "\"");
