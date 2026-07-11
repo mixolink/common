@@ -37,8 +37,10 @@ public abstract class JECardPanel extends JEPanel implements CardAction {
 
 	@Override
 	public synchronized void destroy() {
-		activeListeners = null;
-		super.destroy();
+		synchronized (actived) {
+			activeListeners = null;
+			super.destroy();
+		}
 	}
 
 	@Override
@@ -53,11 +55,11 @@ public abstract class JECardPanel extends JEPanel implements CardAction {
 
 	@Override
 	public void deactiving() {
-		if (isDestroyed()) {
-			return;
-		}
-
 		synchronized (actived) {
+			if (isDestroyed()) {
+				return;
+			}
+
 			if (actived.get() == false) {
 				return;
 			}
@@ -80,11 +82,11 @@ public abstract class JECardPanel extends JEPanel implements CardAction {
 
 	@Override
 	public void activing() {
-		if (isDestroyed()) {
-			return;
-		}
-
 		synchronized (actived) {
+			if (isDestroyed()) {
+				return;
+			}
+
 			if (actived.get()) {
 				return;
 			}
