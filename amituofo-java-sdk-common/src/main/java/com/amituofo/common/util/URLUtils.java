@@ -208,6 +208,23 @@ public class URLUtils {
 			return url.substring(istart + 1);
 		}
 	}
+	
+
+	public static String getRequestDomain(String url) {
+		int istart;
+		int i1 = url.indexOf("://");
+		if (i1 != -1) {
+			istart = url.indexOf('/', i1 + 4);
+		} else {
+			istart = url.indexOf('/');
+		}
+
+		if (istart == -1) {
+			return url;
+		} else {
+			return url.substring(0, istart);
+		}
+	}
 
 //	public static String getRequestBasePath(String path) {
 //		String requestName = null;
@@ -971,6 +988,9 @@ public class URLUtils {
 		try {
 			int max = segments.length - 1;
 			for (int i = 0; i < max; i++) {
+				if(StringUtils.isEmpty(segments[i])) {
+					continue;
+				}
 				String encodedSegment = URLEncoder.encode(segments[i], StandardCharsets.UTF_8.name());
 				encodedPathBuilder.append(encodedSegment).append("/");
 			}
