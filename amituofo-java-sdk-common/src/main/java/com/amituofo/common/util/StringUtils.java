@@ -28,6 +28,8 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class StringUtils {
 	public final static String[] SPACES = new String[] { "", " ", "  ", "   ", "    ", "     ", "      ", "       ", "        ", "         ", "          ", "           ", "            ", "             ", "              ", "               ",
@@ -1885,6 +1887,17 @@ public class StringUtils {
 			return true; // 非打印字符比例高
 
 		return false;
+	}
+	
+    private final static Pattern md5Pattern = Pattern.compile("[a-fA-F0-9]+");
+
+	public static boolean isMD5String(String hash) {
+		if (hash == null || hash.length() != 32) {
+			return false;
+		}
+
+		Matcher m = md5Pattern.matcher(hash);
+		return m.matches();
 	}
 
 }
