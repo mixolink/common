@@ -14,6 +14,7 @@ import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 
 import com.amituofo.common.ui.util.UIUtils;
+import com.amituofo.common.util.StringUtils;
 import com.amituofo.common.util.SystemUtils;
 
 public enum JComponents {
@@ -28,6 +29,9 @@ public enum JComponents {
 
 	private final String componentName;
 	private String[] fontKeyNames;
+	
+    // 获取系统字体
+    private static Set<String> InstalledFonts = new HashSet<>(Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()));
 
 	JComponents(String componentName, String... fontKeyNames) {
 		this.componentName = componentName;
@@ -184,25 +188,20 @@ public enum JComponents {
 	        Font defaultFont = Label.getFont();
 	        int size = defaultFont.getSize();
 
-	        // 获取系统字体
-	        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-	        Set<String> installedFonts = new HashSet<>(Arrays.asList(ge.getAvailableFontFamilyNames()));
-
 	        String lang = locale.getLanguage().toLowerCase();
 
 	        String[] candidates = getCandidates(lang);
 
 	        // 测试字符串（覆盖多语言，防止 glyph 缺失）
-	        String testText = "abcABC123中文あいう한글";
+//	        String testText = "abcABC123中文あいう한글";
 
 	        for (String name : candidates) {
-	            if (installedFonts.contains(name)) {
+	            if (InstalledFonts.contains(name)) {
 	                Font f = new Font(name, Font.PLAIN, size);
-
 	                // 核心：确保字体真的能显示（避免你遇到的“a a a”问题）
-	                if (canDisplay(f, testText)) {
+//	                if (canDisplay(f, testText)) {
 	                    return f;
-	                }
+//	                }
 	            }
 	        }
 
@@ -250,6 +249,8 @@ public enum JComponents {
 	                    };
 	                default:
 	                    return new String[]{
+	                            "Microsoft YaHei UI",
+	                            "Microsoft YaHei",
 	                            "Segoe UI",
 	                            "Calibri",
 	                            "Dialog"
