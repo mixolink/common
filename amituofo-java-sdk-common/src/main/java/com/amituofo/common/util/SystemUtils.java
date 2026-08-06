@@ -335,7 +335,50 @@ public class SystemUtils {
 
 		return null;
 	}
+	
+	public static void copyFilesToClipboardMac(List<File> files) {
+        if (files == null || files.isEmpty()) {
+            return;
+        }
 
+        StringBuilder fileList = new StringBuilder();
+
+        for (int i = 0; i < files.size(); i++) {
+            if (i > 0) fileList.append(", ");
+
+            String path = escapeForAppleScript(files.get(i).getAbsolutePath());
+            fileList.append("POSIX file \"").append(path).append("\"");
+        }
+
+        String script;
+        if (files.size() == 1) {
+            // 单文件不用 {}
+            script = "set the clipboard to (POSIX file \"" +
+                    escapeForAppleScript(files.get(0).getAbsolutePath()) + "\")";
+        } else {
+            script = "set the clipboard to {" + fileList + "}";
+        }
+
+        ProcessBuilder pb = new ProcessBuilder("osascript", "-e", script);
+
+        try {
+            Process process = pb.start();
+            int exitCode = process.waitFor();
+
+//            if (exitCode != 0) {
+//                throw new RuntimeException("osascript 执行失败，exitCode=" + exitCode);
+//            }
+
+        } catch (Exception e) {
+//            throw new RuntimeException("复制文件到 macOS 剪切板失败", e);
+        }
+    }
+
+    // 关键：转义引号
+    private static String escapeForAppleScript(String path) {
+        return path.replace("\"", "\\\"");
+    }
+    
 	public static void copyToSystemClipboard(List<File> files) {
 //		DataFlavor uriListFlavor;
 //		try {
@@ -346,6 +389,7 @@ public class SystemUtils {
 //		}
 
 		if (isMacOS()) {
+			copyFilesToClipboardMac(files);
 			return;
 		}
 

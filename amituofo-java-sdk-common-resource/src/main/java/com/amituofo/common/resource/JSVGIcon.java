@@ -5,16 +5,29 @@ import com.github.weisj.jsvg.attributes.ViewBox; // 确保导入这个类
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.net.URL;
 
 public class JSVGIcon implements Icon {
 	private final SVGDocument document;
 	private final int width;
 	private final int height;
+	private URL url;
 
 	public JSVGIcon(SVGDocument document, int width, int height) {
 		this.document = document;
 		this.width = width;
 		this.height = height;
+	}
+
+	public JSVGIcon(URL url, SVGDocument document, int width, int height) {
+		this.url = url;
+		this.document = document;
+		this.width = width;
+		this.height = height;
+	}
+
+	public URL getUrl() {
+		return url;
 	}
 
 	public ImageIcon getImage() {
@@ -38,7 +51,7 @@ public class JSVGIcon implements Icon {
 		g2d.translate(x, y);
 
 		// 4. 调用你定义的那个 render 方法
-		document.render(c, g2d,  new ViewBox(0, 0, width, height));
+		document.render(c, g2d, new ViewBox(0, 0, width, height));
 
 		g2d.dispose();
 	}

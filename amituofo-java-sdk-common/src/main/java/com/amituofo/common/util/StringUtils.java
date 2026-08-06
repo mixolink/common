@@ -32,13 +32,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StringUtils {
-	public final static String[] SPACES = new String[] { "", " ", "  ", "   ", "    ", "     ", "      ", "       ", "        ", "         ", "          ", "           ", "            ", "             ", "              ", "               ",
-			"                ", "                 ", "                  ", "                   ", "                    ", "                     ", "                      ", "                       ", "                        ",
-			"                         " };
-	public final static String[] UNDERLINE = new String[] { "", "_", "__", "___", "____", "_____", "______", "_______", "________", "_________", "__________", "___________", "____________", "_____________", "______________",
-			"_______________" };
+	public final static String[] SPACES = new String[] { "", " ", "  ", "   ", "    ", "     ", "      ", "       ", "        ", "         ", "          ", "           ",
+			"            ", "             ", "              ", "               ", "                ", "                 ", "                  ", "                   ",
+			"                    ", "                     ", "                      ", "                       ", "                        ", "                         " };
+	public final static String[] UNDERLINE = new String[] { "", "_", "__", "___", "____", "_____", "______", "_______", "________", "_________", "__________", "___________",
+			"____________", "_____________", "______________", "_______________" };
 
-	public final static String[] ZERO = new String[] { "", "0", "00", "000", "0000", "00000", "000000", "0000000", "00000000", "000000000", "0000000000", "00000000000", "000000000000", "0000000000000", "00000000000000", "000000000000000" };
+	public final static String[] ZERO = new String[] { "", "0", "00", "000", "0000", "00000", "000000", "0000000", "00000000", "000000000", "0000000000", "00000000000",
+			"000000000000", "0000000000000", "00000000000000", "000000000000000" };
 	public final static String FS = String.valueOf((char) 28);
 
 	public static String repeat(char c, int len) {
@@ -502,7 +503,6 @@ public class StringUtils {
 
 		return buf.toString();
 	}
-	
 
 	public static String toString(List<String> params, String separator) {
 		if (params == null || params.size() == 0) {
@@ -932,8 +932,7 @@ public class StringUtils {
 			iPasswordScore += 1;
 
 		/*
-		 * if password contains 2 digits, add 2 to score. if contains 1 digit add 1 to
-		 * score
+		 * if password contains 2 digits, add 2 to score. if contains 1 digit add 1 to score
 		 */
 		if (password.matches("(?=.*[0-9].*[0-9]).*"))
 			iPasswordScore += 2;
@@ -945,8 +944,8 @@ public class StringUtils {
 			iPasswordScore += 2;
 
 		/*
-		 * if password contains 2 upper case letters, add 2 to score. if contains only 1
-		 * then add 1 to score.
+		 * if password contains 2 upper case letters, add 2 to score. if contains only 1 then add 1 to
+		 * score.
 		 */
 		if (password.matches("(?=.*[A-Z].*[A-Z]).*"))
 			iPasswordScore += 2;
@@ -954,8 +953,8 @@ public class StringUtils {
 			iPasswordScore += 1;
 
 		/*
-		 * if password contains 2 special characters, add 2 to score. if contains only 1
-		 * special character then add 1 to score.
+		 * if password contains 2 special characters, add 2 to score. if contains only 1 special character
+		 * then add 1 to score.
 		 */
 		if (password.matches("(?=.*[~!@#$%^&*()_-].*[~!@#$%^&*()_-]).*"))
 			iPasswordScore += 2;
@@ -992,29 +991,29 @@ public class StringUtils {
 			return srcstr.toLowerCase().contains(findstr.toLowerCase());
 		}
 	}
-	
+
 	public static boolean containsAnyChars(String srcstr, char[] findchars, boolean caseSensitive) {
-	    if (srcstr == null || srcstr.isEmpty() || findchars == null || findchars.length == 0) {
-	        return false;
-	    }
+		if (srcstr == null || srcstr.isEmpty() || findchars == null || findchars.length == 0) {
+			return false;
+		}
 
-	    for (int i = 0; i < srcstr.length(); i++) {
-	        char srcChar = srcstr.charAt(i);
+		for (int i = 0; i < srcstr.length(); i++) {
+			char srcChar = srcstr.charAt(i);
 
-	        for (char findChar : findchars) {
-	            if (caseSensitive) {
-	                if (srcChar == findChar) {
-	                    return true;
-	                }
-	            } else {
-	                if (Character.toLowerCase(srcChar) == Character.toLowerCase(findChar)) {
-	                    return true;
-	                }
-	            }
-	        }
-	    }
+			for (char findChar : findchars) {
+				if (caseSensitive) {
+					if (srcChar == findChar) {
+						return true;
+					}
+				} else {
+					if (Character.toLowerCase(srcChar) == Character.toLowerCase(findChar)) {
+						return true;
+					}
+				}
+			}
+		}
 
-	    return false;
+		return false;
 	}
 
 	public static boolean contains(String[] srcstrs, String findstr) {
@@ -1288,7 +1287,7 @@ public class StringUtils {
 
 		return parts.toArray(new String[parts.size()]);
 	}
-	
+
 //	public static void main(String[] args) {
 //        System.out.println("=== 测试 1: trim = true（去重 + 无序） ===");
 //        String[] r1 = split("apple, banana, apple, cherry, banana", true, ',');
@@ -1585,9 +1584,16 @@ public class StringUtils {
 
 		// 取得第一个路径中最后一个字符
 		char lastChar = str1.charAt(str1.length() - 1);
+		char firstChar = str2.charAt(0);
 
 		// 如果这个字符就是路径分隔符
 		if (lastChar == separator) {
+			if (firstChar == separator) {
+				return str1 + str2.substring(1);
+			} else {
+				return str1 + str2;
+			}
+		} else if (firstChar == separator) {
 			return str1 + str2;
 		} else {
 			return str1 + separator + str2;
@@ -1633,7 +1639,7 @@ public class StringUtils {
 		char c = str.charAt(len - 1);
 		return c == '/' || c == '\\';
 	}
-	
+
 	public static boolean isFirstChar(String str, char c) {
 		if (str == null || str.length() == 0) {
 			return false;
@@ -1672,6 +1678,30 @@ public class StringUtils {
 				return str;
 			}
 		}
+	}
+
+	public static String trimHeadSeparator(String str) {
+		if (str == null) {
+			return str;
+		}
+		int len = str.length();
+		if (len == 0) {
+			return str;
+		}
+
+		str = str.trim();
+
+		char head = str.charAt(0);
+
+		if (head == '/' || head == '\\') {
+			if (len == 1) {
+				return "";
+			}
+
+			return str.substring(1);
+		}
+		
+		return str;
 	}
 
 	public static String propertyOf(String prop) {
@@ -1764,13 +1794,16 @@ public class StringUtils {
 	}
 
 	private static boolean isAsianBlock(Character.UnicodeBlock block) {
-		return block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS || block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A || block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B
-				|| block == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION || block == Character.UnicodeBlock.HIRAGANA || block == Character.UnicodeBlock.KATAKANA || block == Character.UnicodeBlock.HANGUL_SYLLABLES
-				|| block == Character.UnicodeBlock.HANGUL_JAMO || block == Character.UnicodeBlock.BOPOMOFO || block == Character.UnicodeBlock.THAI || block == Character.UnicodeBlock.LAO || block == Character.UnicodeBlock.TIBETAN
-				|| block == Character.UnicodeBlock.MYANMAR || block == Character.UnicodeBlock.GEORGIAN || block == Character.UnicodeBlock.ARMENIAN || block == Character.UnicodeBlock.HEBREW || block == Character.UnicodeBlock.ARABIC
-				|| block == Character.UnicodeBlock.BENGALI || block == Character.UnicodeBlock.GURMUKHI || block == Character.UnicodeBlock.GUJARATI || block == Character.UnicodeBlock.TAMIL || block == Character.UnicodeBlock.TELUGU
-				|| block == Character.UnicodeBlock.KANNADA || block == Character.UnicodeBlock.MALAYALAM || block == Character.UnicodeBlock.SINHALA || block == Character.UnicodeBlock.THAANA || block == Character.UnicodeBlock.ETHIOPIC
-				|| block == Character.UnicodeBlock.CHEROKEE;
+		return block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS || block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A
+				|| block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B || block == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION
+				|| block == Character.UnicodeBlock.HIRAGANA || block == Character.UnicodeBlock.KATAKANA || block == Character.UnicodeBlock.HANGUL_SYLLABLES
+				|| block == Character.UnicodeBlock.HANGUL_JAMO || block == Character.UnicodeBlock.BOPOMOFO || block == Character.UnicodeBlock.THAI
+				|| block == Character.UnicodeBlock.LAO || block == Character.UnicodeBlock.TIBETAN || block == Character.UnicodeBlock.MYANMAR
+				|| block == Character.UnicodeBlock.GEORGIAN || block == Character.UnicodeBlock.ARMENIAN || block == Character.UnicodeBlock.HEBREW
+				|| block == Character.UnicodeBlock.ARABIC || block == Character.UnicodeBlock.BENGALI || block == Character.UnicodeBlock.GURMUKHI
+				|| block == Character.UnicodeBlock.GUJARATI || block == Character.UnicodeBlock.TAMIL || block == Character.UnicodeBlock.TELUGU
+				|| block == Character.UnicodeBlock.KANNADA || block == Character.UnicodeBlock.MALAYALAM || block == Character.UnicodeBlock.SINHALA
+				|| block == Character.UnicodeBlock.THAANA || block == Character.UnicodeBlock.ETHIOPIC || block == Character.UnicodeBlock.CHEROKEE;
 	}
 
 	public static int compareBetween(String a, String b) {
@@ -1888,8 +1921,8 @@ public class StringUtils {
 
 		return false;
 	}
-	
-    private final static Pattern md5Pattern = Pattern.compile("[a-fA-F0-9]+");
+
+	private final static Pattern md5Pattern = Pattern.compile("[a-fA-F0-9]+");
 
 	public static boolean isMD5String(String hash) {
 		if (hash == null || hash.length() != 32) {

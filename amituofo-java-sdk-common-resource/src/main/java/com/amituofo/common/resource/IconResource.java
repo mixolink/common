@@ -155,7 +155,7 @@ public class IconResource {
 
 		// 2. 将其转换为 Swing Icon
 		// 注意：JSVG 会根据你指定的 width/height 自动处理坐标偏移
-		return new JSVGIcon(document, size, size);
+		return new JSVGIcon(url, document, size, size);
 	}
 
 	public static byte[] toByteArray(InputStream inputStream) throws IOException {
