@@ -43,7 +43,7 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.amituofo.common.define.Constants;
 import com.amituofo.common.kit.info.OSInfo;
 import com.amituofo.common.kit.info.OSInfo.DiskInfo;
@@ -1487,15 +1487,14 @@ public class SystemUtils {
 //		System.out.println(gatherOSInfo());
 //		System.out.println(getOSDriver());
 //		System.out.println(System.getenv());
-
-		System.out.println(JSON.toJSONString(gatherOSInfo(), true));
+//		System.out.println(JSON.toJSONString(gatherOSInfo(), true));
 
 		OperatingSystemMXBean osbean = ManagementFactory.getOperatingSystemMXBean();
 //		if (osbean instanceof com.sun.management.OperatingSystemMXBean) {
 //			com.sun.management.OperatingSystemMXBean sumosbean = ((com.sun.management.OperatingSystemMXBean) osbean);
 
-		String j = JSON.toJSONString(osbean, true);
-		System.out.println(j);
+//		String j = JSON.toJSONString(osbean, true);
+//		System.out.println(j);
 //		}
 
 //		Process ps = Runtime.getRuntime().exec("C:\\windows\\system32\\notepad.exe");

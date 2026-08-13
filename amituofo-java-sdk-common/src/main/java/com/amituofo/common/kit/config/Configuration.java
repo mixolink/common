@@ -2,6 +2,7 @@ package com.amituofo.common.kit.config;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -12,7 +13,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONFactory;
+import com.alibaba.fastjson2.JSONWriter;
+import com.alibaba.fastjson2.writer.ObjectWriterProvider;
 import com.amituofo.common.api.KeyValueHandler;
 import com.amituofo.common.ex.EncryptorException;
 import com.amituofo.common.ex.HandleException;
@@ -43,8 +47,16 @@ public class Configuration implements Config, Serializable {
 
 	private Map<String, List<ConfigChangedListener>> keylisteners = null;
 //	private Map<String, List<ConfigChangedListener>> keyslisteners = null;
-
 //	private SensitiveKeyValueHandler sensitiveKeyValueHandler;
+	
+	static {
+		ObjectWriterProvider provider = JSONFactory.getDefaultObjectWriterProvider();
+
+		provider.register(byte[].class, (jsonWriter, object, fieldName, fieldType, features) -> {
+		    byte[] bytes = (byte[]) object;
+		    jsonWriter.writeString(Base64.getEncoder().encodeToString(bytes));
+		});
+	}
 
 	public Configuration() {
 	}
@@ -896,6 +908,10 @@ public class Configuration implements Config, Serializable {
 	}
 
 	public String toJsonString() {
+//		if (value != null && value instanceof byte[]) {
+//			value = StringUtils.encodeBase64String((byte[])value);
+//		}
+		
 		return JSON.toJSONString(toMap());
 //		ObjectMapper objectMapper = new ObjectMapper();
 //		return objectMapper.writeValueAsString(toMap());
@@ -930,12 +946,12 @@ public class Configuration implements Config, Serializable {
 				}
 			}
 		}
-		
+
 		kv.put(key, value);
 	}
 
 	public String toPrettyJsonString() {
-		return JSON.toJSONString(toMap(), true);
+		return JSON.toJSONString(toMap(), JSONWriter.Feature.PrettyFormat);
 
 //		ObjectMapper objectMapper = new ObjectMapper();
 //		ObjectWriter ow = objectMapper.writerWithDefaultPrettyPrinter();

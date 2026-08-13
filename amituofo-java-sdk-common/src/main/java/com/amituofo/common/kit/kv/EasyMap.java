@@ -9,16 +9,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONWriter;
 import com.amituofo.common.api.KeyValueHandler;
-import com.amituofo.common.ex.DecodeException;
-import com.amituofo.common.ex.EncodeException;
 import com.amituofo.common.ex.HandleException;
 import com.amituofo.common.ex.ParseException;
 import com.amituofo.common.kit.config.Config;
 import com.amituofo.common.kit.counter.Counter;
 import com.amituofo.common.type.HandleFeedback;
-import com.amituofo.common.util.DesUtils;
 import com.amituofo.common.util.StringUtils;
 
 public class EasyMap extends HashMap<String, Object> {
@@ -497,7 +495,7 @@ public class EasyMap extends HashMap<String, Object> {
 	}
 
 	public String toPrettyJsonString() {
-		return JSON.toJSONString(kv, true);
+		return JSON.toJSONString(kv, JSONWriter.Feature.PrettyFormat);
 	}
 
 	public static EasyMap parseJsonString(String config) throws ParseException {

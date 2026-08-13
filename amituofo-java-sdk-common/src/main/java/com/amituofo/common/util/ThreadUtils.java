@@ -13,8 +13,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
-import com.alibaba.fastjson.util.Function;
 import com.amituofo.common.kit.counter.Counter;
 
 public class ThreadUtils {

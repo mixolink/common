@@ -1,26 +1,15 @@
 package com.amituofo.common.ui.util;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.amituofo.common.util.StreamUtils;
 import com.amituofo.common.util.StringUtils;
 import com.amituofo.common.util.SystemUtils;
 
 public final class UIScaling {
-
-	public static int scale(int i) {
-		return i;
-	}
 
 	public static void setupLinuxScaling() {
 		if (!SystemUtils.isLinux()) {
@@ -32,9 +21,13 @@ public final class UIScaling {
 		if (scale == null) {
 			scale = System.getenv("MIXOLINK_UI_SCALE");
 		}
-		if (scale == null) {
-			scale = System.getenv("GDK_SCALE");
+
+		if (StringUtils.isNotEmpty(scale)) {
+			System.setProperty("sun.java2d.uiScale", scale);
+			return;
 		}
+
+		scale = System.getenv("GDK_SCALE");
 		if (scale == null) {
 			scale = readGnomeMonitorScale();
 			System.out.println("readGnomeMonitorScale=" + scale);
@@ -48,6 +41,7 @@ public final class UIScaling {
 			System.out.println("readGnomeIntegerScale=" + scale);
 		}
 		if (StringUtils.isNotEmpty(scale)) {
+			System.out.println("sun.java2d.uiScale=" + scale);
 			scale = fitScale(scale);
 			System.out.println("sun.java2d.uiScale=" + scale);
 			System.setProperty("sun.java2d.uiScale", scale);
@@ -98,23 +92,19 @@ public final class UIScaling {
 		}
 
 		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			configureSecureXmlParser(factory);
-			Document document = factory.newDocumentBuilder().parse(configFile.toFile());
-			NodeList logicalMonitors = document.getElementsByTagName("logicalmonitor");
-
+			String content = new String(Files.readAllBytes(configFile), StandardCharsets.UTF_8);
 			String firstValidScale = null;
-
-			for (int i = 0; i < logicalMonitors.getLength(); i++) {
-				Node node = logicalMonitors.item(i);
-
-				if (node.getNodeType() != Node.ELEMENT_NODE) {
-					continue;
+			int offset = 0;
+			while ((offset = content.indexOf("<logicalmonitor>", offset)) >= 0) {
+				int end = content.indexOf("</logicalmonitor>", offset);
+				if (end < 0) {
+					break;
 				}
 
-				Element logicalMonitor = (Element) node;
-				String scale = childText(logicalMonitor, "scale");
+				String monitor = content.substring(offset, end);
+				String scale = tagValue(monitor, "scale");
 				if (scale == null) {
+					offset = end + 1;
 					continue;
 				}
 
@@ -122,46 +112,18 @@ public final class UIScaling {
 					firstValidScale = scale;
 				}
 
-				String primary = childText(logicalMonitor, "primary");
+				String primary = tagValue(monitor, "primary");
 				if ("yes".equalsIgnoreCase(primary) || "true".equalsIgnoreCase(primary)) {
 					return scale;
 				}
+
+				offset = end + 1;
 			}
 
 			return firstValidScale;
 		} catch (Exception e) {
 			return null;
 		}
-	}
-
-	private static void configureSecureXmlParser(DocumentBuilderFactory factory) {
-		try {
-			factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-		} catch (Exception ignored) {
-		}
-
-		try {
-			factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-		} catch (Exception ignored) {
-		}
-
-		try {
-			factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-		} catch (Exception ignored) {
-		}
-
-		try {
-			factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-		} catch (Exception ignored) {
-		}
-
-		try {
-			factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-		} catch (Exception ignored) {
-		}
-
-		factory.setXIncludeAware(false);
-		factory.setExpandEntityReferences(false);
 	}
 
 	private static Path resolveGnomeMonitorsFile() {
@@ -180,19 +142,21 @@ public final class UIScaling {
 		return Paths.get(userHome, ".config", "monitors.xml");
 	}
 
-	private static String childText(Element parent, String tagName) {
-		NodeList children = parent.getElementsByTagName(tagName);
-		if (children.getLength() == 0) {
+	private static String tagValue(String content, String tagName) {
+		String openingTag = "<" + tagName + ">";
+		String closingTag = "</" + tagName + ">";
+		int start = content.indexOf(openingTag);
+		if (start < 0) {
 			return null;
 		}
 
-		Node child = children.item(0);
-		if (child == null) {
+		start += openingTag.length();
+		int end = content.indexOf(closingTag, start);
+		if (end < 0) {
 			return null;
 		}
 
-		String value = child.getTextContent();
-		return value == null ? null : value.trim();
+		return content.substring(start, end).trim();
 	}
 
 	private static String fitScale(String value) {
@@ -211,7 +175,7 @@ public final class UIScaling {
 	}
 
 	private static String fitScale(float scale) {
-		if (scale <= 1) {
+		if (scale <= 1.0) {
 			return "1";
 		} else {
 			return "2";

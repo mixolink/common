@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.amituofo.common.api.HandleBytes;
 import com.amituofo.common.api.ObjectHandler;
 import com.amituofo.common.api.RecordHandler;
