@@ -6,7 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.amituofo</groupId>
-		<artifactId>sdk-common</artifactId>
+		<artifactId>sdk-commons</artifactId>
 		<version>1.0.0</version>
 	</parent>
 

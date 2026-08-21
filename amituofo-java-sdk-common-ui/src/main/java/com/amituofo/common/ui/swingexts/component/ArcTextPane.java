@@ -3,22 +3,83 @@ package com.amituofo.common.ui.swingexts.component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
 import javax.swing.JTextPane;
 import javax.swing.UIManager;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.text.StyledDocument;
 
+import com.amituofo.common.ui.define.TextFieldMenu;
+
 public class ArcTextPane extends JTextPane {
+	private static final long serialVersionUID = 1L;
 
 	public ArcTextPane() {
-		setBorder(ArcBorder.DEFAULT);
-		setOpaque(false);
+		init();
 	}
 
 	public ArcTextPane(StyledDocument doc) {
 		super(doc);
+		init();
+	}
+
+	private void init() {
 		setBorder(ArcBorder.DEFAULT);
 		setOpaque(false);
+		installTextMenu();
+	}
+
+	private void installTextMenu() {
+		JPopupMenu popupMenu = new JPopupMenu();
+		JMenuItem cutMenu = new JMenuItem(TextFieldMenu.Cut.getTitle());
+		JMenuItem copyMenu = new JMenuItem(TextFieldMenu.Copy.getTitle());
+		JMenuItem pasteMenu = new JMenuItem(TextFieldMenu.Paste.getTitle());
+		JMenuItem selectAllMenu = new JMenuItem(TextFieldMenu.SelectAll.getTitle());
+
+		cutMenu.addActionListener(e -> cut());
+		copyMenu.addActionListener(e -> copy());
+		pasteMenu.addActionListener(e -> paste());
+		selectAllMenu.addActionListener(e -> selectAll());
+
+		popupMenu.add(cutMenu);
+		popupMenu.add(copyMenu);
+		popupMenu.add(pasteMenu);
+		popupMenu.add(new JSeparator());
+		popupMenu.add(selectAllMenu);
+		popupMenu.addPopupMenuListener(new PopupMenuListener() {
+			@Override
+			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+				boolean hasSelection = getSelectionStart() != getSelectionEnd();
+				cutMenu.setEnabled(isEditable() && isEnabled() && hasSelection);
+				copyMenu.setEnabled(hasSelection);
+				pasteMenu.setEnabled(isEditable() && isEnabled() && hasTextOnClipboard());
+				selectAllMenu.setEnabled(getDocument().getLength() > 0);
+			}
+
+			@Override
+			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+			}
+
+			@Override
+			public void popupMenuCanceled(PopupMenuEvent e) {
+			}
+		});
+		setComponentPopupMenu(popupMenu);
+	}
+
+	private boolean hasTextOnClipboard() {
+		try {
+			Transferable content = getToolkit().getSystemClipboard().getContents(this);
+			return content != null && content.isDataFlavorSupported(DataFlavor.stringFlavor);
+		} catch (IllegalStateException | SecurityException e) {
+			return false;
+		}
 	}
 
 	@Override
