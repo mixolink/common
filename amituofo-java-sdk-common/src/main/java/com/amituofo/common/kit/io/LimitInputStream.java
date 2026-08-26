@@ -52,7 +52,12 @@ public class LimitInputStream extends InputStream {
 
 	@Override
 	public long skip(long n) throws IOException {
-		return in.skip(n);
+		if (n <= 0 || remaining == 0) {
+			return 0;
+		}
+		long skipped = super.skip(Math.min(n, remaining));
+		remaining -= skipped;
+		return skipped;
 	}
 
 	public int hashCode() {
@@ -84,4 +89,11 @@ public class LimitInputStream extends InputStream {
 		return in.markSupported();
 	}
 
+	public boolean isLimitReached() {
+		return remaining == 0;
+	}
+
+	public long getRemaining() {
+		return remaining;
+	}
 }
