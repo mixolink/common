@@ -1,11 +1,9 @@
 package com.amituofo.common.ui.swingexts.component;
 
 import javax.swing.JPasswordField;
-import javax.swing.text.Document;
-import javax.swing.JPasswordField;
-import javax.swing.text.Document;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
 
 public class JEPasswordField extends JPasswordField {
 
@@ -17,55 +15,75 @@ public class JEPasswordField extends JPasswordField {
      */
     private boolean suppressChangeTracking = false;
 
+    private final DocumentListener modificationListener = new DocumentListener() {
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            markModifiedIfNeeded();
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            markModifiedIfNeeded();
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            // Plain text documents generally do not fire this event.
+        }
+    };
+
     public JEPasswordField() {
-        registEvent();
+        registerModificationListener();
     }
 
     public JEPasswordField(String text) {
         super(text);
-        registEvent();
+        registerModificationListener();
     }
 
     public JEPasswordField(int columns) {
         super(columns);
-        registEvent();
+        registerModificationListener();
     }
 
     public JEPasswordField(String text, int columns) {
         super(text, columns);
-        registEvent();
+        registerModificationListener();
     }
 
-    public JEPasswordField(Document doc, String txt, int columns) {
-        super(doc, txt, columns);
-        registEvent();
+    public JEPasswordField(Document doc, String text, int columns) {
+        super(doc, text, columns);
+        registerModificationListener();
     }
 
-    private void registEvent() {
-        getDocument().addDocumentListener(new DocumentListener() {
+    private void registerModificationListener() {
+        Document document = getDocument();
+        if (document != null) {
+            document.addDocumentListener(modificationListener);
+        }
+    }
 
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                markModifiedIfNeeded();
-                // 可以在这里做其他实时检查，比如长度、强度等
-            }
+    private void markModifiedIfNeeded() {
+        if (!suppressChangeTracking) {
+            isModified = true;
+        }
+    }
 
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                markModifiedIfNeeded();
-            }
+    @Override
+    public void setDocument(Document doc) {
+        Document oldDocument = getDocument();
+        if (oldDocument != null && modificationListener != null) {
+            oldDocument.removeDocumentListener(modificationListener);
+        }
 
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                // 一般纯文本组件不会触发这个，基本可以忽略
-            }
+        super.setDocument(doc);
 
-            private void markModifiedIfNeeded() {
-                if (!suppressChangeTracking) {
-                    isModified = true;
-                }
-            }
-        });
+        // During the superclass constructor, subclass fields have not been
+        // initialized yet. The constructor registers the listener afterwards.
+        if (doc != null && modificationListener != null) {
+            doc.addDocumentListener(modificationListener);
+        }
     }
 
     /**
@@ -73,26 +91,13 @@ public class JEPasswordField extends JPasswordField {
      * 例如表单回显、设置默认值等场景。
      */
     @Override
-    public void setText(String t) {
+    public void setText(String text) {
         suppressChangeTracking = true;
         try {
-            super.setText(t);
+            super.setText(text);
         } finally {
             suppressChangeTracking = false;
         }
-    }
-
-    /**
-     * 如果外部替换了底层 Document（调用 setDocument），
-     * 需要在新文档上重新注册监听器，否则修改追踪会失效。
-     */
-    @Override
-    public void setDocument(Document doc) {
-        super.setDocument(doc);
-        // 注意：构造函数中调用 super(doc, txt, columns) 时，
-        // 该方法可能在 registEvent() 首次调用前被间接触发，
-        // 此时 getDocument() 已经是新文档，直接重新注册即可。
-        registEvent();
     }
 
     public boolean isPasswordModified() {
@@ -100,7 +105,7 @@ public class JEPasswordField extends JPasswordField {
     }
 
     public void reset() {
-        this.setText("");
+        setText("");
         isModified = false;
     }
 }
