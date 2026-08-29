@@ -609,6 +609,9 @@ public class Configuration implements Config, Serializable {
 			int khash = key.hashCode();
 			int vhash = 0;
 			if (o != null) {
+				if(o.getClass().isEnum()) {
+					o = o.toString();
+				}
 				vhash = o.hashCode();
 			}
 
