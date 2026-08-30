@@ -236,10 +236,6 @@ public class Configuration implements Config, Serializable {
 		return (byte[]) kv.get(key);
 	}
 
-	public String getCatalogId() {
-		return this.getString(_CONFIG_CATALOG_ID_);
-	}
-
 	public char getChar(String key) {
 		String v = (String) kv.get(key);
 		if (v != null) {
@@ -295,10 +291,6 @@ public class Configuration implements Config, Serializable {
 		return (Configuration) o;
 	}
 
-	public String getDescription() {
-		return this.getString(_CONFIG_DESC_);
-	}
-
 	public Double getDouble(String key) {
 		return getDouble(key, null);
 	}
@@ -337,10 +329,6 @@ public class Configuration implements Config, Serializable {
 		}
 
 		return defaultValue;
-	}
-
-	public String getId() {
-		return this.getString(_CONFIG_ID_);
 	}
 
 	public int getInt(String key) {
@@ -416,16 +404,6 @@ public class Configuration implements Config, Serializable {
 
 	public Map<String, Object> getMap(String key) {
 		return (Map<String, Object>) kv.get(key);
-	}
-
-	public String getName() {
-		String name = this.getString(_CONFIG_NAME_);
-		if (name == null) {
-			// 兼容旧版本
-			name = this.getString("_<_NAME_>_");
-		}
-
-		return name;
 	}
 
 	public Object getObject(String key) {
@@ -585,10 +563,6 @@ public class Configuration implements Config, Serializable {
 		}
 
 		return defaultValue;
-	}
-
-	public String getVersion() {
-		return this.getString(_CONFIG_VERSION_);
 	}
 
 	public boolean has(String key) {
@@ -866,24 +840,58 @@ public class Configuration implements Config, Serializable {
 		set0(key, value);
 	}
 
+	public String getCatalogId() {
+		return this.getString(_CONFIG_CATALOG_ID_);
+	}
+	
 	public void setCatalogId(String id) {
-		set0(_CONFIG_CATALOG_ID_, id);
+		if (StringUtils.isEmpty(id)) {
+			remove(_CONFIG_CATALOG_ID_);
+		} else {
+			set0(_CONFIG_CATALOG_ID_, id);
+		}
 	}
 
-//	configMap.put(key, value);
-//	configMap.put(key + "_CLASS_NAME_", value.getClass().getName());
-//	configMap.put(key + "_CLASS_", value.getClass());
+	public String getDescription() {
+		return this.getString(_CONFIG_DESC_);
+	}
 
 	public void setDescription(String name) {
-		set0(_CONFIG_DESC_, name);
+		if (StringUtils.isEmpty(name)) {
+			remove(_CONFIG_DESC_);
+		} else {
+			set0(_CONFIG_DESC_, name);
+		}
 	}
 
+	public String getId() {
+		return this.getString(_CONFIG_ID_);
+	}
+	
 	public void setId(String id) {
-		set0(_CONFIG_ID_, id);
+		if (StringUtils.isEmpty(id)) {
+			remove(_CONFIG_ID_);
+		} else {
+			set0(_CONFIG_ID_, id);
+		}
+	}
+
+	public String getName() {
+		String name = this.getString(_CONFIG_NAME_);
+		if (name == null) {
+			// 兼容旧版本
+			name = this.getString("_<_NAME_>_");
+		}
+
+		return name;
 	}
 
 	public void setName(String name) {
-		set0(_CONFIG_NAME_, name);
+		if (StringUtils.isEmpty(name)) {
+			remove(_CONFIG_NAME_);
+		} else {
+			set0(_CONFIG_NAME_, name);
+		}
 	}
 
 	public void setSensitiveString(String key, String value, char[] pepper) throws EncryptorException {
@@ -902,8 +910,16 @@ public class Configuration implements Config, Serializable {
 		set0(key, value);
 	}
 
+	public String getVersion() {
+		return this.getString(_CONFIG_VERSION_);
+	}
+
 	public void setVersion(String name) {
-		set0(_CONFIG_VERSION_, name);
+		if (StringUtils.isEmpty(name)) {
+			remove(_CONFIG_VERSION_);
+		} else {
+			set0(_CONFIG_VERSION_, name);
+		}
 	}
 
 	public int size() {
