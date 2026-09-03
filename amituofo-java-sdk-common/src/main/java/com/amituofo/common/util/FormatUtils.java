@@ -75,6 +75,9 @@ public class FormatUtils {
 	public final static DatetimeFormat YYYY_MM_DD_HHMMSSS = DatetimeFormat.YYYY_MM_DD_HHMMSSS;
 
 	public static String formatDatetime(Long time, SimpleDateFormat formater) {
+		if (time == null) {
+			return Constants.NO_DATA_MARK;
+		}
 		Date date = new Date(time);
 		return formater.format(date);
 	}
