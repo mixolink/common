@@ -11,41 +11,37 @@ import com.amituofo.common.util.SystemUtils;
 
 public final class UIScaling {
 
-	public static void setupLinuxScaling() {
+	public static String setupLinuxScaling(String scale) {
 		if (!SystemUtils.isLinux()) {
-			return;
-		}
-
-		String scale = System.getProperty("mixolink.uiScale");
-
-		if (scale == null) {
-			scale = System.getenv("MIXOLINK_UI_SCALE");
+			return null;
 		}
 
 		if (StringUtils.isNotEmpty(scale)) {
 			System.setProperty("sun.java2d.uiScale", scale);
-			return;
+			return scale;
 		}
 
 		scale = System.getenv("GDK_SCALE");
 		if (scale == null) {
 			scale = readGnomeMonitorScale();
-			System.out.println("readGnomeMonitorScale=" + scale);
+//			System.out.println("readGnomeMonitorScale=" + scale);
 		}
 		if (scale == null) {
 			scale = readXftDpiScale();
-			System.out.println("readXftDpiScale=" + scale);
+//			System.out.println("readXftDpiScale=" + scale);
 		}
 		if (scale == null) {
 			scale = readGnomeIntegerScale();
-			System.out.println("readGnomeIntegerScale=" + scale);
+//			System.out.println("readGnomeIntegerScale=" + scale);
 		}
 		if (StringUtils.isNotEmpty(scale)) {
-			System.out.println("sun.java2d.uiScale=" + scale);
+//			System.out.println("sun.java2d.uiScale=" + scale);
 			scale = fitScale(scale);
-			System.out.println("sun.java2d.uiScale=" + scale);
+//			System.out.println("sun.java2d.uiScale=" + scale);
 			System.setProperty("sun.java2d.uiScale", scale);
 		}
+		
+		return scale;
 	}
 
 	private static String readGnomeIntegerScale() {
