@@ -44,7 +44,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -54,10 +53,12 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
@@ -80,6 +81,7 @@ import com.amituofo.common.global.DialogManager;
 import com.amituofo.common.kit.counter.Counter;
 import com.amituofo.common.kit.kv.KeyValue;
 import com.amituofo.common.kit.value.Value;
+import com.amituofo.common.type.MessageType;
 import com.amituofo.common.ui.action.InputValidator;
 import com.amituofo.common.ui.runtime.UIContext;
 import com.amituofo.common.ui.swingexts.JComponents;
@@ -87,11 +89,9 @@ import com.amituofo.common.ui.swingexts.component.ArcTextPane;
 import com.amituofo.common.ui.swingexts.component.JEPropertyDialogPanel;
 import com.amituofo.common.ui.swingexts.dialog.SimpleDialog;
 import com.amituofo.common.ui.swingexts.dialog.SimpleDialogOption;
-import com.amituofo.common.util.StreamUtils;
 import com.amituofo.common.util.StringUtils;
 import com.amituofo.common.util.SystemUtils;
 import com.formdev.flatlaf.util.SystemFileChooser;
-import com.formdev.flatlaf.util.SystemFileChooser.FileFilter;
 
 public class UIUtils {
 	public static String DEFAULT_TITLE_OF_ERROR = "Error";
@@ -217,6 +217,47 @@ public class UIUtils {
 	// worker.execute();
 	// waitingDlg.showWaitingDialog();
 	// }
+
+	public static void openLongTextMessage(Component parent, MessageType msgtype, String message) {
+		openLongTextMessage(parent, msgtype, message, 10, 50);
+	}
+	
+	public static void openLongTextMessage(Component parent, MessageType msgtype, String message, int rows, int columns) {
+		Component parentComponent = (parent != null) ? parent : UIContext.getDefaultTopFrame();
+
+		JTextArea text = new JTextArea(message, rows, columns);
+		text.setEditable(false);
+		text.setLineWrap(true);
+		text.setWrapStyleWord(true);
+		text.setCaretPosition(0);
+
+		if (SwingUtilities.isEventDispatchThread()) {
+			DialogManager.increaseDialog();
+			if (msgtype == MessageType.ERROR) {
+				JOptionPane.showMessageDialog(parentComponent, new JScrollPane(text), DEFAULT_TITLE_OF_ERROR, JOptionPane.ERROR_MESSAGE);
+			} else if (msgtype == MessageType.WARN) {
+				JOptionPane.showMessageDialog(parentComponent, new JScrollPane(text), DEFAULT_TITLE_OF_WARNING, JOptionPane.WARNING_MESSAGE);
+			} else {
+				JOptionPane.showMessageDialog(parentComponent, new JScrollPane(text), DEFAULT_TITLE_OF_INFO, JOptionPane.INFORMATION_MESSAGE);
+			}
+			DialogManager.decreaseDialog();
+		} else {
+			try {
+				SwingUtilities.invokeAndWait(() -> {
+					DialogManager.increaseDialog();
+					if (msgtype == MessageType.ERROR) {
+						JOptionPane.showMessageDialog(parentComponent, new JScrollPane(text), DEFAULT_TITLE_OF_ERROR, JOptionPane.ERROR_MESSAGE);
+					} else if (msgtype == MessageType.WARN) {
+						JOptionPane.showMessageDialog(parentComponent, new JScrollPane(text), DEFAULT_TITLE_OF_WARNING, JOptionPane.WARNING_MESSAGE);
+					} else {
+						JOptionPane.showMessageDialog(parentComponent, new JScrollPane(text), DEFAULT_TITLE_OF_INFO, JOptionPane.INFORMATION_MESSAGE);
+					}
+					DialogManager.decreaseDialog();
+				});
+			} catch (Exception e1) {
+			}
+		}
+	}
 
 	public static void openError(Component parent, String message) {
 		openError(parent, message, null);
