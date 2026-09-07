@@ -57,9 +57,23 @@ public enum JComponents {
 
 	public static Font getDefaultTerminalFont(String localeCode) {
 		String[] fonts = UIUtils.getMonospacedFontsForLocale(localeCode);
+		if (fonts != null && fonts.length > 0) {
+			if (StringUtils.contains(fonts, "DialogInput")) {
+				return new Font("DialogInput", Font.PLAIN, getDefaultSystemFont().getSize());
+			}
 
-		return fonts != null && fonts.length > 0 ? new Font(fonts[0], Font.PLAIN, getDefaultSystemFont().getSize())
-				: new Font("Courier New", Font.PLAIN, getDefaultSystemFont().getSize());
+			if (StringUtils.contains(fonts, "Monospaced")) {
+				return new Font("Monospaced", Font.PLAIN, getDefaultSystemFont().getSize());
+			}
+
+			if (StringUtils.contains(fonts, "Courier New")) {
+				return new Font("Courier New", Font.PLAIN, getDefaultSystemFont().getSize());
+			}
+			
+			return new Font(fonts[0], Font.PLAIN, getDefaultSystemFont().getSize());
+		}
+
+		return new Font("Courier New", Font.PLAIN, getDefaultSystemFont().getSize());
 	}
 
 	public static Font newPlainFont(String name) {

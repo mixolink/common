@@ -1422,7 +1422,7 @@ public class UIUtils {
 		LOCALE_TEST_STRINGS.put("ko_KR", "가나다라마바사아자차카타파하");
 		LOCALE_TEST_STRINGS.put("pt_BR", "áâãàçéêíóôõú");
 		LOCALE_TEST_STRINGS.put("ru_RU", "абвгдеёжзийклмнопрстуфхцчшщъыьэюя");
-		LOCALE_TEST_STRINGS.put("zh_CN", "的一是在不了有和人这");
+		LOCALE_TEST_STRINGS.put("zh_CN", "亚洲的一是在不了有和人这");
 	}
 
 	/**
