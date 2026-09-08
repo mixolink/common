@@ -1573,6 +1573,20 @@ public class StringUtils {
 		return list.toArray(new String[list.size()]);
 	}
 
+	public static String[] filterInclude(String[] srcarray, String find) {
+		List<String> list = new ArrayList<>();
+
+		if (srcarray != null && srcarray.length > 0) {
+			for (String string : srcarray) {
+				if (StringUtils.contains(find, string)) {
+					list.add(string);
+				}
+			}
+		}
+
+		return list.toArray(new String[list.size()]);
+	}
+
 	public static String cat(String str1, String str2, char separator) {
 		if (str1 == null || str1.length() == 0) {
 			return str2;

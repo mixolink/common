@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.swing.AbstractButton;
@@ -1430,14 +1431,14 @@ public class UIUtils {
 	 * 
 	 * @param localeCode 语言代码，如 "zh_CN"，传 null 则返回全部等宽字体
 	 */
-	public static String[] getMonospacedFontsForLocale(String localeCode) {
+	public static String[] getMonospacedFontsForLocale(Locale localeCode) {
 		String[] monoFonts = getMonospacedFonts();
 
 		if (localeCode == null) {
 			return monoFonts;
 		}
 
-		String testString = LOCALE_TEST_STRINGS.get(localeCode);
+		String testString = LOCALE_TEST_STRINGS.get(localeCode.toString());
 		if (testString == null) {
 			return monoFonts;
 		}
