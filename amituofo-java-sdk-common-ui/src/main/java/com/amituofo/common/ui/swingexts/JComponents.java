@@ -190,7 +190,7 @@ public enum JComponents {
 						? new String[] { "PingFang TC", "PingFang HK", "Heiti TC", "Dialog" }
 						: new String[] { "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Dialog" };
 			case "ja":
-				return new String[] { "Hiragino Sans", "Hiragino Kaku Gothic ProN", "YuGothic", "PingFang TC", "Dialog" };
+				return new String[] { "PingFang TC", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "YuGothic", "Dialog" };
 			case "ko":
 				return new String[] { "Apple SD Gothic Neo", "AppleGothic", "PingFang TC", "Dialog" };
 			case "en":
