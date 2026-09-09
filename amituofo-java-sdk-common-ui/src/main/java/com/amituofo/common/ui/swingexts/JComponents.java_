@@ -17,7 +17,7 @@ import com.amituofo.common.ui.util.UIUtils;
 import com.amituofo.common.util.StringUtils;
 import com.amituofo.common.util.SystemUtils;
 
-public enum JComponents {
+public enum JComponents2 {
 	Button("Button", "font"), CheckBox("CheckBox", "font"), CheckBoxMenuItem("CheckBoxMenuItem", "font", "acceleratorFont"), ColorChooser("ColorChooser", "font"),
 	ComboBox("ComboBox", "font"), EditorPane("EditorPane", "font"), FileChooser("FileChooser", "listFont"), FormattedTextField("FormattedTextField", "font"),
 	InternalFrame("InternalFrame", "titleFont"), Label("Label", "font"), List("List", "font"), Menu("Menu", "font", "acceleratorFont"), MenuBar("MenuBar", "font"),
@@ -32,9 +32,8 @@ public enum JComponents {
 
 	// 获取系统字体
 	private static Set<String> InstalledFonts = new HashSet<>(Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()));
-	private static final String MULTILINGUAL_TEST_TEXT = "Aa09äöüßéñçРусский简体中文繁體中文空日本語한국어";
 
-	JComponents(String componentName, String... fontKeyNames) {
+	JComponents2(String componentName, String... fontKeyNames) {
 		this.componentName = componentName;
 		this.fontKeyNames = new String[fontKeyNames.length];
 		for (int i = 0; i < fontKeyNames.length; i++) {
@@ -72,42 +71,40 @@ public enum JComponents {
 	}
 
 	public static Font getDefaultTerminalFont(Locale localeCode) {
-		Locale locale = localeCode != null ? localeCode : Locale.getDefault();
 		String[] fonts = UIUtils.getMonospacedFontsForLocale(localeCode);
 		if (fonts != null && fonts.length > 0) {
-			String testText = getTestText(locale);
-			Font preferredFont;
-			String preferFontKeyworld = getPreferFontKeyworld(locale);
+			String preferFontKeyworld = getPreferFontKeyworld(localeCode);
 			if (preferFontKeyworld != null) {
 				String[] matchFonts = StringUtils.filterInclude(fonts, preferFontKeyworld);
 				if (matchFonts != null && matchFonts.length > 0) {
-					preferredFont = getFirstSupportedFont(matchFonts, matchFonts, testText);
-					if (preferredFont != null) {
-						return preferredFont;
-					}
+					return new Font(matchFonts[0], Font.PLAIN, getDefaultSystemFont().getSize());
 				}
 			}
 
-			preferredFont = getFirstSupportedFont(fonts, new String[] { "DialogInput", "Monospaced", "Courier New" }, testText);
-			if (preferredFont != null) {
-				return preferredFont;
+			if (StringUtils.contains(fonts, "DialogInput")) {
+				return new Font("DialogInput", Font.PLAIN, getDefaultSystemFont().getSize());
 			}
 
-			preferredFont = getFirstSupportedFont(fonts, fonts, testText);
-			if (preferredFont != null) {
-				return preferredFont;
+			if (StringUtils.contains(fonts, "Monospaced")) {
+				return new Font("Monospaced", Font.PLAIN, getDefaultSystemFont().getSize());
 			}
+
+			if (StringUtils.contains(fonts, "Courier New")) {
+				return new Font("Courier New", Font.PLAIN, getDefaultSystemFont().getSize());
+			}
+
+			return new Font(fonts[0], Font.PLAIN, getDefaultSystemFont().getSize());
 		}
 
-		return new Font(Font.MONOSPACED, Font.PLAIN, getDefaultSystemFont().getSize());
+		return new Font("Courier New", Font.PLAIN, getDefaultSystemFont().getSize());
 	}
 
 	public static Font newPlainFont(String name) {
-		return new Font(name, Font.PLAIN, JComponents.getDefaultFont().getSize());
+		return new Font(name, Font.PLAIN, JComponents2.getDefaultFont().getSize());
 	}
 
 	public static Font newBoldFont(String name) {
-		return new Font(name, Font.BOLD, JComponents.getDefaultFont().getSize());
+		return new Font(name, Font.BOLD, JComponents2.getDefaultFont().getSize());
 	}
 
 	public static boolean isFixedWidth(Font font) {
@@ -128,27 +125,123 @@ public enum JComponents {
 		return ratio >= 0.3 && ratio <= 0.75;
 	}
 
+//	public static Font getPreferFont(Locale locale) {
+//		Font preferredFont = Label.getFont();
+//		String[] preferredFontFamily = null;
+//
+//		// 当前系统字体列表
+//		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+//		String[] installedFonts = ge.getAvailableFontFamilyNames();
+//
+//		String lang = locale.getLanguage();
+//
+//		if (SystemUtils.isWindows()) {
+//			// Windows 各语种默认字体
+//			switch (lang) {
+//			case "zh": // 中文（简体/繁体略有不同，这里 unified）
+//				preferredFontFamily = new String[] { "Microsoft YaHei UI", "Microsoft YaHei", "SimHei", "SimSun", "Segoe UI", "Dialog" };
+//				break;
+//			case "ja": // 日语
+//				preferredFontFamily = new String[] { "Yu Gothic UI", "Yu Gothic", "Meiryo UI", "Meiryo", "MS Gothic", "Segoe UI", "Dialog" };
+//				break;
+//			case "ko": // 韩语
+//				preferredFontFamily = new String[] { "Malgun Gothic", "Malgun Gothic Semilight", "Segoe UI", "Dialog" };
+//				break;
+//			case "ar": // 阿拉伯语
+//				preferredFontFamily = new String[] { "Segoe UI", "Tahoma", "Dialog" };
+//				break;
+//			case "ru": // 俄语
+//				preferredFontFamily = new String[] { "Segoe UI", "Calibri", "Dialog" };
+//				break;
+//			case "el": // 希腊语
+//				preferredFontFamily = new String[] { "Segoe UI", "Calibri", "Dialog" };
+//				break;
+//			case "th": // 泰语
+//				preferredFontFamily = new String[] { "Leelawadee UI", "Leelawadee", "Tahoma", "Segoe UI", "Dialog" };
+//				break;
+//			case "hi": // 印地语（天城文）
+//				preferredFontFamily = new String[] { "Nirmala UI", "Mangal", "Segoe UI", "Dialog" };
+//				break;
+//			default: // 其他语言一律 English fallback
+//				preferredFontFamily = new String[] { "Microsoft YaHei UI", "Segoe UI", "Calibri", "Dialog" };
+//				break;
+//			}
+//		} else if (SystemUtils.isMacOS()) {
+//			// macOS 在 Big Sur 之后主字体为 SF Pro / Hiragino / AppleGothic 等
+//			switch (lang) {
+//			case "zh":
+//				preferredFontFamily = new String[] { "PingFang SC", "Heiti SC", "Hiragino Sans GB", "Arial Unicode MS", "Dialog" };
+//				break;
+//			case "ja":
+//				preferredFontFamily = new String[] { "Apple Braille", "Hiragino Kaku Gothic ProN", "Dialog" };
+//				break;
+//			case "ko":
+//				preferredFontFamily = new String[] { "Apple SD Gothic Neo", "AppleGothic", "Dialog" };
+//				break;
+//			default:
+//				preferredFontFamily = new String[] { "Helvetica Neue", "Geeza Pro", "Zapf Dingbats" };
+//				break;
+//			}
+//		} else if (SystemUtils.isLinux()) {
+//			// Linux 字体分布较乱，所以给多 fallback
+//			switch (lang) {
+//			case "zh":
+//				preferredFontFamily = new String[] { "WenQuanYi Micro Hei", "Noto Sans CJK SC", "DejaVu Sans", "Dialog" };
+//				break;
+//			case "ja":
+//				preferredFontFamily = new String[] { "Noto Sans CJK JP", "VL Gothic", "DejaVu Sans", "Dialog" };
+//				break;
+//			case "ko":
+//				preferredFontFamily = new String[] { "Noto Sans CJK KR", "UnDotum", "DejaVu Sans", "Dialog" };
+//				break;
+//			case "ar":
+//				preferredFontFamily = new String[] { "Noto Sans Arabic", "DejaVu Sans", "Dialog" };
+//				break;
+//			case "hi":
+//				preferredFontFamily = new String[] { "Noto Sans Devanagari", "Lohit Devanagari", "Dialog" };
+//				break;
+//			default:
+//				preferredFontFamily = new String[] { "Dialog", "DejaVu Sans", "Noto Sans", "Ubuntu" };
+//				break;
+//			}
+//		}
+//
+//		// 遍历优先列表，第一个匹配的即为结果
+//		if (preferredFontFamily != null) {
+//			for (String font : preferredFontFamily) {
+//				for (String installed : installedFonts) {
+//					if (installed.equalsIgnoreCase(font)) {
+//						return new Font(font, Font.PLAIN, getDefaultSystemFont().getSize());
+//					}
+//				}
+//			}
+//		}
+//
+//		// fallback
+//		return preferredFont;
+//	}
+
 	public static Font getPreferFont(Locale locale) {
 		Font defaultFont = Label.getFont();
 		int size = defaultFont.getSize();
-		Locale targetLocale = locale != null ? locale : Locale.getDefault();
-		String[] candidates = getCandidates(targetLocale);
-//		String testText = getTestText(targetLocale);
+		String lang = locale.getLanguage().toLowerCase();
+		String[] candidates = getCandidates(lang);
+
+		// 测试字符串（覆盖多语言，防止 glyph 缺失）
+//	        String testText = "abcABC123中文あいう한글";
 
 		for (String name : candidates) {
 			if (InstalledFonts.contains(name)) {
-				Font font;
+				Font f;
 				if (SystemUtils.isPosixSystem() && name.contains("Mono CJK")) {
-					font = new Font(name, Font.BOLD, size);
+					f = new Font(name, Font.BOLD, size);
 				} else {
-					font = new Font(name, Font.PLAIN, size);
+					f = new Font(name, Font.PLAIN, size);
 				}
-				
-//				if (canDisplay(font, testText) && isComfortableUIFont(font)) {
-//					return font;
-//				}
-
-				return font;
+				// 核心：确保字体真的能显示（避免你遇到的“a a a”问题）
+//	            if (canDisplay(f, testText)) {
+				return f;
+//	            }
 			}
 		}
 
@@ -156,29 +249,22 @@ public enum JComponents {
 		return defaultFont;
 	}
 
-	private static String[] getCandidates(Locale locale) {
-		String lang = locale.getLanguage().toLowerCase();
-		boolean traditionalChinese = "TW".equalsIgnoreCase(locale.getCountry()) || "HK".equalsIgnoreCase(locale.getCountry());
-
+	private static String[] getCandidates(String lang) {
 		// ===== Windows =====
 		if (SystemUtils.isWindows()) {
 			switch (lang) {
 			case "zh":
-				return traditionalChinese
-						? new String[] { "Microsoft JhengHei UI", "Microsoft JhengHei", "Segoe UI", "Dialog" }
-						: new String[] { "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", "Dialog" };
+				return new String[] { "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", "SimHei", "Dialog" };
 			case "ja":
-				return new String[] { "Yu Gothic UI", "Meiryo UI", "Meiryo", "Segoe UI", "Dialog" };
+				return new String[] { "Yu Gothic UI", "Meiryo", "Segoe UI", "Dialog" };
 			case "ko":
 				return new String[] { "Malgun Gothic", "Segoe UI", "Dialog" };
 			case "ar":
 				return new String[] { "Segoe UI", "Tahoma", "Dialog" };
 			case "hi":
 				return new String[] { "Nirmala UI", "Segoe UI", "Dialog" };
-			case "en":
-				return new String[] { "Microsoft YaHei UI", "Microsoft JhengHei UI", "Arial Unicode MS", "Dialog" };
 			default:
-				return new String[] { "Segoe UI", "Arial", "Dialog" };
+				return new String[] { "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", "Calibri", "Dialog" };
 			}
 		}
 
@@ -186,38 +272,30 @@ public enum JComponents {
 		if (SystemUtils.isMacOS()) {
 			switch (lang) {
 			case "zh":
-				return traditionalChinese
-						? new String[] { "PingFang TC", "PingFang HK", "Heiti TC", "Dialog" }
-						: new String[] { "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Dialog" };
+				return new String[] { "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Dialog" };
 			case "ja":
-				return new String[] { "Hiragino Sans", "Hiragino Kaku Gothic ProN", "YuGothic", "PingFang TC", "Dialog" };
+				return new String[] { "Hiragino Kaku Gothic ProN", "PingFang SC", "Dialog" };
 			case "ko":
-				return new String[] { "Apple SD Gothic Neo", "AppleGothic", "PingFang TC", "Dialog" };
-			case "en":
-				return new String[] { "PingFang SC", "Arial Unicode MS", "Dialog" };
+				return new String[] { "Apple SD Gothic Neo", "PingFang SC", "Dialog" };
 			default:
 				// ❗不要再用 Helvetica / Zapf / Geeza
-				return new String[] { "PingFang SC", "Helvetica Neue", "Arial", "Dialog" };
+				return new String[] { "PingFang SC", "Dialog" };
 			}
 		}
-		
+
 		// ===== Linux =====
 		if (SystemUtils.isPosixSystem()) {
 			switch (lang) {
 			case "zh":
-				return traditionalChinese
-						? new String[] { "Noto Sans CJK TC", "Noto Sans TC", "Noto Sans Mono CJK TC", "Noto Sans", "DejaVu Sans", "Dialog" }
-						: new String[] { "Noto Sans CJK SC", "Noto Sans SC", "Noto Sans Mono CJK SC", "Noto Sans", "DejaVu Sans", "Dialog" };
+				return new String[] { "Noto Sans CJK SC", "Noto Sans Mono CJK SC", "Noto Sans", "DejaVu Sans", "Dialog" };
 			case "ja":
-				return new String[] { "Noto Sans CJK JP", "Noto Sans JP", "Noto Sans Mono CJK JP", "Noto Sans", "DejaVu Sans", "Dialog" };
+				return new String[] { "Noto Sans CJK JP", "Noto Sans Mono CJK JP", "Noto Sans", "DejaVu Sans", "Dialog" };
 			case "ko":
-				return new String[] { "Noto Sans CJK KR", "Noto Sans KR", "Noto Sans Mono CJK KR", "Noto Sans", "DejaVu Sans", "Dialog" };
+				return new String[] { "Noto Sans CJK KR", "Noto Sans Mono CJK KR", "Noto Sans", "DejaVu Sans", "Dialog" };
 			case "ar":
 				return new String[] { "Noto Sans Arabic", "DejaVu Sans", "Dialog" };
 			case "hi":
 				return new String[] { "Noto Sans Devanagari", "DejaVu Sans", "Dialog" };
-			case "en":
-				return new String[] { "Noto Sans CJK SC", "Noto Sans", "DejaVu Sans", "Dialog" };
 			default:
 				return new String[] { "Noto Sans", "DejaVu Sans", "Dialog" };
 			}
@@ -227,74 +305,17 @@ public enum JComponents {
 		return new String[] { "Dialog" };
 	}
 
-	private static Font getFirstSupportedFont(String[] availableFonts, String[] candidates, String testText) {
-		int size = getDefaultSystemFont().getSize();
-		for (String candidate : candidates) {
-			if (StringUtils.contains(availableFonts, candidate)) {
-				Font font = new Font(candidate, Font.PLAIN, size);
-//				if (canDisplay(font, testText)) {
-					return font;
-//				}
-			}
-		}
-		return null;
-	}
-
-	private static String getTestText(Locale locale) {
-		String lang = locale.getLanguage().toLowerCase();
-		if ("en".equals(lang)) {
-			return MULTILINGUAL_TEST_TEXT;
-		}
-		if ("zh".equals(lang)) {
-			return "TW".equalsIgnoreCase(locale.getCountry()) || "HK".equalsIgnoreCase(locale.getCountry())
-					? "Aa09繁體中文檔案資料夾空"
-					: "Aa09简体中文文件夹空";
-		}
-		switch (lang) {
-		case "ja":
-			return "Aa09日本語ファイル空";
-		case "ko":
-			return "Aa09한국어파일폴더";
-		case "ru":
-			return "Aa09Русскийфайл";
-		case "pl":
-			return "Aa09Zażółćgęśląjaźń";
-		case "de":
-			return "Aa09ÄÖÜäöüß";
-		case "es":
-			return "Aa09ÁÉÍÓÚÜÑ¿¡";
-		case "fr":
-			return "Aa09ÀÂÇÉÈÊËÎÏÔÙÛÜŸŒÆ";
-		case "pt":
-			return "Aa09ÁÂÃÀÇÉÊÍÓÔÕÚ";
-		case "it":
-			return "Aa09ÀÈÉÌÍÎÒÓÙÚ";
-		default:
-			return "Aa09File folder";
-		}
-	}
-
-	private static boolean isComfortableUIFont(Font font) {
-		FontMetrics metrics = new Canvas().getFontMetrics(font);
-		if (metrics.getHeight() <= 0) {
-			return false;
-		}
-		double averageWidthRatio = metrics.stringWidth("AaMmWw09") / 8.0 / metrics.getHeight();
-		double ascentRatio = (double) metrics.getAscent() / metrics.getHeight();
-		return averageWidthRatio >= 0.30 && averageWidthRatio <= 0.70 && ascentRatio >= 0.68 && ascentRatio <= 0.90;
-	}
-
 	/**
 	 * 检测字体是否能正确显示字符串
 	 */
-//	private static boolean canDisplay(Font font, String text) {
-//		for (int i = 0; i < text.length(); i++) {
-//			if (!font.canDisplay(text.charAt(i))) {
-//				return false;
-//			}
-//		}
-//		return true;
-//	}
+	private static boolean canDisplay(Font font, String text) {
+		for (int i = 0; i < text.length(); i++) {
+			if (!font.canDisplay(text.charAt(i))) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 	public String[] getFontKeys() {
 		return fontKeyNames;
@@ -332,24 +353,24 @@ public enum JComponents {
 	}
 
 	public static void setAllFont(Font font) {
-		JComponents[] vs = JComponents.values();
-		for (JComponents fontComponmentKey : vs) {
+		JComponents2[] vs = JComponents2.values();
+		for (JComponents2 fontComponmentKey : vs) {
 			fontComponmentKey.setFont(font);
 		}
 	}
 
 	public static void setAllForeground(Color clr) {
 		if (clr != null) {
-			JComponents[] vs = JComponents.values();
-			for (JComponents fontComponmentKey : vs) {
+			JComponents2[] vs = JComponents2.values();
+			for (JComponents2 fontComponmentKey : vs) {
 				UIManager.put(fontComponmentKey.getForegroundKey(), clr);
 			}
 		}
 	}
 
 	public static void setAllFont(String fontFamily) {
-		JComponents[] vs = JComponents.values();
-		for (JComponents fontComponmentKey : vs) {
+		JComponents2[] vs = JComponents2.values();
+		for (JComponents2 fontComponmentKey : vs) {
 			fontComponmentKey.setFont(fontFamily);
 		}
 	}
