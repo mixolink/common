@@ -250,6 +250,9 @@ public class SimpleDialog {
 	public static SimpleDialog open(SimpleDialogContentPanel dialogContentPanel, SimpleDialogOption option) {
 		SimpleDialog dlg = new SimpleDialog(dialogContentPanel, option);
 		UIUtils.invokeLater(() -> {
+			if(option.isPack()) {
+				dlg.pack();
+			}
 			dlg.show();
 		});
 		return dlg;

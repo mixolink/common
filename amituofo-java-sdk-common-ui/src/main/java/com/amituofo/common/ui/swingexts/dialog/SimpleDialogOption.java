@@ -18,6 +18,7 @@ public class SimpleDialogOption {
 	private boolean withCancelButton = true;
 	private boolean closeClickOutsite = false;
 	private boolean resizeable = true;
+	private boolean pack = false;	
 
 	public SimpleDialogOption() {
 	}
@@ -81,6 +82,15 @@ public class SimpleDialogOption {
 	public SimpleDialogOption withResizeable(boolean resizeable) {
 		this.resizeable = resizeable;
 		return this;
+	}
+
+	public SimpleDialogOption withPack(boolean pack) {
+		this.pack = pack;
+		return this;
+	}
+	
+	public boolean isPack() {
+		return pack;
 	}
 
 	public Frame getOwner() {
