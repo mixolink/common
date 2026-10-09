@@ -371,6 +371,10 @@ public class JECustomTable<T extends CustomTableModel<ITEM>, ITEM> extends JTabl
 
 	@Override
 	public void setRowSelectionInterval(int index0, int index1) {
+		if (index0 < 0 || index1 < 0) {
+			return;
+		}
+		
 		lastSelectedRows = null;
 //		lastSelectedRowsWithModelIndex = null;
 		super.setRowSelectionInterval(index0, index1);
