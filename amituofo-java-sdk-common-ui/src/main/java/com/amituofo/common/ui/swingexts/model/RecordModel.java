@@ -117,14 +117,16 @@ public class RecordModel<ITEM> {
 	}
 
 	public void removeRecordFromIndex(int index) {
-		int old = getRecordCount();
-		while (this.list.remove(index) != null) {
+	    int old = getRecordCount();
+	    if (index >= old) {
+	        return;
+	    }
 
-		}
+	    this.list.subList(index, old).clear();
 
-		if (autoFireRecordsDeleted) {
-			fireRecordsDeleted(index, old - 1);
-		}
+	    if (autoFireRecordsDeleted) {
+	        fireRecordsDeleted(index, old - 1);
+	    }
 	}
 
 	public void removeRecords() {
