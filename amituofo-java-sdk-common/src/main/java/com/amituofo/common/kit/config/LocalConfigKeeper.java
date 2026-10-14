@@ -10,6 +10,7 @@ import java.util.Map;
 
 import com.amituofo.common.ex.ParseException;
 import com.amituofo.common.ex.TestException;
+import com.amituofo.common.ex.TwoFactorAuthRequiredException;
 import com.amituofo.common.util.FileUtils;
 
 public class LocalConfigKeeper<CONFIG extends Config> extends ConfigKeeperBase<CONFIG> {

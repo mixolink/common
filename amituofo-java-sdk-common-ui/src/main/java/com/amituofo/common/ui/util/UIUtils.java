@@ -77,6 +77,9 @@ import javax.swing.table.TableModel;
 
 import com.amituofo.common.api.Callback;
 import com.amituofo.common.api.Destroyable;
+import com.amituofo.common.bean.InputMFACode;
+import com.amituofo.common.bean.InputPassword;
+import com.amituofo.common.bean.InputUserPassword;
 import com.amituofo.common.ex.InvalidParameterException;
 import com.amituofo.common.global.DialogManager;
 import com.amituofo.common.kit.counter.Counter;
@@ -539,6 +542,47 @@ public class UIUtils {
 			}
 		} while (true);
 	}
+	
+
+	public static InputMFACode openInputMFACode(Component parent, String title, String message, boolean allowEmpty) {
+		Component parentComponent = (parent != null) ? parent : UIContext.getDefaultTopFrame();
+
+		do {
+			JTextField password = new JTextField();
+			Object[] ob = { new JLabel(message), password };
+
+			Counter result = Counter.newCounter();
+
+			if (SwingUtilities.isEventDispatchThread()) {
+				DialogManager.increaseDialog();
+				result.n = JOptionPane.showConfirmDialog(parentComponent, ob, title, JOptionPane.OK_OPTION);
+				DialogManager.decreaseDialog();
+			} else {
+				try {
+					SwingUtilities.invokeAndWait(() -> {
+						DialogManager.increaseDialog();
+						result.n = JOptionPane.showConfirmDialog(parentComponent, ob, title, JOptionPane.OK_OPTION);
+						DialogManager.decreaseDialog();
+					});
+				} catch (Exception e) {
+					return InputMFACode.cancel();
+				}
+			}
+
+			if (result.n == JOptionPane.OK_OPTION) {
+				char[] pwd = password.getText().toCharArray();
+
+				if (!allowEmpty && StringUtils.isEmpty(pwd)) {
+					continue;
+				}
+
+				return InputMFACode.ok(pwd);
+			} else {
+				return InputMFACode.cancel();
+			}
+		} while (true);
+	}
+
 
 	public static InputPassword openInputPassword(Component parent, String title, String message, boolean allowEmpty) {
 		Component parentComponent = (parent != null) ? parent : UIContext.getDefaultTopFrame();
@@ -648,6 +692,10 @@ public class UIUtils {
 
 	public static InputPassword openInputPassword(String title, String message, boolean allowEmpty) {
 		return openInputPassword(UIContext.getDefaultTopFrame(), title, message, allowEmpty);
+	}
+	
+	public static InputMFACode openInputMFACode(String title, String message, boolean allowEmpty) {
+		return openInputMFACode(UIContext.getDefaultTopFrame(), title, message, allowEmpty);
 	}
 
 	public static Object openInputCombox(String title, String message, Object[] selections, Object defaultValue) {

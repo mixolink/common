@@ -1,4 +1,4 @@
-package com.amituofo.common.ui.util;
+package com.amituofo.common.bean;
 
 import com.amituofo.common.util.StringUtils;
 
