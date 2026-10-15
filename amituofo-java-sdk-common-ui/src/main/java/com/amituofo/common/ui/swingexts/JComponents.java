@@ -217,9 +217,9 @@ public enum JComponents {
 			case "hi":
 				return new String[] { "Noto Sans Devanagari", "DejaVu Sans", "Dialog" };
 			case "en":
-				return new String[] { "Noto Sans CJK SC", "Noto Sans", "DejaVu Sans", "Dialog" };
+				return new String[] { "Dialog", "Noto Sans CJK SC", "Noto Sans", "DejaVu Sans"};
 			default:
-				return new String[] { "Noto Sans", "DejaVu Sans", "Dialog" };
+				return new String[] { "Dialog", "Noto Sans", "DejaVu Sans" };
 			}
 		}
 
