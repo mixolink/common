@@ -138,7 +138,7 @@ public enum JComponents {
 		for (String name : candidates) {
 			if (InstalledFonts.contains(name)) {
 				Font font;
-				if (SystemUtils.isPosixSystem() && name.contains("Mono CJK")) {
+				if (SystemUtils.isPosixSystem() && (name.contains("Mono CJK") || name.contains("Noto Sans CJK"))) {
 					font = new Font(name, Font.BOLD, size);
 				} else {
 					font = new Font(name, Font.PLAIN, size);
