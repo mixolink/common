@@ -9,8 +9,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.List;
-
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JDialog;
@@ -30,6 +28,11 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
+/**
+ * Swing font chooser panel.
+ *
+ * @wbp.parser.entryPoint
+ */
 public class FontChooser extends JPanel {
 	public static final Integer[] FONT_SIZES = new Integer[] { 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72 };
 
@@ -80,34 +83,34 @@ public class FontChooser extends JPanel {
 	private Color selectedcolor; // 用户选择的颜色
 	private Font chooseFont;
 	private boolean okPressed = false;
+	private boolean adjustingFontSelection;
 
+	/**
+	 * @wbp.parser.constructor
+	 */
 	public FontChooser() {
-		this(false);
+		initialize();
+		configureFontChoices(false, JComponents.getDefaultSystemFont(), null);
 	}
 
 	// 重载构造，有参的初始化 用于初始化字体界面
 	public FontChooser(Font font, Color color) {
-		this(false, font, color);
+		initialize();
+		configureFontChoices(false, font, color);
 	}
 
 	public FontChooser(Font font) {
-		this(false, font);
+		this(font, null);
 	}
 
 	public FontChooser(boolean monospacedFontsOnly) {
-		// this.selectedfont = null;
-		this.selectedcolor = null;
-		/* 初始化界面 */
-		init(monospacedFontsOnly, JComponents.getDefaultSystemFont(), null);
+		this(monospacedFontsOnly, JComponents.getDefaultSystemFont(), null);
 	}
 
 	// 重载构造，有参的初始化 用于初始化字体界面
 	public FontChooser(boolean monospacedFontsOnly, Font font, Color color) {
-		if (font != null) {
-			init(monospacedFontsOnly, font, color);
-		} else {
-			init(monospacedFontsOnly, JComponents.getDefaultSystemFont(), null);
-		}
+		initialize();
+		configureFontChoices(monospacedFontsOnly, font, color);
 	}
 
 	public FontChooser(boolean monospacedFontsOnly, Font font) {
@@ -132,8 +135,7 @@ public class FontChooser extends JPanel {
 	}
 
 	/* 初始化界面 */
-	private void init(boolean monospacedFontsOnly, final Font font, final Color color) {
-		this.chooseFont = font;
+	private void initialize() {
 		// 实例化变量
 		JLabel lblFont = new JLabel("Font:");
 		JLabel lblStyle = new JLabel("Style:");
@@ -142,33 +144,26 @@ public class FontChooser extends JPanel {
 		txtStyle = new JTextField();
 		txtSize = new JTextField();
 
-		// 取得当前环境可用字体.
-		String[] fontNames;
-
-		if (monospacedFontsOnly) {
-			fontNames = UIUtils.getMonospacedFonts();
-		} else {
-			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-			fontNames = ge.getAvailableFontFamilyNames();
-		}
-
-		lstFont = new JList<String>(fontNames);
+		lstFont = new JList<String>();
 		lstSize = new JList<Integer>(FONT_SIZES);
 //		lstFont = new JList<String>();
 //		lstStyle = new JList<Style>();
 //		lstSize = new JList<Integer>();
 
 		lstStyle = new JList<Style>(Style.values());
-		lstStyle.setSelectedValue(Style.valueOf(font), true); // 初始化样式list
+		lstStyle.setSelectedValue(Style.Plain, true);
 		lstStyle.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
 				updateSelectFont();
 			}
 		});
 
-		JScrollPane spFont = new ArcScrollPane(lstFont);
-		JScrollPane spSize = new ArcScrollPane(lstSize);
-		JScrollPane spStyle = new ArcScrollPane(lstStyle);
+		JScrollPane spFont = new ArcScrollPane();
+		spFont.setViewportView(lstFont);
+		JScrollPane spSize = new ArcScrollPane();
+		spSize.setViewportView(lstSize);
+		JScrollPane spStyle = new ArcScrollPane();
+		spStyle.setViewportView(lstStyle);
 
 		JPanel showPan = new JPanel();
 		JButton ok = new JButton("OK");
@@ -233,7 +228,7 @@ public class FontChooser extends JPanel {
 		add(showPan, "4, 9, 3, 1, fill, fill");
 		showPan.setLayout(new BorderLayout());
 		showPan.add(example);
-		example.setForeground(color);
+		example.setForeground(current_color);
 
 		// 确定和取消按钮
 		add(ok, "4, 11, 3, 1, fill, fill");
@@ -252,16 +247,6 @@ public class FontChooser extends JPanel {
 			}
 		});
 		add(btnColor, "2, 11, fill, fill");
-
-		lstFont.setSelectedValue(font.getFamily(), true);
-		lstSize.setSelectedValue(font.getSize(), true);
-
-		Integer size = lstSize.getSelectedValue();
-		if (size == null) {
-			lstSize.setSelectedIndex(4);
-		}
-
-		updateSelectFont();
 
 		/* 用户选择字体 */
 		lstFont.addListSelectionListener(new ListSelectionListener() {
@@ -292,7 +277,7 @@ public class FontChooser extends JPanel {
 		});
 
 //		UIUtils.executeAction(new Runnable() {
-//			
+//
 //			@Override
 //			public void run() {
 //				lstFont.setSelectedValue(font.getFamily(), true);
@@ -305,11 +290,52 @@ public class FontChooser extends JPanel {
 
 	}
 
+	private void configureFontChoices(boolean monospacedFontsOnly, Font font, Color color) {
+		Font initialFont = font != null ? font : JComponents.getDefaultSystemFont();
+		String[] fontNames;
+		if (monospacedFontsOnly) {
+			fontNames = UIUtils.getMonospacedFonts();
+		} else {
+			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+			fontNames = ge.getAvailableFontFamilyNames();
+		}
+
+		adjustingFontSelection = true;
+		try {
+			chooseFont = initialFont;
+			selectedcolor = null;
+			current_color = color != null ? color : Color.BLACK;
+			example.setForeground(current_color);
+			lstFont.setListData(fontNames);
+			lstFont.setSelectedValue(initialFont.getFamily(), true);
+			if (lstFont.getSelectedIndex() < 0 && fontNames.length > 0) {
+				lstFont.setSelectedIndex(0);
+			}
+			lstStyle.setSelectedValue(Style.valueOf(initialFont), true);
+			lstSize.setSelectedValue(initialFont.getSize(), true);
+			if (lstSize.getSelectedIndex() < 0) {
+				lstSize.setSelectedValue(Integer.valueOf(12), true);
+			}
+		} finally {
+			adjustingFontSelection = false;
+		}
+		updateSelectFont();
+	}
+
 	private void updateSelectFont() {
+		if (adjustingFontSelection) {
+			return;
+		}
 		String fontFamily = lstFont.getSelectedValue();
 		Style style = lstStyle.getSelectedValue();
 		Integer size = lstSize.getSelectedValue();
 
+		if (fontFamily == null) {
+			fontFamily = JComponents.getDefaultSystemFont().getFamily();
+		}
+		if (style == null) {
+			style = Style.Plain;
+		}
 		if (size == null) {
 			size = 12;
 		}
@@ -333,7 +359,7 @@ public class FontChooser extends JPanel {
 //		dialog = new JDialog(parent, "Font", true);
 		dialog.getContentPane().add(this);
 		dialog.setResizable(false);
-		dialog.setSize(410, 360);
+		dialog.setSize(440, 390);
 		// 设置接界面的启动位置
 		// dialog.setLocation(x, y);
 		dialog.addWindowListener(new WindowAdapter() {
