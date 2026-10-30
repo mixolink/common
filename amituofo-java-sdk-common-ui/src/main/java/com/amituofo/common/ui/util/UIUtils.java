@@ -1255,7 +1255,9 @@ public class UIUtils {
 		if (parentFrame == null || subFrame == null) {
 			return;
 		}
-		if (parentFrame.getExtendedState() == JFrame.MAXIMIZED_BOTH) {
+		
+		if ((parentFrame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
+			subFrame.setBounds(parentFrame.getBounds());
 			subFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		} else {
 			subFrame.setBounds(parentFrame.getX() + 25, parentFrame.getY() + 25, parentFrame.getWidth(), parentFrame.getHeight());
