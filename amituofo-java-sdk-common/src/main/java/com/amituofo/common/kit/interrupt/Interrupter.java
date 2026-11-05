@@ -6,7 +6,7 @@ import java.util.List;
 import com.amituofo.common.api.Interruptable;
 
 public class Interrupter implements Interruptable {
-	protected boolean interrupted = false;
+	protected volatile boolean interrupted = false;
 
 	private List<InterrupterListener> listeners = null;
 	private long createTime = System.currentTimeMillis();

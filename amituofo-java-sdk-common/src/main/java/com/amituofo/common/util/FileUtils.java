@@ -27,11 +27,16 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.file.DirectoryStream;
+import java.nio.file.CopyOption;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.LinkOption;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -57,6 +62,7 @@ import com.alibaba.fastjson2.JSON;
 import com.amituofo.common.api.HandleBytes;
 import com.amituofo.common.api.ObjectHandler;
 import com.amituofo.common.api.RecordHandler;
+import com.amituofo.common.api.StepProgressListener;
 import com.amituofo.common.ex.HandleException;
 import com.amituofo.common.kit.counter.Counter;
 import com.amituofo.common.kit.file.FileSummary;
@@ -274,10 +280,8 @@ public class FileUtils {
 	}
 
 	/**
-	 * Move file to a new location. If the destination is on different volume, this file will be copied
-	 * and then original file will be deleted. If the destination already exists, this method renames it
-	 * with different name and leaves it in that directory and moves the new file along side the renamed
-	 * one.
+	 * Moves a file, replacing the target. Unsupported atomic moves copy via a staging file before
+	 * deleting the source. A successfully copied target is retained if source deletion fails.
 	 * 
 	 * @param srcfile  - file to move
 	 * @param destfile - destination file
@@ -285,99 +289,78 @@ public class FileUtils {
 	 * @throws OSSException - error message
 	 */
 	public static void moveFile(File srcfile, File destfile) throws IOException {
-		Path srcPath = srcfile.toPath();
-		Path destPath = destfile.toPath();
+		moveFile(srcfile.toPath(), destfile.toPath());
+	}
 
-		// 1. 基础检查
-		if (!srcfile.exists()) {
-			throw new IOException("Source file does not exist: " + srcfile);
-		}
+	/**
+	 * Uses OS-backed file operations and estimates byte progress every two seconds.
+	 * Listener calls are asynchronous and ordered per transfer, and may finish after this method returns.
+	 * The end event is sent only after the operation succeeds.
+	 */
+	public static void moveFile(File srcfile, File destfile, StepProgressListener progressListener) throws IOException {
+		moveFile(srcfile, destfile, progressListener, false);
+	}
 
-		// 2. 确保目标父目录存在
-		File parentDir = destfile.getParentFile();
-		if (parentDir != null && !parentDir.exists()) {
-			// 使用 mkdirs() 创建多级目录
-			if (!parentDir.mkdirs()) {
-				// 双重检查，防止并发创建失败的情况
-				if (!parentDir.exists()) {
-					throw new IOException("Failed to create target directory: " + parentDir);
-				}
-			}
-		}
+	/**
+	 * When interruptible is true, Thread.interrupt cancels the copy before target commit.
+	 * Native Path copies require the JDK interruptible-copy extension; unsupported providers fail explicitly.
+	 * Callbacks remain asynchronous. On macOS, interruptible copies may bypass fast file cloning.
+	 */
+	public static void moveFile(File srcfile, File destfile, StepProgressListener progressListener, boolean interruptible) throws IOException {
 
-		try {
-			// 3. 尝试原子移动
-			// 注意：ATOMIC_MOVE 通常要求源和目标在同一文件系统分区
-			Files.move(srcPath, destPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-
-		} catch (IOException e) {
-			// 4. 如果原子移动失败（例如跨分区），回退到 复制+删除 模式
-
-			// 区分处理：如果是符号链接，必须特殊处理，否则会移动实体文件
-			if (Files.isSymbolicLink(srcPath)) {
-				moveSymlink(srcPath, destPath);
-			} else {
-				// 普通文件：先复制
-				Files.copy(srcPath, destPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
-			}
-
-			// 最后删除源文件
-			try {
-				Files.delete(srcPath);
-			} catch (IOException deleteEx) {
-				// 如果删除失败，尝试清理刚才创建的目标文件，保持状态一致
-				try {
-					Files.deleteIfExists(destPath);
-				} catch (IOException ignored) {
-				}
-				throw new IOException("Failed to move file. Copy succeeded, but failed to delete source: " + srcfile, deleteEx);
-			}
-		}
+		moveFile(srcfile.toPath(), destfile.toPath(), progressListener, interruptible);
 	}
 
 	public static void moveFile(Path srcPath, Path destPath) throws IOException {
-		// 1. 基础检查
-		if (!Files.exists(srcPath)) {
-			throw new IOException("Source file does not exist: " + srcPath);
-		}
+		moveFile(srcPath, destPath, null);
+	}
 
-		// 2. 确保目标父目录存在
-		Path parentDir = destPath.getParent();
-		if (parentDir != null && !Files.exists(parentDir)) {
-			// 使用 mkdirs() 创建多级目录
-			Files.createDirectories(parentDir);
-			// 双重检查，防止并发创建失败的情况
-			if (!Files.exists(parentDir)) {
-				throw new IOException("Failed to create target directory: " + parentDir);
-			}
-		}
+	/**
+	 * Uses OS-backed file operations and estimates byte progress every two seconds.
+	 * Listener calls are asynchronous and ordered per transfer, and may finish after this method returns.
+	 * The end event is sent only after the operation succeeds.
+	 */
+	public static void moveFile(Path srcPath, Path destPath, StepProgressListener progressListener) throws IOException {
+		moveFile(srcPath, destPath, progressListener, false);
+	}
 
-		try {
-			// 3. 尝试原子移动
-			// 注意：ATOMIC_MOVE 通常要求源和目标在同一文件系统分区
-			Files.move(srcPath, destPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-		} catch (IOException e) {
-			// 4. 如果原子移动失败（例如跨分区），回退到 复制+删除 模式
+	/**
+	 * When interruptible is true, Thread.interrupt cancels the copy before target commit.
+	 * Native Path copies require the JDK interruptible-copy extension; unsupported providers fail explicitly.
+	 * Callbacks remain asynchronous. On macOS, interruptible copies may bypass fast file cloning.
+	 */
+	public static void moveFile(Path srcPath, Path destPath, StepProgressListener progressListener, boolean interruptible) throws IOException {
 
-			// 区分处理：如果是符号链接，必须特殊处理，否则会移动实体文件
-			if (Files.isSymbolicLink(srcPath)) {
-				moveSymlink(srcPath, destPath);
-			} else {
-				// 普通文件：先复制
-				Files.copy(srcPath, destPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
-			}
-
-			// 最后删除源文件
+		checkCopyInterrupted(interruptible);
+		checkDifferentFiles(srcPath, destPath);
+		BasicFileAttributes source = Files.readAttributes(srcPath, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+		createTargetParent(destPath);
+		FileTransferProgress.run(srcPath, destPath, progressListener, progress -> {
+			checkCopyInterrupted(interruptible);
 			try {
-				Files.delete(srcPath);
-			} catch (IOException deleteEx) {
-				// 如果删除失败，尝试清理刚才创建的目标文件，保持状态一致
-				try {
-					Files.deleteIfExists(destPath);
-				} catch (IOException ignored) {
+				Files.move(srcPath, destPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+				return;
+			} catch (FileAlreadyExistsException e) {
+				// Some providers ignore REPLACE_EXISTING for ATOMIC_MOVE. Preserve explicit overwrite semantics.
+				Files.move(srcPath, destPath, StandardCopyOption.REPLACE_EXISTING);
+				return;
+			} catch (AtomicMoveNotSupportedException e) {
+				if (source.isDirectory()) {
+					throw e; // A shallow directory copy is not a safe cross-filesystem move.
 				}
-				throw new IOException("Failed to move file. Copy succeeded, but failed to delete source: " + srcPath, deleteEx);
 			}
+			copyPath(srcPath, destPath, progress, interruptible);
+			checkCopyInterrupted(interruptible);
+			deleteMovedSource(srcPath, destPath);
+		});
+	}
+
+	static void deleteMovedSource(Path source, Path target) throws IOException {
+		try {
+			Files.delete(source);
+		} catch (IOException e) {
+			// Keep the successfully committed target, even if source cleanup fails.
+			throw new IOException("Copy succeeded, but could not delete source " + source + "; target retained at " + target, e);
 		}
 	}
 
@@ -385,12 +368,10 @@ public class FileUtils {
 	 * 专门处理符号链接的移动（复制链接本身）
 	 */
 	public static void moveSymlink(Path srcLink, Path destLink) throws IOException {
-		// 1. 读取链接指向的目标
-		Path target = Files.readSymbolicLink(srcLink);
-		// 2. 创建新的链接
-		Files.createSymbolicLink(destLink, target);
-		// 3. 删除旧链接
-		Files.delete(srcLink);
+		if (!Files.isSymbolicLink(srcLink)) {
+			throw new IOException("Source is not a symbolic link: " + srcLink);
+		}
+		moveFile(srcLink, destLink);
 	}
 	
 	public static void copyDir(File dirSource, File dirTarget) throws IOException {
@@ -424,33 +405,65 @@ public class FileUtils {
 	 * @throws OSSException - error message
 	 */
 	public static void copyFile(File srcfile, File destfile) throws IOException {
-		File flFolder;
-		flFolder = destfile.getParentFile();
-		if ((flFolder != null) && (!flFolder.exists())) {
-			if (!flFolder.mkdirs()) {
-				if (!flFolder.exists()) {
-					throw new IOException("Cannot create directory " + flFolder);
-				}
-			}
+		copyFile(srcfile, destfile, null);
+	}
+
+	/**
+	 * Uses OS-backed file operations and estimates byte progress every two seconds.
+	 * Listener calls are asynchronous and ordered per transfer, and may finish after this method returns.
+	 * The end event is sent only after the operation succeeds.
+	 */
+	public static void copyFile(File srcfile, File destfile, StepProgressListener progressListener) throws IOException {
+		copyFile(srcfile, destfile, progressListener, false);
+	}
+
+	/**
+	 * When interruptible is true, Thread.interrupt cancels the copy before target commit.
+	 * Native Path copies require the JDK interruptible-copy extension; unsupported providers fail explicitly.
+	 * Callbacks remain asynchronous. On macOS, interruptible copies may bypass fast file cloning.
+	 */
+	public static void copyFile(File srcfile, File destfile, StepProgressListener progressListener, boolean interruptible) throws IOException {
+
+		checkCopyInterrupted(interruptible);
+		Path source = srcfile.toPath();
+		Path target = destfile.toPath();
+		checkDifferentFiles(source, target);
+		BasicFileAttributes before = Files.readAttributes(source, BasicFileAttributes.class);
+		if (!before.isRegularFile()) {
+			throw new IOException("Source is not a regular file: " + source);
 		}
+		createTargetParent(target);
+		FileTransferProgress.run(source, target, progressListener, progress -> {
+			Path temporary = Files.createTempFile(target.toAbsolutePath().getParent(), ".mixolink-copy-", ".tmp");
+			try {
+				if (progress != null) progress.observe(temporary);
+				try (FileInputStream in = new FileInputStream(srcfile); FileOutputStream out = new FileOutputStream(temporary.toFile())) {
+					transferFully(in.getChannel(), out.getChannel(), before.size());
+				}
+				validateCopiedFile(source, temporary, before);
+				Files.setLastModifiedTime(temporary, before.lastModifiedTime());
+				if (Files.getFileAttributeView(source, java.nio.file.attribute.PosixFileAttributeView.class) != null) {
+					Files.setPosixFilePermissions(temporary, Files.getPosixFilePermissions(source));
+				}
+				checkCopyInterrupted(interruptible);
+				replaceTarget(temporary, target);
+			} catch (IOException | RuntimeException | Error e) {
+				cleanupTemporary(temporary, e);
+				throw e;
+			}
+		});
+	}
 
-		FileInputStream fis = null;
-		FileOutputStream fos = null;
-		long bytesTransferred = 0;
-		try {
-			fis = new FileInputStream(srcfile);
-			fos = new FileOutputStream(destfile);
-			FileChannel sourceChannel = fis.getChannel();
-			FileChannel destinationChannel = fos.getChannel();
-
-			bytesTransferred = sourceChannel.transferTo(0, sourceChannel.size(), destinationChannel);
-		} finally {
-			StreamUtils.close(fis);
-			StreamUtils.close(fos);
-
-			if (srcfile.length() != bytesTransferred) {
-				destfile.delete();
-				throw new IOException("Transfer length invalid. " + srcfile.length() + "!=" + bytesTransferred);
+	static void transferFully(FileChannel source, FileChannel target, long size) throws IOException {
+		long position = 0;
+		int noProgress = 0;
+		while (position < size) {
+			long step = source.transferTo(position, size - position, target);
+			if (step <= 0) {
+				if (++noProgress >= 3) throw new IOException("File transfer made no progress at " + position + " of " + size);
+			} else {
+				position += step;
+				noProgress = 0;
 			}
 		}
 	}
@@ -461,27 +474,117 @@ public class FileUtils {
      * 如果是普通文件，复制内容和属性
      */
     public static void copyFile(Path srcfile, Path destfile) throws IOException {
-        // 1. 确保目标父目录存在
-        Path parent = destfile.getParent();
-        if (parent != null && !Files.exists(parent)) {
-            Files.createDirectories(parent);
-        }
+        copyFile(srcfile, destfile, null);
+    }
 
-        // 2. 判断源文件是否为符号链接
-        if (Files.isSymbolicLink(srcfile)) {
-            // --- 情况 A: 是符号链接 ---
-            // 读取链接指向的目标路径
-            Path  target = Files.readSymbolicLink(srcfile);
-            // 创建一个新的符号链接指向该目标
-            // 注意：这里不需要 REPLACE_EXISTING，通常先删除旧文件或捕获异常处理
-            Files.createSymbolicLink(destfile, target);
-        } else {
-            // --- 情况 B: 是普通文件 ---
-            // 使用标准复制，并保留属性（权限、时间戳等）
-            // REPLACE_EXISTING: 如果目标存在则覆盖
-            Files.copy(srcfile, destfile, 
-                       StandardCopyOption.REPLACE_EXISTING, 
-                       StandardCopyOption.COPY_ATTRIBUTES);
+    /**
+     * Copies through the OS provider; progress samples the staging file every two seconds.
+     * Listener calls are asynchronous and ordered per transfer, and may finish after this method returns.
+     */
+    public static void copyFile(Path srcfile, Path destfile, StepProgressListener progressListener) throws IOException {
+        copyFile(srcfile, destfile, progressListener, false);
+    }
+
+    /**
+     * When interruptible is true, Thread.interrupt cancels the copy before target commit.
+     * Native Path copies require the JDK interruptible-copy extension; unsupported providers fail explicitly.
+     * Callbacks remain asynchronous. On macOS, interruptible copies may bypass fast file cloning.
+     */
+    public static void copyFile(Path srcfile, Path destfile, StepProgressListener progressListener, boolean interruptible) throws IOException {
+
+        checkCopyInterrupted(interruptible);
+        checkDifferentFiles(srcfile, destfile);
+        createTargetParent(destfile);
+        FileTransferProgress.run(srcfile, destfile, progressListener, progress -> copyPath(srcfile, destfile, progress, interruptible));
+    }
+
+    private static void copyPath(Path source, Path target, FileTransferProgress progress, boolean interruptible) throws IOException {
+        checkCopyInterrupted(interruptible);
+        BasicFileAttributes before = Files.readAttributes(source, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+        Path parent = target.toAbsolutePath().getParent();
+        Path temporary = before.isDirectory() ? Files.createTempDirectory(parent, ".mixolink-copy-")
+                : Files.createTempFile(parent, ".mixolink-copy-", ".tmp");
+        try {
+            if (progress != null) progress.observe(temporary);
+            checkCopyInterrupted(interruptible);
+            if (interruptible && before.isRegularFile()) {
+                Files.copy(source, temporary, LinkOption.NOFOLLOW_LINKS,
+                        StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES, interruptibleCopyOption());
+            } else {
+                Files.copy(source, temporary, LinkOption.NOFOLLOW_LINKS,
+                        StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+            }
+            checkCopyInterrupted(interruptible);
+            if (before.isRegularFile()) validateCopiedFile(source, temporary, before);
+            checkCopyInterrupted(interruptible);
+            replaceTarget(temporary, target);
+        } catch (IOException | RuntimeException | Error e) {
+            cleanupTemporary(temporary, e);
+            throw e;
+        }
+    }
+
+    private static void checkCopyInterrupted(boolean interruptible) throws InterruptedIOException {
+        if (interruptible && Thread.currentThread().isInterrupted()) {
+            throw new InterruptedIOException("File transfer cancelled.");
+        }
+    }
+
+    private static CopyOption interruptibleCopyOption() throws IOException {
+        CopyOption option = InterruptibleCopyOptionHolder.OPTION;
+        if (option == null) {
+            throw new IOException("This JDK does not provide interruptible native file copying.");
+        }
+        return option;
+    }
+
+    // Optional JDK API, loaded only for callers explicitly requesting cancellable native I/O.
+    // No deep reflection or module-opening flags are used; uninterruptible calls keep their original path.
+    private static final class InterruptibleCopyOptionHolder {
+        static final CopyOption OPTION = load();
+        private static CopyOption load() {
+            try {
+                return (CopyOption) Class.forName("com.sun.nio.file.ExtendedCopyOption").getField("INTERRUPTIBLE").get(null);
+            } catch (ReflectiveOperationException | LinkageError | SecurityException e) {
+                return null;
+            }
+        }
+    }
+
+    private static void validateCopiedFile(Path source, Path target, BasicFileAttributes before) throws IOException {
+        BasicFileAttributes after = Files.readAttributes(source, BasicFileAttributes.class);
+        if (Files.size(target) != before.size() || after.size() != before.size()
+                || !after.lastModifiedTime().equals(before.lastModifiedTime())
+                || !java.util.Objects.equals(before.fileKey(), after.fileKey())) {
+            throw new IOException("Source changed or copy size is invalid: " + source);
+        }
+    }
+
+    private static void checkDifferentFiles(Path source, Path target) throws IOException {
+        if (source.toAbsolutePath().normalize().equals(target.toAbsolutePath().normalize())
+                || (Files.exists(source) && Files.exists(target) && Files.isSameFile(source, target))) {
+            throw new IOException("Source and target refer to the same file: " + source);
+        }
+    }
+
+    private static void createTargetParent(Path target) throws IOException {
+        Path parent = target.toAbsolutePath().getParent();
+        if (parent != null) Files.createDirectories(parent);
+    }
+
+    private static void replaceTarget(Path temporary, Path target) throws IOException {
+        try {
+            Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException | FileAlreadyExistsException e) {
+            Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    private static void cleanupTemporary(Path temporary, Throwable failure) {
+        try {
+            Files.deleteIfExists(temporary);
+        } catch (IOException | RuntimeException cleanupFailure) {
+            failure.addSuppressed(cleanupFailure);
         }
     }
 

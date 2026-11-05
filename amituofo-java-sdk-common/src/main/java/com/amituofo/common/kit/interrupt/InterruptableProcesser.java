@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import com.amituofo.common.api.Interruptable;
 
 public abstract class InterruptableProcesser implements Interruptable {
-	protected ProcesserStatus status = ProcesserStatus.Idel;
+	protected volatile ProcesserStatus status = ProcesserStatus.Idel;
 	private Interrupter interrupter = new Interrupter();
 	private String name = null;
 
