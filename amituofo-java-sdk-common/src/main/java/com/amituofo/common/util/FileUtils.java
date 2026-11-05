@@ -66,6 +66,7 @@ import com.amituofo.common.api.StepProgressListener;
 import com.amituofo.common.ex.HandleException;
 import com.amituofo.common.kit.counter.Counter;
 import com.amituofo.common.kit.file.FileSummary;
+import com.amituofo.common.type.FileAttributeCopyMode;
 import com.amituofo.common.type.HandleFeedback;
 
 /**
@@ -311,6 +312,11 @@ public class FileUtils {
 		moveFile(srcfile.toPath(), destfile.toPath(), progressListener, interruptible);
 	}
 
+	/** Copies/moves using the requested metadata policy; same-filesystem moves retain native attributes. */
+	public static void moveFile(File source, File target, StepProgressListener listener, boolean interruptible, FileAttributeCopyMode mode) throws IOException {
+		moveFile(source.toPath(), target.toPath(), listener, interruptible, mode);
+	}
+
 	public static void moveFile(Path srcPath, Path destPath) throws IOException {
 		moveFile(srcPath, destPath, null);
 	}
@@ -330,6 +336,12 @@ public class FileUtils {
 	 * Callbacks remain asynchronous. On macOS, interruptible copies may bypass fast file cloning.
 	 */
 	public static void moveFile(Path srcPath, Path destPath, StepProgressListener progressListener, boolean interruptible) throws IOException {
+		moveFile(srcPath, destPath, progressListener, interruptible, FileAttributeCopyMode.FULL);
+	}
+
+	/** AUTO selects BASIC on known macOS FAT/exFAT destinations; unknown stores preserve FULL metadata. */
+	public static void moveFile(Path srcPath, Path destPath, StepProgressListener progressListener, boolean interruptible, FileAttributeCopyMode mode) throws IOException {
+
 
 		checkCopyInterrupted(interruptible);
 		checkDifferentFiles(srcPath, destPath);
@@ -349,7 +361,7 @@ public class FileUtils {
 					throw e; // A shallow directory copy is not a safe cross-filesystem move.
 				}
 			}
-			copyPath(srcPath, destPath, progress, interruptible);
+			copyPath(srcPath, destPath, progress, interruptible, mode);
 			checkCopyInterrupted(interruptible);
 			deleteMovedSource(srcPath, destPath);
 		});
@@ -454,6 +466,11 @@ public class FileUtils {
 		});
 	}
 
+	/** Copies/moves using the requested metadata policy; same-filesystem moves retain native attributes. */
+	public static void copyFile(File source, File target, StepProgressListener listener, boolean interruptible, FileAttributeCopyMode mode) throws IOException {
+		copyFile(source.toPath(), target.toPath(), listener, interruptible, mode);
+	}
+
 	static void transferFully(FileChannel source, FileChannel target, long size) throws IOException {
 		long position = 0;
 		int noProgress = 0;
@@ -491,14 +508,22 @@ public class FileUtils {
      * Callbacks remain asynchronous. On macOS, interruptible copies may bypass fast file cloning.
      */
     public static void copyFile(Path srcfile, Path destfile, StepProgressListener progressListener, boolean interruptible) throws IOException {
+        copyFile(srcfile, destfile, progressListener, interruptible, FileAttributeCopyMode.FULL);
+    }
+
+    /** AUTO selects BASIC on known macOS FAT/exFAT destinations; unknown stores preserve FULL metadata. */
+    public static void copyFile(Path srcfile, Path destfile, StepProgressListener progressListener, boolean interruptible, FileAttributeCopyMode mode) throws IOException {
+
 
         checkCopyInterrupted(interruptible);
         checkDifferentFiles(srcfile, destfile);
         createTargetParent(destfile);
-        FileTransferProgress.run(srcfile, destfile, progressListener, progress -> copyPath(srcfile, destfile, progress, interruptible));
+        FileTransferProgress.run(srcfile, destfile, progressListener, progress -> copyPath(srcfile, destfile, progress, interruptible, mode));
     }
 
-    private static void copyPath(Path source, Path target, FileTransferProgress progress, boolean interruptible) throws IOException {
+    private static void copyPath(Path source, Path target, FileTransferProgress progress, boolean interruptible, FileAttributeCopyMode mode) throws IOException {
+        FileAttributeCopyMode effectiveMode = mode == null ? FileAttributeCopyMode.FULL : mode;
+        if (effectiveMode == FileAttributeCopyMode.AUTO) effectiveMode = effectiveMode.resolve(target);
         checkCopyInterrupted(interruptible);
         BasicFileAttributes before = Files.readAttributes(source, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
         Path parent = target.toAbsolutePath().getParent();
@@ -507,12 +532,14 @@ public class FileUtils {
         try {
             if (progress != null) progress.observe(temporary);
             checkCopyInterrupted(interruptible);
-            if (interruptible && before.isRegularFile()) {
-                Files.copy(source, temporary, LinkOption.NOFOLLOW_LINKS,
-                        StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES, interruptibleCopyOption());
-            } else {
-                Files.copy(source, temporary, LinkOption.NOFOLLOW_LINKS,
-                        StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+            java.util.List<CopyOption> options = new java.util.ArrayList<>();
+            options.add(LinkOption.NOFOLLOW_LINKS);
+            options.add(StandardCopyOption.REPLACE_EXISTING);
+            if (effectiveMode == FileAttributeCopyMode.FULL) options.add(StandardCopyOption.COPY_ATTRIBUTES);
+            if (interruptible && before.isRegularFile()) options.add(interruptibleCopyOption());
+            Files.copy(source, temporary, options.toArray(new CopyOption[0]));
+            if (effectiveMode == FileAttributeCopyMode.BASIC && !before.isSymbolicLink()) {
+                Files.setLastModifiedTime(temporary, before.lastModifiedTime());
             }
             checkCopyInterrupted(interruptible);
             if (before.isRegularFile()) validateCopiedFile(source, temporary, before);
